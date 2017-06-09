@@ -8,7 +8,8 @@ A GNOME Shell extension that replaces the built-in dash with a much enhanced ver
 
 It provides the following extra features for the dash:
 
-* Move it out of the overlay and into the **top panel** or to one of the **screen edges**.
+* Move it out of the overlay and into the **top panel** or to an **edges** of one of the
+  **monitors**.
 * Configure to show windows in **all of the workspaces** (like the built-in dash) or only in the
   **current workspace**.
 
