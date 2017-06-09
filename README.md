@@ -43,6 +43,10 @@ your own dash-like extension.
 
 Let's make GNOME better, together!
 
+To run make, you might need to install these dependencies:
+
+    sudo apt install make zip gettext intltool libglib2.0-bin
+
 
 Credits
 -------

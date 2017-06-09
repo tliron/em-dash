@@ -1,9 +1,11 @@
 {
 	"uuid": "em-dash@github.com_tliron",
-	"version": 1,
 	"name": "Em Dash",
 	"description": "Replaces the built-in dash with a much enhanced version.",
 	"url": "https://github.com/tliron/em-dash",
 	"original-author": "tal.liron@gmail.com",
-	"shell-version": ["3.18", "3.20", "3.22", "3.24"]
+	"shell-version": ["3.18", "3.20", "3.22", "3.24"],
+	"version": -1,
+	"settings-schema": "org.gnome.shell.extensions.em-dash",
+	"gettext-domain": "em-dash"
 }
