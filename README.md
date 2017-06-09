@@ -30,6 +30,28 @@ For the drop-down menus:
 * Show **media controls** in the drop-down menu for supported applications (MPRIS).
 
 
+Developers
+----------
+
+Hi! Em Dash has a deliberately extensible and reusable architecture. If you have your own idea for a
+new kind of dash implementation, you can extend the Dash class, or even use the EntryManager
+directly. And would you also kindly contribute it to Em Dash?
+
+And if you want to use some of the UI features, you might enjoy Dockable, a generic class that can
+be used to dock any St actor to a monitor edge. Also, our Icon class can be used independently in
+your own dash-like extension.
+
+Let's make GNOME better, together!
+
+
+Credits
+-------
+
+We owe a great debt to Michele G, the original author of the
+[Dash-to-Dock extension](https://github.com/micheleg/dash-to-dock). That codebase contains
+solutions to many thorny problems with docking that made their way to our reusable Dockable class.
+
+
 What does the name mean?
 ------------------------
 

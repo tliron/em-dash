@@ -14,76 +14,63 @@ const Dash = Me.imports.dash;
 
 
 /**
- * Dash implementation that can be docked to the sides of the screen.
+ * Container that can be docked on the side of a monitor.
  */
-const Dock = new Lang.Class({
-	Name: 'EmDash.Dock',
-	Extends: Dash.Dash,
+const Dockable = new Lang.Class({
+	Name: 'EmDash.Dockable',
 
-	_init: function(entryManager) {
-		Utils.log('init dock');
+	_init: function(actor, position) {
+		this.actor = actor;
 		
-		this._position = St.Side.LEFT;
+		this._position = position;
 		this._barrier = null;
 
-		this.parent(entryManager,
-			(this._position === St.Side.LEFT) || (this._position === St.Side.RIGHT));
-
-		this._icons.actor.add_style_class_name('EmDash-Dock');
+		Main.uiGroup.add_child(this.actor);
 
 //		let constraint = new Clutter.BindConstraint({
-//			source: this._icons.actor,
-//			coordinate: (this._position === St.Side.LEFT) || (this._position === St.Side.RIGHT) ?
-//				Clutter.BindCoordinate.WIDTH : Clutter.BindCoordinate.HEIGHT
-//		});
-//		this._icons.actor.add_constraint(constraint);
+//		source: this._icons.actor,
+//		coordinate: (this._position === St.Side.LEFT) || (this._position === St.Side.RIGHT) ?
+//			Clutter.BindCoordinate.WIDTH : Clutter.BindCoordinate.HEIGHT
+//	});
+//	this._icons.actor.add_constraint(constraint);
 
-		//this._icons.actor = new Shell.GenericContainer();
-		//this._icons.actor._delegate = this;
-		//this._icons.actor.set_opacity(255);
+	//this._icons.actor = new Shell.GenericContainer();
+	//this._icons.actor._delegate = this;
+	//this._icons.actor.set_opacity(255);
 
-		//this._dashSpacer = new OverviewControls.DashSpacer();
-		//this._dashSpacer.setDashActor(this._box);
-		//Main.uiGroup.add_child(this._dashSpacer);
-		
-		Main.uiGroup.add_child(this._icons.actor);
-		
-		// Z
+	//this._dashSpacer = new OverviewControls.DashSpacer();
+	//this._dashSpacer.setDashActor(this._box);
+	//Main.uiGroup.add_child(this._dashSpacer);
+
+		// Make sure it's in front of the legacy tray and in back of modal dialogs
 		if (Main.legacyTray && Main.legacyTray.actor) {
-			Main.layoutManager.uiGroup.set_child_below_sibling(this._icons.actor, Main.legacyTray.actor);
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.legacyTray.actor);
 		}
 		else {
-			Main.layoutManager.uiGroup.set_child_below_sibling(this._icons.actor, Main.layoutManager.modalDialogGroup);
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
 		}
 		
+		// Barrier (move mouse against it to unhide)
 		this._pressureBarrier = new Layout.PressureBarrier(
 			100, // hot corner pressure threshold (pixels)
 			1000, // hot corner pressure timeout (ms)
 			Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW);
 
-		//Main.overview._controls._group.insert_child_at_index(this._icons.actor, 0);
+		//Main.overview._controls._group.insert_child_at_index(this.actor, 0);
     	
+		this._signalManager = new Utils.SignalManager(this);
 		this._signalManager.on(global.screen, 'workareas-changed', this._onWorkAreasChanged);
-		this._signalManager.on(this._icons.actor, 'paint', this._onPainted);
+		this._signalManager.on(this.actor, 'paint', this._onPainted);
 		this._signalManager.on(this._pressureBarrier, 'trigger', this._onPressureBarrierTriggered);
-		//this._signalManager.on(this._icons.actor, 'allocate', this._onAllocated);
-		//this._signalManager.on(this._icons.actor, 'get-preferred-width', this._getPrefferedWidth);
-		//this._signalManager.on(this._icons.actor, 'get-preferred-height', this._getPrefferedHeight);
-    },
+		//this._signalManager.on(this.actor, 'allocate', this._onAllocated);
+		//this._signalManager.on(this.actor, 'get-preferred-width', this._getPrefferedWidth);
+		//this._signalManager.on(this.actor, 'get-preferred-height', this._getPrefferedHeight);
+	},
 
 	destroy: function() {
-		this.parent();
-		this._icons.actor.destroy();
+		this._signalManager.destroy();
 		this._destroyBarrier();
 		this._pressureBarrier.destroy();
-	},
-	
-	_destroyBarrier: function() {
-		if (this._barrier !== null) {
-			this._pressureBarrier.removeBarrier(this._barrier);
-			this._barrier.destroy();
-			this._barrier = null;
-		}
 	},
 	
 	refreshPosition: function() {
@@ -104,7 +91,7 @@ const Dock = new Lang.Class({
 				anchor = Clutter.Gravity.NORTH_WEST;
 				x = workArea.x;
 				x_align = St.Align.START;
-				barrierX1 = barrierX2 = x + this._icons.actor.width + 1;
+				barrierX1 = barrierX2 = x + this.actor.width + 1;
 				direction = Meta.BarrierDirection.POSITIVE_X;
 	
 				// Rounded corners
@@ -115,7 +102,7 @@ const Dock = new Lang.Class({
 				anchor = Clutter.Gravity.NORTH_EAST;
 				x = workArea.x + workArea.width;
 				x_align = St.Align.END;
-				barrierX1 = barrierX2 = x - this._icons.actor.width;
+				barrierX1 = barrierX2 = x - this.actor.width;
 				direction = Meta.BarrierDirection.NEGATIVE_X;
 	
 				// Rounded corners
@@ -135,7 +122,7 @@ const Dock = new Lang.Class({
 				anchor = Clutter.Gravity.NORTH_WEST;
 				y = workArea.y;
 				y_align = St.Align.START;
-				barrierY1 = barrierY2 = y + this._icons.actor.height + 1;
+				barrierY1 = barrierY2 = y + this.actor.height + 1;
 				direction = Meta.BarrierDirection.POSITIVE_Y;
 				
 				// Rounded corners
@@ -146,7 +133,7 @@ const Dock = new Lang.Class({
 				anchor = Clutter.Gravity.SOUTH_WEST;
 				y = workArea.y + workArea.height;
 				y_align = St.Align.END;
-				barrierY1 = barrierY2 = y - this._icons.actor.height;
+				barrierY1 = barrierY2 = y - this.actor.height;
 				direction = Meta.BarrierDirection.NEGATIVE_Y;
 				
 				// Rounded corners
@@ -156,17 +143,17 @@ const Dock = new Lang.Class({
 		}
 		
 		// Reposition
-		this._icons.actor.move_anchor_point_from_gravity(anchor);
-		this._icons.actor.x = x;
-		this._icons.actor.y = y;
+		this.actor.move_anchor_point_from_gravity(anchor);
+		this.actor.x = x;
+		this.actor.y = y;
 		if (width !== -1) {
-			this._icons.actor.width = width;
+			this.actor.width = width;
 		}
 		if (height !== -1) {
-			this._icons.actor.height = height;
+			this.actor.height = height;
 		}
-		this._icons.actor.x_align = x_align;
-		this._icons.actor.y_align = y_align;
+		this.actor.x_align = x_align;
+		this.actor.y_align = y_align;
 		
 		// Barrier
 		this._destroyBarrier();
@@ -181,6 +168,14 @@ const Dock = new Lang.Class({
 		this._pressureBarrier.addBarrier(this._barrier);
 
 		Utils.log('[barrier] ' + barrierX1 + ' ' + barrierY1 + ' ' + barrierX2 + ' ' + barrierY2);
+	},
+	
+	_destroyBarrier: function() {
+		if (this._barrier !== null) {
+			this._pressureBarrier.removeBarrier(this._barrier);
+			this._barrier.destroy();
+			this._barrier = null;
+		}
 	},
 	
 	_onPainted: function() {
@@ -212,3 +207,4 @@ const Dock = new Lang.Class({
 		alloc.natural_size = 100;
 	}
 });
+

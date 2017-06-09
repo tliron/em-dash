@@ -35,6 +35,7 @@ const Dash = new Lang.Class({
 
 	destroy: function() {
 		this._signalManager.destroy();
+		this._icons.destroy();
     	if (this._dashWasVisible) {
     		Main.overview._controls.dash.actor.show();
     	}

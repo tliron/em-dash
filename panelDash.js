@@ -20,12 +20,12 @@ function patchAllocate(obj) {
 /**
  * Dash implementation on the GNOME Shell panel.
  */
-const Panel = new Lang.Class({
-	Name: 'EmDash.Panel',
+const PanelDash = new Lang.Class({
+	Name: 'EmDash.PanelDash',
 	Extends: Dash.Dash,
     
 	_init: function(entryManager) {
-		Utils.log('init panel');
+		Utils.log('init PanelDash');
     	
 		/*this.panel = Main.panel;
 		this.container = this.panel._leftBox;
@@ -59,7 +59,6 @@ const Panel = new Lang.Class({
 
 	destroy: function() {
 		this.parent();
-		this._actor.destroy();
 		if (this._appMenuWasVisible) {
 			Main.panel._leftBox.add_child(this._appMenu);
 		}

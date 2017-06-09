@@ -2,13 +2,13 @@
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 const Entries = Me.imports.entries;
-const Panel = Me.imports.panel;
-const Dock = Me.imports.dock;
+const PanelDash = Me.imports.panelDash;
+const DockableDash = Me.imports.dockableDash;
 
 
 let entryManager;
-let panel;
-let dock;
+let panelDash;
+let dockableDash;
 
 
 function init() {
@@ -18,16 +18,16 @@ function init() {
 
 function enable() {
 	entryManager = new Entries.EntryManager();
-	panel = new Panel.Panel(entryManager);
-	dock = new Dock.Dock(entryManager);
+	panelDash = new PanelDash.PanelDash(entryManager);
+	dockableDash = new DockableDash.DockableDash(entryManager);
 }
 
 
 function disable() {
-	panel.destroy();
-	panel = null;
-	dock.destroy();
-	dock = null;
+	panelDash.destroy();
+	panelDash = null;
+	dockableDash.destroy();
+	dockableDash = null;
 	entryManager.destroy();
 	entryManager = null;
 }
