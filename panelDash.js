@@ -20,10 +20,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 const Dash = Me.imports.dash;
 
-
-function log(message) {
-	Utils.log('{PanelDash} ' + message);
-}
+const log = Utils.logger('panelDash');
 
 
 function patchAllocate(obj) {
@@ -77,6 +74,7 @@ const PanelDash = new Lang.Class({
     },
 
 	destroy: function() {
+		log('destroy');
 		this.parent();
 		if (this._appMenuWasVisible) {
 			Main.panel._leftBox.add_child(this._appMenu);

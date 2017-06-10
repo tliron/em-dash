@@ -29,6 +29,13 @@ function log(message) {
 }
 
 
+function logger(name) {
+	return (message) => {
+		log('{' + name + '} ' + message);
+	};
+}
+
+
 function arrayIncludes(arr, value) {
 	// ECMA 6 introduces Array.prototype.includes
 	for (let i in arr) {
@@ -124,7 +131,7 @@ const SignalConnection = new Lang.Class({
 			let originalCallback = callback;
 			callback = () => {
 				connection.disconnect();
-				originalCallback.apply(arguments);
+				return originalCallback.apply(arguments);
 			}
 		}
 		

@@ -21,10 +21,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 const Icons = Me.imports.icons;
 
-
-function log(message) {
-	Utils.log('{Dash} ' + message);
-}
+const log = Utils.logger('dash');
 
 
 /**
@@ -34,11 +31,12 @@ const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
     
     _init: function(entryManager, vertical) {
+		log('init');
     	this._entryManager = entryManager;
     	
-    	// Hide built-in dash
-    	this._dashWasVisible = Main.overview._controls.dash.actor.visible;
-    	if (this._dashWasVisible) {
+    	// Hide overlay dash
+    	this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
+    	if (this._overlayDashWasVisible) {
     		Main.overview._controls.dash.actor.hide();
     	}
     	
@@ -53,9 +51,10 @@ const Dash = new Lang.Class({
     },
 
 	destroy: function() {
+		log('destroy');
 		this._signalManager.destroy();
 		this._icons.destroy();
-    	if (this._dashWasVisible) {
+    	if (this._overlayDashWasVisible) {
     		Main.overview._controls.dash.actor.show();
     	}
 	},
@@ -71,11 +70,10 @@ const Dash = new Lang.Class({
 	_onFocusChanged: function(windowTracker, app) {
 		if (app === null) {
 			log('focus-changed: none');
-			return;
 		}
-		let id = app.id;
-		let name = app.get_name();
-		log('focus-changed: ' + id + ' ' + name);
+		else {
+			log('focus-changed: ' + app.id + ' ' + app.get_name());
+		}
 		this._entryManager.log();
 	}
 });

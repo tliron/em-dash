@@ -16,16 +16,12 @@
 const Lang = imports.lang;
 const Signals = imports.signals;
 const AppFavorites = imports.ui.appFavorites;
-
 const Shell = imports.gi.Shell;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 
-
-function log(message) {
-	Utils.log('{Entries} ' + message);
-}
+const log = Utils.logger('entries');
 
 
 /*

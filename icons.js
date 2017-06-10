@@ -26,10 +26,7 @@ const Gettext = imports.gettext.domain('em-dash');
 const _ = Gettext.gettext;
 const N_ = function(e) { return e };
 
-
-function log(message) {
-	Utils.log('{Icons} ' + message);
-}
+const log = Utils.logger('icons');
 
 
 /**
@@ -57,18 +54,17 @@ const Icons = new Lang.Class({
     	this._entryManager = entryManager;
     	this._vertical = vertical;
 
-    	// Actor
-		this.actor = new St.Bin({
-			name: 'EmDash-Icons'
-			//reactive: false
-		});
-
 		// Box
 		this._box = new St.BoxLayout({
 			name: 'EmDash-Icons-Box',
 			vertical: vertical === true
 		});
-		this.actor.set_child(this._box);
+
+		// Actor
+		this.actor = new St.Bin({
+			name: 'EmDash-Icons',
+			child: this._box
+		});
 
 		// Signals
 		this._signalManager = new Utils.SignalManager(this);
