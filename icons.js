@@ -27,6 +27,11 @@ const _ = Gettext.gettext;
 const N_ = function(e) { return e };
 
 
+function log(message) {
+	Utils.log('{Icons} ' + message);
+}
+
+
 /**
  * UI representation of a dash entry. 
  */
@@ -55,6 +60,7 @@ const Icons = new Lang.Class({
     	// Actor
 		this.actor = new St.Bin({
 			name: 'EmDash-Icons'
+			//reactive: false
 		});
 
 		// Box
@@ -66,7 +72,7 @@ const Icons = new Lang.Class({
 
 		// Signals
 		this._signalManager = new Utils.SignalManager(this);
-		this._signalManager.on(entryManager, 'changed', this._onEntriesChanged);
+		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
 		
 		this.refresh();
 	},
@@ -98,14 +104,14 @@ const Icons = new Lang.Class({
 		for (let i in entrySequence._entries) {
 			let entry = entrySequence._entries[i];
 			let appIcon = new Icon(entry._app);
-			//Utils.log(appIcon._dot.get_height()); 0
+			//log(appIcon._dot.get_height()); 0
 			appIcon.icon.iconSize = size; // IconGrid.BaseIcon
 			this._box.add_child(appIcon.actor);
 		}
 	},
 
 	_onEntriesChanged: function(entryManager) {
-		Utils.log('[entries-changed]');
+		log('entries-changed');
 		this.refresh();
 	}
 });

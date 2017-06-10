@@ -22,6 +22,11 @@ const Utils = Me.imports.utils;
 const Icons = Me.imports.icons;
 
 
+function log(message) {
+	Utils.log('{Dash} ' + message);
+}
+
+
 /**
  * Base class for dash implementations, such as Panel and Dock.
  */
@@ -43,8 +48,8 @@ const Dash = new Lang.Class({
 		// Signals
 		let windowTracker = Shell.WindowTracker.get_default();
 		this._signalManager = new Utils.SignalManager(this);
-		this._signalManager.on(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
-		this._signalManager.onProperty(windowTracker, 'focus-app', this._onFocusChanged);
+		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
+		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusChanged);
     },
 
 	destroy: function() {
@@ -56,8 +61,8 @@ const Dash = new Lang.Class({
 	},
 	
 	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
-		Utils.log('[workspace-switched] from ' + oldWorkspaceIndex + ' to ' + newWorkspaceIndex +
-				' (' + direction + ')');
+		log('workspace-switched from ' + oldWorkspaceIndex + ' to ' + newWorkspaceIndex +
+			' (' + direction + ')');
 		if (!this._entryManager.single) {
 			this._icons.refresh(newWorkspaceIndex);
 		}
@@ -65,12 +70,12 @@ const Dash = new Lang.Class({
 
 	_onFocusChanged: function(windowTracker, app) {
 		if (app === null) {
-			Utils.log('[focus-changed] none');
+			log('focus-changed: none');
 			return;
 		}
 		let id = app.id;
 		let name = app.get_name();
-		Utils.log('[focus-changed] ' + id + ' ' + name);
+		log('focus-changed: ' + id + ' ' + name);
 		this._entryManager.log();
 	}
 });

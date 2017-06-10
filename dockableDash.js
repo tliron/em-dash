@@ -14,12 +14,17 @@
  */
 
 const Lang = imports.lang;
-const St = imports.gi.St;
+const Meta = imports.gi.Meta;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 const Dash = Me.imports.dash;
 const Dockable = Me.imports.dockable;
+
+
+function log(message) {
+	Utils.log('{DockableDash} ' + message);
+}
 
 
 /**
@@ -30,15 +35,21 @@ const DockableDash = new Lang.Class({
 	Extends: Dash.Dash,
 
 	_init: function(entryManager) {
-		Utils.log('init DockableDash');
+		log('init');
 		
-		this._position = St.Side.LEFT;
+		this._side = Meta.Side.LEFT;
 		
 		this.parent(entryManager,
-			(this._position === St.Side.LEFT) || (this._position === St.Side.RIGHT));
+			(this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT));
 
 		this._icons.actor.add_style_class_name('EmDash-DockableDash');
+		//this._icons.actor.add_style_class_name(Main.sessionMode.panelStyle);
 		
-		this._dockable = new Dockable.Dockable(this._icons.actor, this._position);
+		this._dockable = new Dockable.Dockable(this._icons.actor, this._side);
     },
+    
+    destroy: function() {
+    	parent();
+    	this._dockable.destroy();
+    }
 });

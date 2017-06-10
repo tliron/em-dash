@@ -23,6 +23,11 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 
 
+function log(message) {
+	Utils.log('{Entries} ' + message);
+}
+
+
 /*
  * Can match a window by its WM_CLASS and optionally its WM_CLASS_INSTANCE.
  */
@@ -322,7 +327,7 @@ const EntryManager = new Lang.Class({
 	SINGLE_WORKSPACE_INDEX: -1,
 
 	_init: function() {
-		Utils.log('init');
+		log('init');
 		
 		this.single = false;
 
@@ -337,15 +342,15 @@ const EntryManager = new Lang.Class({
 		let appSystem = Shell.AppSystem.get_default();
 		let appFavorites = AppFavorites.getAppFavorites();
 		this._signalManager = new Utils.SignalManager(this);
-		this._signalManager.on(appSystem, 'installed-changed', this._onInstalledChanged);
-		this._signalManager.on(appSystem, 'app-state-changed', this._onStateChanged);
-		this._signalManager.on(appFavorites, 'changed', this._onFavoritesChanged);
-		this._signalManager.on(global.screen, 'workspace-added', this._onWorkspaceAdded);
-		this._signalManager.on(global.screen, 'workspace-removed', this._onWorkspaceRemoved);
+		this._signalManager.connect(appSystem, 'installed-changed', this._onInstalledChanged);
+		this._signalManager.connect(appSystem, 'app-state-changed', this._onStateChanged);
+		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);
+		this._signalManager.connect(global.screen, 'workspace-added', this._onWorkspaceAdded);
+		this._signalManager.connect(global.screen, 'workspace-removed', this._onWorkspaceRemoved);
 	},
 
 	destroy: function() {
-		Utils.log('destroy');
+		log('destroy');
 		this._signalManager.destroy();
 	},
 
@@ -506,19 +511,19 @@ const EntryManager = new Lang.Class({
 		if (this.single) {
 			let entries = this._entrySequences[this.SINGLE_WORKSPACE_INDEX];
 			if (entries !== undefined) {
-				Utils.log('single: ' + entries.toString());
+				log('single: ' + entries.toString());
 			}
 		}
 		else {
 			for (let workspaceIndex in this._entrySequences) {
 				let entries = this._entrySequences[workspaceIndex];
-				Utils.log('workspace ' + workspaceIndex + ': ' + entries.toString(workspaceIndex));
+				log('workspace ' + workspaceIndex + ': ' + entries.toString(workspaceIndex));
 			}
 		}
 	},
 
 	_onInstalledChanged: function(appSystem) {
-		Utils.log('installed-changed');
+		log('installed-changed');
 		this.refresh();
 	},
 
@@ -526,17 +531,17 @@ const EntryManager = new Lang.Class({
 		let id = app.id;
 		let state = app.state;
 		if (state == Shell.AppState.STARTING) {
-			Utils.log('[app-state-changed] ' + id + ' starting');
+			log('app-state-changed: ' + id + ' starting');
 		}
 		else if (state == Shell.AppState.RUNNING) {
 			// Note: running events will be sent for each open app when the shell is restarted
-			Utils.log('[app-state-changed] ' + id + ' running');
+			log('app-state-changed: ' + id + ' running');
 			if (this.add(app)) {
 				this.emit('changed');
 			}
 		}
 		else if (state == Shell.AppState.STOPPED) {
-			Utils.log('[app-state-changed] ' + id + ' stopped');
+			log('app-state-changed: ' + id + ' stopped');
 			if (!Utils.isFavoriteApp(app)) { // favorites stay
 				if (this.remove(app)) {
 					this.emit('changed');
@@ -546,7 +551,7 @@ const EntryManager = new Lang.Class({
 	},
 
 	_onFavoritesChanged: function() {
-		Utils.log('[favorites-changed]');
+		log('favorites-changed');
 		let changed = false;
 		if (this.prune()) {
 			changed = true;
@@ -560,12 +565,12 @@ const EntryManager = new Lang.Class({
 	},
 	
 	_onWorkspaceAdded: function(screen, workspaceIndex) {
-		Utils.log('[workspace-added] ' + workspaceIndex);
+		log('workspace-added: ' + workspaceIndex);
 		// Nothing to do: new workspaces are created on demand
 	},
 	
 	_onWorkspaceRemoved: function(screen, workspaceIndex) {
-		Utils.log('[workspace-removed] ' + workspaceIndex);
+		log('workspace-removed: ' + workspaceIndex);
 		this.removeEntrySequence(workspaceIndex);
 	}
 });

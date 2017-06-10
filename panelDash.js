@@ -21,6 +21,11 @@ const Utils = Me.imports.utils;
 const Dash = Me.imports.dash;
 
 
+function log(message) {
+	Utils.log('{PanelDash} ' + message);
+}
+
+
 function patchAllocate(obj) {
 	let originalAllocate = obj.allocate;
 	obj.allocate = Lang.bind(obj, (box, flags, original) => {
@@ -39,7 +44,7 @@ const PanelDash = new Lang.Class({
 	Extends: Dash.Dash,
     
 	_init: function(entryManager) {
-		Utils.log('init PanelDash');
+		log('init');
     	
 		/*this.panel = Main.panel;
 		this.container = this.panel._leftBox;
@@ -68,7 +73,7 @@ const PanelDash = new Lang.Class({
 //		patchAllocate(Main.panel._rightBox);
 
 		// Signals
-		//this._signalManager.on(Main.panel.actor, 'allocate', this._onPanelAllocated);
+		//this._signalManager.connect(Main.panel.actor, 'allocate', this._onPanelAllocated);
     },
 
 	destroy: function() {

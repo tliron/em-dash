@@ -1,6 +1,6 @@
-./*.zip
-./_build/
-./schemas/gschemas.compiled
-./po/*.mo
-./po/em-dash.pot
-./Settings.ui.h
+*.zip
+_build/
+schemas/gschemas.compiled
+po/*.mo
+po/em-dash.pot
+Settings.ui.h

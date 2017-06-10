@@ -15,14 +15,16 @@
 
 const Lang = imports.lang;
 const AppFavorites = imports.ui.appFavorites;
+const GLib = imports.gi.GLib;
+const Meta = imports.gi.Meta;
 
 
 let DEBUG = false;
 
 
-function log(msg) {
+function log(message) {
 	if (DEBUG) {
-		global.log('[EmDash] ' + msg);
+		global.log('[EmDash] ' + message);
 	}
 }
 
@@ -73,6 +75,98 @@ function isFavoriteApp(app) {
 
 
 /**
+ * Calls a callback later. Later type options:
+ * 
+ * Meta.LaterType.RESIZE
+ * Meta.LaterType.CALC_SHOWING
+ * Meta.LaterType.CHECK_FULLSCREEN
+ * Meta.LaterType.SYNC_STACK
+ * Meta.LaterType.BEFORE_REDRAW
+ * Meta.LaterType.IDLE
+ * 
+ * You can cancel the call by:
+ * 
+ * Meta.later_remove(id)
+ */
+function later(self, callback, laterType) {
+	if (laterType === undefined) {
+		laterType = Meta.LaterType.BEFORE_REDRAW;
+	}
+	callback = Lang.bind(self, callback)
+	return Meta.later_add(laterType, () => {
+		callback();
+		return GLib.SOURCE_REMOVE;
+	});
+}
+
+
+/**
+ * Single signal connection.
+ */
+const SignalConnection = new Lang.Class({
+	Name: 'EmDash.SignalConnection',
+
+	_init: function(manager, site, name, callback, single, mode) {
+		this.manager = manager;
+		this.site = site;
+		this.name = name;
+		this.callback = callback;
+		this.single = single;
+		this.mode = mode || null;
+		this.id = 0;
+	},
+	
+	connect: function() {
+		let callback = Lang.bind(this.manager._self, this.callback);
+		
+		if (this.single) {
+			let connection = this;
+			let originalCallback = callback;
+			callback = () => {
+				connection.disconnect();
+				originalCallback.apply(arguments);
+			}
+		}
+		
+		if (this.mode == 'after') {
+			this.id = this.site.connect_after(this.name, callback);
+		}
+		else if (this.mode === 'property') {
+			this.id = this.site.connect('notify::' + this.name, (site, paramSpec) => {
+				let value = site[paramSpec.name];
+				callback(site, value);
+			});
+		}
+		else {
+			this.id = this.site.connect(this.name, callback);
+		}
+		
+		if (this.id > 0) {
+			this.manager._connections.push(this);
+			return true;
+		}
+		return false;
+	},
+	
+	disconnect: function(remove) {
+		this.site.disconnect(this.id);
+		if (remove === undefined) {
+			remove = true;
+		}
+		if (remove) {
+			for (let i in this.manager._connections) {
+				let connection = this.manager._connections[i];
+				if (connection === this) {
+					this.manager._connections.splice(i, 1);
+					break;
+				}
+			}
+		}
+	}
+});
+
+
+/**
  * Manages signal connections.
  */
 const SignalManager = new Lang.Class({
@@ -80,55 +174,46 @@ const SignalManager = new Lang.Class({
 
 	_init: function(self) {
 		this._self = self;
-		this._entries = [];
+		this._connections = [];
 	},
 	
-	on: function(obj, name, fn) {
-		let boundFn = Lang.bind(this._self, fn);
-		let id = obj.connect(name, boundFn);
-		if (id > 0) {
-			this._entries.push([id, obj, fn]);
-		}
+	connect: function(site, name, callback, single) {
+		return this._connect(site, name, callback, single);
 	},
 
-	onAfter: function(obj, name, fn) {
-		let boundFn = Lang.bind(this._self, fn);
-		let id = obj.connect_after(name, fn);
-		if (id > 0) {
-			this._entries.push([id, obj, fn]);
-		}
+	connectAfter: function(site, name, callback, single) {
+		return this._connect(site, name, callback, single, 'after');
 	},
 
-	onProperty: function(obj, name, fn) {
-		let boundFn = Lang.bind(this._self, fn);
-		let id = obj.connect('notify::' + name, (obj, paramSpec) => {
-			let value = obj[paramSpec.name];
-			boundFn(obj, value);
-		});
-		if (id > 0) {
-			this._entries.push([id, obj, fn]);
-		}
+	connectProperty: function(site, name, callback, single) {
+		return this._connect(site, name, callback, single, 'property');
 	},
 	
-	off: function(fn) {
-		for (let i in this._entries) {
-			let entry = this._entries[i];
-			let theFn = entry[2];
-			if (fn === theFn) {
-				let id = entry[0];
-				let obj = entry[1];
-				obj.disconnect(id);
+	disconnect: function(callback) {
+		for (let i in this._connections) {
+			let connection = this._connections[i];
+			if (connection.callback === callback) {
+				connection.disconnect();
+				return connection;
 			}
 		}
+		return null;
 	},
 
 	destroy: function() {
-		for (let i in this._entries) {
-			let entry = this._entries[i];
-			let id = entry[0];
-			let obj = entry[1];
-			obj.disconnect(id);
+		while (this._connections.length > 0) {
+			let connection = this._connections.pop();
+			connection.disconnect(false);
 		}
-		this._entries = [];
+	},
+	
+	_connect: function(site, name, callback, single, mode) {
+		mode = mode || null;
+		single = single || false;
+		let connection = new SignalConnection(this, site, name, callback, single, mode);
+		if (connection.connect()) {
+			return connection;
+		}
+		return null;
 	}
 });
