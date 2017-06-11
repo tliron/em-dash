@@ -2,6 +2,8 @@
 UUID = em-dash@github.com_tliron
 NAME = Em Dash
 TRANSLATIONS = em-dash
+TRANSLATIONS_COPYRIGHT = Tal Liron
+TRANSLATIONS_EMAIL = tal.liron@gmail.com
 SCHEMA = em-dash
 INSTALLNAME = $(UUID)
 
@@ -60,20 +62,21 @@ zip-file: _deploy
 # Translations
 
 MSGSRC = $(wildcard ./po/*.po)
+XGETTEXT_ARGS = --package-name="$(NAME)" --package-version="$(VERSION)" --copyright-holder="$(TRANSLATIONS_COPYRIGHT)" --msgid-bugs-address="$(TRANSLATIONS_EMAIL)"
 
 ./po/%.mo: ./po/%.po
 	msgfmt -c $< -o $@
 
-merge-po: ./po/$(TRANSLATIONS).pot
+update-translations: ./po/$(TRANSLATIONS).pot
 	for l in $(MSGSRC); do \
 		msgmerge -U $$l "./po/$(TRANSLATIONS).pot"; \
 	done;
 
 ./po/$(TRANSLATIONS).pot: $(TOLOCALIZE) prefs.ui
 	mkdir -p po
-	xgettext -k_ -kN_ -o "./po/$(TRANSLATIONS).pot" --package-name="$(NAME)" $(TOLOCALIZE)
 	intltool-extract --type=gettext/glade ./prefs.ui
-	xgettext -k_ -kN_ --join-existing -o "./po/$(TRANSLATIONS).pot" ./prefs.ui.h
+	xgettext -k_ -kN_ -o "./po/$(TRANSLATIONS).pot" $(XGETTEXT_ARGS) $(TOLOCALIZE)
+	xgettext -k_ -kN_ -j -o "./po/$(TRANSLATIONS).pot" $(XGETTEXT_ARGS) ./prefs.ui.h
 
 # Deploy
 

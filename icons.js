@@ -22,9 +22,9 @@ const Clutter = imports.gi.Clutter;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 
-const Gettext = imports.gettext.domain('em-dash');
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const N_ = function(e) { return e };
+const N_ = (e) => { return e };
 
 const log = Utils.logger('icons');
 

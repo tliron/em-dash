@@ -8,20 +8,21 @@
     <value value='3' nick='EDGE_END'/>
     <value value='4' nick='EDGE_BOTTOM'/>
   </enum>
+  <enum id='org.gnome.shell.extensions.em-dash.visibility'>
+    <value value='0' nick='ALWAYS'/>
+    <value value='1' nick='TOUCH_TO_SHOW'/>
+  </enum>
   <enum id='org.gnome.shell.extensions.em-dash.alignment'>
     <value value='0' nick='START'/>
     <value value='1' nick='CENTER'/>
     <value value='2' nick='END'/>
   </enum>
-  <enum id='org.gnome.shell.extensions.em-dash.visibility'>
-    <value value='0' nick='ALWAYS'/>
-    <value value='1' nick='TOUCH_TO_SHOW'/>
-  </enum>
   <enum id='org.gnome.shell.extensions.em-dash.click'>
     <value value='0' nick='NOTHING'/>
-    <value value='1' nick='LAUNCH_OR_SHOW'/>
-    <value value='2' nick='LAUNCH_OR_TOGGLE'/>
-    <value value='3' nick='LAUNCH_OR_CYCLE'/>
+    <value value='1' nick='LAUNCH'/>
+    <value value='2' nick='LAUNCH_OR_SHOW'/>
+    <value value='3' nick='LAUNCH_OR_TOGGLE'/>
+    <value value='4' nick='LAUNCH_OR_CYCLE'/>
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.hover'>
     <value value='0' nick='NOTHING'/>

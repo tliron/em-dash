@@ -16,17 +16,13 @@
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Utils = Me.imports.utils;
-const Entries = Me.imports.entries;
 const Dash = Me.imports.dash;
 const PanelDash = Me.imports.panelDash;
 const DockableDash = Me.imports.dockableDash;
 
 
 let settings;
-let entryManager;
 let dashManager;
-let panelDash;
-let dockableDash;
 
 
 function init() {
@@ -39,9 +35,6 @@ function init() {
 function enable() {
 	Utils.log('enabling...');
     settings = Convenience.getSettings();
-//	entryManager = new Entries.EntryManager(settings);
-//	panelDash = new PanelDash.PanelDash(settings, entryManager);
-//	dockableDash = new DockableDash.DockableDash(settings, entryManager);
 	dashManager = new Dash.DashManager(settings, {
 		PANEL_START: PanelDash.PanelDash,
 		PANEL_CENTER: PanelDash.PanelDash,
@@ -57,12 +50,6 @@ function disable() {
 	Utils.log('disabling...');
 	dashManager.destroy();
 	dashManager = null;
-//	panelDash.destroy();
-//	panelDash = null;
-//	dockableDash.destroy();
-//	dockableDash = null;
-//	entryManager.destroy();
-//	entryManager = null;
 	settings.run_dispose();
 	settings = null;
 	Utils.log('disabled');
