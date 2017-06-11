@@ -40,7 +40,7 @@ const PanelDash = new Lang.Class({
 	Name: 'EmDash.PanelDash',
 	Extends: Dash.Dash,
     
-	_init: function(entryManager) {
+	_init: function(settings, entryManager) {
 		log('init');
     	
 		/*this.panel = Main.panel;
@@ -48,7 +48,7 @@ const PanelDash = new Lang.Class({
 		this.appMenu = this.panel.statusArea.appMenu;
 		this.panelBox = Main.layoutManager.panelBox;*/
 
-    	this.parent(entryManager, false);
+    	this.parent(settings, entryManager, false);
 
 		// Remove application menu (TODO: configurable?)
 		this._appMenu = Main.panel.statusArea.appMenu.container;

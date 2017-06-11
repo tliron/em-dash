@@ -25,6 +25,7 @@ const Meta = imports.gi.Meta;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
+const MetaUtils = Me.imports.metaUtils;
 const Dash = Me.imports.dash;
 
 const log = Utils.logger('dockable');
@@ -85,7 +86,8 @@ const Dockable = new Lang.Class({
 		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
 
-		this._later = Utils.later(this, () => {
+		this._laterManager = new MetaUtils.LaterManager(this);
+		this._laterManager.later(() => {
 			// Wait until later so that themes are fully applied
 			Main.layoutManager.addChrome(this.actor, {
 				affectsStruts: !this._toggle,
@@ -103,10 +105,10 @@ const Dockable = new Lang.Class({
 	},
 
 	destroy: function() {
-		Meta.later_remove(this._later);
+		this._laterManager.destroy();
 		this._signalManager.destroy();
 		this._destroyPressureBarrier();
-		this.actor.remove_all_children(); // will be destroyed elsewhere
+		this.actor.remove_all_children(); // not our responsibility to destroy
 		Main.layoutManager.removeChrome(this.actor);
 		// this.actor.destroy(); cannot and does not need to be destroyed without children!
 	},
@@ -192,13 +194,13 @@ const Dockable = new Lang.Class({
 			});
 		}*/
 		
-		// If our bounds have changed, the layout tracker will recreate our strut, which will
-		// trigger a call to _onWorkAreasChanged, which in turn might call reinitialize again for
+		// If our bounds have changed, the chrome layout tracker will recreate our strut, which will
+		// trigger a call to _onWorkAreasChanged, which in turn might call reinitialize *again* for
 		// the updated work area. I could not find a way to avoid this situation. However, this
 		// extra call will result in us calculating the same exact bounds, so nothing will actually
 		// change in the layout for this second call, and thus _onWorkAreasChanged won't be called a
-		// third time. That'a a few unnecessarily repeated calculations for the second call, but
-		// otherwise there is no other effect!
+		// third time. That's a few unnecessarily repeated calculations due to the second call, but
+		// otherwise there is no other averse effect, and we avoid an endless loop.
 	},
 	
 	_setRoundedCorners: function() {

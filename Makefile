@@ -2,11 +2,11 @@
 UUID = em-dash@github.com_tliron
 NAME = Em Dash
 TRANSLATIONS = em-dash
-GSCHEMA = em-dash
+SCHEMA = em-dash
 INSTALLNAME = $(UUID)
 
 BASE_MODULES = extension.js stylesheet.css metadata.json COPYING README.md
-EXTRA_MODULES = convenience.js dash.js dockable.js dockableDash.js entries.js icons.js panelDash.js prefs.js utils.js Settings.ui
+EXTRA_MODULES = convenience.js dash.js dockable.js dockableDash.js entries.js icons.js panelDash.js prefs.js utils.js prefs.ui
 EXTRA_IMAGES = 
 TOLOCALIZE = prefs.js icons.js
 
@@ -37,7 +37,7 @@ clean:
 	rm -f "./$(ZIP)"
 	rm -f "./schemas/gschemas.compiled"
 	rm -f "./po/$(TRANSLATIONS).pot"
-	rm -f "./Settings.ui.h"
+	rm -f "./prefs.ui.h"
 
 install:
 	rm -rf "$(INSTALLBASE)/$(INSTALLNAME)"
@@ -54,8 +54,8 @@ zip-file: _deploy
 
 # GSchemas
 
-./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.$(GSCHEMA).gschema.xml
-	glib-compile-schemas ./schemas/
+./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.$(SCHEMA).gschema.xml ./schemas/org.gnome.shell.extensions.$(SCHEMA).enum.xml
+	glib-compile-schemas --strict ./schemas/
 
 # Translations
 
@@ -69,11 +69,11 @@ merge-po: ./po/$(TRANSLATIONS).pot
 		msgmerge -U $$l "./po/$(TRANSLATIONS).pot"; \
 	done;
 
-./po/$(TRANSLATIONS).pot: $(TOLOCALIZE) Settings.ui
+./po/$(TRANSLATIONS).pot: $(TOLOCALIZE) prefs.ui
 	mkdir -p po
 	xgettext -k_ -kN_ -o "./po/$(TRANSLATIONS).pot" --package-name="$(NAME)" $(TOLOCALIZE)
-	intltool-extract --type=gettext/glade ./Settings.ui
-	xgettext -k_ -kN_ --join-existing -o "./po/$(TRANSLATIONS).pot" ./Settings.ui.h
+	intltool-extract --type=gettext/glade ./prefs.ui
+	xgettext -k_ -kN_ --join-existing -o "./po/$(TRANSLATIONS).pot" ./prefs.ui.h
 
 # Deploy
 
@@ -94,3 +94,17 @@ _deploy: all
 		cp $$l $$lf/LC_MESSAGES/$(TRANSLATIONS).mo; \
 	done;
 	sed -i 's/"version": -1/"version": "$(VERSION)"/' ./_build/metadata.json;
+
+# Development
+
+SCHEMAS = /usr/share/glib-2.0/schemas/
+
+register-schema:
+	sudo cp "./schemas/org.gnome.shell.extensions.$(SCHEMA)."*.xml "$(SCHEMAS)"
+	sudo chmod -x "$(SCHEMAS)/org.gnome.shell.extensions.$(SCHEMA)."*.xml
+	sudo glib-compile-schemas "$(SCHEMAS)"
+
+unregister-schema:
+	sudo rm -f "$(SCHEMAS)/org.gnome.shell.extensions.$(SCHEMA)."*.xml
+	sudo glib-compile-schemas "$(SCHEMAS)"
+	

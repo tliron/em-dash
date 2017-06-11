@@ -30,8 +30,10 @@ const log = Utils.logger('dash');
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
     
-    _init: function(entryManager, vertical) {
+    _init: function(settings, entryManager, vertical) {
 		log('init');
+		
+		this._settings = settings;
     	this._entryManager = entryManager;
     	
     	// Hide overlay dash

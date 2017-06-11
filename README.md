@@ -17,8 +17,8 @@ For the dash icons:
   
 * Configure the dash icon indicator to show **how many** windows are open (the built-in dash only
   shows if *any* are open).
-* Configure the behavior of **left-click**, **right-click**, **middle-click**, and **scroll**
-  on the dash icons.
+* Configure the behavior of **left-click**, **middle-click**, and **wheel scroll** on the dash
+  icons.
 * Configure the dash icons to show **window previews** when hovering over them (a Windows feature).
 * Configure icons to **"grab"** other windows. This solves a common annoyance with the built-in
   dash, in which poorly designed applications spawn extra icons for their windows. This feature even

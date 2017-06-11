@@ -14,10 +14,11 @@
  */
 
 const Lang = imports.lang;
-const AppFavorites = imports.ui.appFavorites;
-const GLib = imports.gi.GLib;
-const Meta = imports.gi.Meta;
 
+
+/*
+ *  Logging
+ */
 
 let DEBUG = false;
 
@@ -36,6 +37,10 @@ function logger(name) {
 }
 
 
+/*
+ * Collections
+ */
+
 function arrayIncludes(arr, value) {
 	// ECMA 6 introduces Array.prototype.includes
 	for (let i in arr) {
@@ -47,64 +52,61 @@ function arrayIncludes(arr, value) {
 }
 
 
-function getWorkspacesForApp(app) {
-	let workspaceIndexes = [];
-
-	let n_workspaces = global.screen.n_workspaces; // GNOME 3.24 introduces screen.workspaces
-	for (let workspaceIndex = 0; workspaceIndex < n_workspaces; workspaceIndex++) {
-		let workspace = global.screen.get_workspace_by_index(workspaceIndex);
-		if (app.is_on_workspace(workspace)) {
-			workspaceIndexes.push(workspaceIndex);
-		}
-	}
-	
-	return workspaceIndexes;
-}
-
-
-function isAppOnWorkspace(app, workspaceIndex) {
-	let workspace = global.screen.get_workspace_by_index(workspaceIndex);
-	return app.is_on_workspace(workspace);
-}
-
-
-function isFavoriteApp(app) {
-	let appId = app.id;
-	let appFavorites = AppFavorites.getAppFavorites();
-	let favorites = appFavorites.getFavoriteMap();
-	for (let theAppId in favorites) {
-		if (theAppId === appId) {
-			return true;
-		}
-	}
-	return false;
-}
-
-
 /**
- * Calls a callback later. Later type options:
- * 
- * Meta.LaterType.RESIZE
- * Meta.LaterType.CALC_SHOWING
- * Meta.LaterType.CHECK_FULLSCREEN
- * Meta.LaterType.SYNC_STACK
- * Meta.LaterType.BEFORE_REDRAW
- * Meta.LaterType.IDLE
- * 
- * You can cancel the call by:
- * 
- * Meta.later_remove(id)
+ * Manages signal connections.
  */
-function later(self, callback, laterType) {
-	if (laterType === undefined) {
-		laterType = Meta.LaterType.BEFORE_REDRAW;
+const SignalManager = new Lang.Class({
+	Name: 'EmDash.SignalManager',
+
+	_init: function(self) {
+		this._self = self;
+		this._connections = [];
+	},
+	
+	connect: function(site, name, callback, single) {
+		return this._connect(site, name, callback, single);
+	},
+
+	connectAfter: function(site, name, callback, single) {
+		return this._connect(site, name, callback, single, 'after');
+	},
+
+	connectProperty: function(site, name, callback, single) {
+		return this._connect(site, name, callback, single, 'notify');
+	},
+
+	connectPropertyChanged: function(site, name, callback, single) {
+		return this._connect(site, name, callback, single, 'changed');
+	},
+
+	disconnect: function(callback) {
+		for (let i in this._connections) {
+			let connection = this._connections[i];
+			if (connection.callback === callback) {
+				connection.disconnect();
+				return connection;
+			}
+		}
+		return null;
+	},
+
+	destroy: function() {
+		while (this._connections.length > 0) {
+			let connection = this._connections.pop();
+			connection.disconnect(false);
+		}
+	},
+	
+	_connect: function(site, name, callback, single, mode) {
+		mode = mode || null;
+		single = single || false;
+		let connection = new SignalConnection(this, site, name, callback, single, mode);
+		if (connection.connect()) {
+			return connection;
+		}
+		return null;
 	}
-	callback = Lang.bind(self, callback)
-	return Meta.later_add(laterType, () => {
-		callback();
-		return GLib.SOURCE_REMOVE;
-	});
-}
+});
 
 
 /**
@@ -138,8 +140,8 @@ const SignalConnection = new Lang.Class({
 		if (this.mode == 'after') {
 			this.id = this.site.connect_after(this.name, callback);
 		}
-		else if (this.mode === 'property') {
-			this.id = this.site.connect('notify::' + this.name, (site, paramSpec) => {
+		else if (this.mode === 'notify') {
+			this.id = this.site.connect(this.mode + '::' + this.name, (site, paramSpec) => {
 				let value = site[paramSpec.name];
 				callback(site, value);
 			});
@@ -148,7 +150,7 @@ const SignalConnection = new Lang.Class({
 			this.id = this.site.connect(this.name, callback);
 		}
 		
-		if (this.id > 0) {
+		if (this.id != 0) {
 			this.manager._connections.push(this);
 			return true;
 		}
@@ -156,7 +158,10 @@ const SignalConnection = new Lang.Class({
 	},
 	
 	disconnect: function(remove) {
-		this.site.disconnect(this.id);
+		if (this.id != 0) {
+			this.site.disconnect(this.id);
+			this.id = 0;
+		}
 		if (remove === undefined) {
 			remove = true;
 		}
@@ -169,58 +174,5 @@ const SignalConnection = new Lang.Class({
 				}
 			}
 		}
-	}
-});
-
-
-/**
- * Manages signal connections.
- */
-const SignalManager = new Lang.Class({
-	Name: 'EmDash.SignalManager',
-
-	_init: function(self) {
-		this._self = self;
-		this._connections = [];
-	},
-	
-	connect: function(site, name, callback, single) {
-		return this._connect(site, name, callback, single);
-	},
-
-	connectAfter: function(site, name, callback, single) {
-		return this._connect(site, name, callback, single, 'after');
-	},
-
-	connectProperty: function(site, name, callback, single) {
-		return this._connect(site, name, callback, single, 'property');
-	},
-	
-	disconnect: function(callback) {
-		for (let i in this._connections) {
-			let connection = this._connections[i];
-			if (connection.callback === callback) {
-				connection.disconnect();
-				return connection;
-			}
-		}
-		return null;
-	},
-
-	destroy: function() {
-		while (this._connections.length > 0) {
-			let connection = this._connections.pop();
-			connection.disconnect(false);
-		}
-	},
-	
-	_connect: function(site, name, callback, single, mode) {
-		mode = mode || null;
-		single = single || false;
-		let connection = new SignalConnection(this, site, name, callback, single, mode);
-		if (connection.connect()) {
-			return connection;
-		}
-		return null;
 	}
 });

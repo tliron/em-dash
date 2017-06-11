@@ -35,17 +35,17 @@ function init() {
 
 
 function enable() {
-	Utils.log('enable');
-    settings = Convenience.getSettings('org.gnome.shell.extensions.em-dash');  
-	entryManager = new Entries.EntryManager();
-	panelDash = new PanelDash.PanelDash(entryManager);
-	dockableDash = new DockableDash.DockableDash(entryManager);
+	Utils.log('enabling...');
+    settings = Convenience.getSettings();
+	entryManager = new Entries.EntryManager(settings);
+	panelDash = new PanelDash.PanelDash(settings, entryManager);
+	dockableDash = new DockableDash.DockableDash(settings, entryManager);
 	Utils.log('enabled');
 }
 
 
 function disable() {
-	Utils.log('disable');
+	Utils.log('disabling...');
 	panelDash.destroy();
 	panelDash = null;
 	dockableDash.destroy();

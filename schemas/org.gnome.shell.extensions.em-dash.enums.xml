@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gschema SYSTEM "/usr/share/glib-2.0/schemas/gschema.dtd">
+<schemalist>
+  <enum id='org.gnome.shell.extensions.em-dash.position'>
+    <value value='0' nick='PANEL_START'/>
+    <value value='1' nick='PANEL_CENTER'/>
+    <value value='2' nick='EDGE_START'/>
+    <value value='3' nick='EDGE_END'/>
+    <value value='4' nick='EDGE_BOTTOM'/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.em-dash.alignment'>
+    <value value='0' nick='START'/>
+    <value value='1' nick='CENTER'/>
+    <value value='2' nick='END'/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.em-dash.visibility'>
+    <value value='0' nick='ALWAYS'/>
+    <value value='1' nick='TOUCH_TO_SHOW'/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.em-dash.click'>
+    <value value='0' nick='NOTHING'/>
+    <value value='1' nick='LAUNCH_OR_SHOW'/>
+    <value value='2' nick='LAUNCH_OR_TOGGLE'/>
+    <value value='3' nick='LAUNCH_OR_CYCLE'/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.em-dash.hover'>
+    <value value='0' nick='NOTHING'/>
+    <value value='1' nick='WINDOW_LIST'/>
+    <value value='2' nick='WINDOW_PREVIEWS'/>
+  </enum>
+</schemalist>

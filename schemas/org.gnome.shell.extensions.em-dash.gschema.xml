@@ -1,5 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="gnome-shell-extensions">
+<!DOCTYPE gschema SYSTEM "/usr/share/glib-2.0/schemas/gschema.dtd">
+<schemalist gettext-domain="em-dash">
   <schema path="/org/gnome/shell/extensions/em-dash/" id="org.gnome.shell.extensions.em-dash">
+    <key name="position" enum="org.gnome.shell.extensions.em-dash.position">
+      <default>'EDGE_START'</default>
+      <summary>Position</summary>
+      <description>Where the dash is positioned.</description>
+    </key>
+    <key name="monitor" type="i">
+      <default>-1</default>
+      <summary>Monitor</summary>
+      <description>On which monitor the dash is positioned.</description>
+    </key>
+    <key name="alignment" enum="org.gnome.shell.extensions.em-dash.alignment">
+      <default>'START'</default>
+      <summary>Alignment</summary>
+      <description>How to align the dash.</description>
+    </key>
+    <key name="visibility" enum="org.gnome.shell.extensions.em-dash.visibility">
+      <default>'ALWAYS'</default>
+      <summary>Visibility</summary>
+      <description>When to show the dash.</description>
+    </key>
+    <key name="left-click" enum="org.gnome.shell.extensions.em-dash.click">
+      <default>'LAUNCH_OR_SHOW'</default>
+      <summary>Left-click</summary>
+      <description>What to do when an icon is left-clicked.</description>
+    </key>
+    <key name="middle-click" enum="org.gnome.shell.extensions.em-dash.click">
+      <default>'NOTHING'</default>
+      <summary>Middle-click</summary>
+      <description>What to do when an icon is middle-clicked.</description>
+    </key>
+    <key name="hover" enum="org.gnome.shell.extensions.em-dash.hover">
+      <default>'NOTHING'</default>
+      <summary>Hover</summary>
+      <description>What to do when the mouse hovers over an icon.</description>
+    </key>
+    <key name="quicklist" type="b">
+      <default>true</default>
+      <summary>Show quicklist</summary>
+      <description>Whether to show the quicklist in the menu if supported by application.</description>
+    </key>
+    <key name="media-controls" type="b">
+      <default>true</default>
+      <summary>Show media controls</summary>
+      <description>Whether to show media-controls in the menu if supported by application.</description>
+    </key>
   </schema>
 </schemalist>

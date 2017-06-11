@@ -31,17 +31,23 @@ const DockableDash = new Lang.Class({
 	Name: 'EmDash.DockableDash',
 	Extends: Dash.Dash,
 
-	_init: function(entryManager) {
+	_init: function(settings, entryManager) {
 		log('init');
 		
 		this._side = Meta.Side.LEFT;
 		this._toggle = false;
 		
-		this.parent(entryManager,
+		this.parent(settings, entryManager,
 			(this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT));
 
 		this._dockable = new Dockable.Dockable(this._icons.actor, this._side, this._toggle);
-    },
+
+		this._signalManager.connect(this._settings, 'changed::position', this._onPositionChanged);
+	},
+	
+	_onPositionChanged: function(settings, name) {
+		log('>>>>>>>>>>>>>>>>>>>>> changed position!');
+	},
     
     destroy: function() {
 		log('destroy');

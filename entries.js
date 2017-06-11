@@ -25,43 +25,6 @@ const log = Utils.logger('entries');
 
 
 /*
- * Can match a window by its WM_CLASS and optionally its WM_CLASS_INSTANCE.
- */
-const Matcher = new Lang.Class({
-	Name: 'EmDash.Matcher',
-
-	_init: function(wmClass, wmClassInstance) {
-		this._wmClass = wmClass;
-		this._wmClassInstance = wmClassInstance || null;
-	},
-
-	/*
-	 * Checks if we match a window.
-	 */
-	matches: function(window) {
-		let wmClass = window.wm_class;
-		if (this._wmClass === wmClass) {
-			if (this._wmClassInstance === null) {
-				return true;
-			}
-			let wmClassInstance = window.get_wm_class_instance();
-			if (this._wmClassInstance === wmClassInstance) {
-				return true;
-			}
-		}
-		return false;
-	},
-	
-	toString: function() {
-		if (this._wmClassInstance === null) {
-			return this._wmClass;
-		}
-		return this._wmClass + ':' + this._wmClassInstance;
-	}
-});
-
-
-/*
  * Represents a single dash entry.
  * 
  * An entry can be based on an installed application or be "window-backed," which means there is no
@@ -77,7 +40,7 @@ const Entry = new Lang.Class({
 	_init: function(app) {
 		this._app = app;
 		this._matchers = [];
-		this._favorite = Utils.isFavoriteApp(app);
+		this._favorite = isFavoriteApp(app);
 		
 		// HACK
 		if (app.id === 'riot-web.desktop') {
@@ -142,7 +105,7 @@ const Entry = new Lang.Class({
 	 * Checks if we used to be favorite but no longer are.
 	 */
 	isPrunable: function() {
-		return this._favorite && !Utils.isFavoriteApp(this._app);
+		return this._favorite && !isFavoriteApp(this._app);
 	},
 
 	/*
@@ -306,7 +269,7 @@ const EntrySequence = new Lang.Class({
 
 
 /**
- * Manages entry sequences.
+ * Manages dash entry sequences.
  * 
  * Can be configured to use a separate entry sequence for each workspace, or single entry sequence
  * for all of them.
@@ -322,8 +285,10 @@ const EntryManager = new Lang.Class({
 	
 	SINGLE_WORKSPACE_INDEX: -1,
 
-	_init: function() {
+	_init: function(settings) {
 		log('init');
+		
+		this._settings = settings;
 		
 		this.single = false;
 
@@ -406,7 +371,7 @@ const EntryManager = new Lang.Class({
 			return this.addTo(this.SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
-		let workspaceIndexes = Utils.getWorkspacesForApp(app);
+		let workspaceIndexes = getWorkspacesForApp(app);
 		for (let i in workspaceIndexes) {
 			let workspaceIndex = workspaceIndexes[i];
 			if (this.addTo(workspaceIndex, app)) {
@@ -457,7 +422,7 @@ const EntryManager = new Lang.Class({
 				}
 			}
 			else {
-				if (Utils.isAppOnWorkspace(app, workspaceIndex)) {
+				if (isAppOnWorkspace(app, workspaceIndex)) {
 					if (this.addTo(workspaceIndex, app)) {
 						changed = true;
 					}
@@ -538,7 +503,7 @@ const EntryManager = new Lang.Class({
 		}
 		else if (state == Shell.AppState.STOPPED) {
 			log('app-state-changed: ' + id + ' stopped');
-			if (!Utils.isFavoriteApp(app)) { // favorites stay
+			if (!isFavoriteApp(app)) { // favorites stay
 				if (this.remove(app)) {
 					this.emit('changed');
 				}
@@ -573,3 +538,78 @@ const EntryManager = new Lang.Class({
 
 
 Signals.addSignalMethods(EntryManager.prototype);
+
+
+/*
+ * Can match a window by its WM_CLASS and optionally its WM_CLASS_INSTANCE.
+ */
+const Matcher = new Lang.Class({
+	Name: 'EmDash.Matcher',
+
+	_init: function(wmClass, wmClassInstance) {
+		this._wmClass = wmClass;
+		this._wmClassInstance = wmClassInstance || null;
+	},
+
+	/*
+	 * Checks if we match a window.
+	 */
+	matches: function(window) {
+		let wmClass = window.wm_class;
+		if (this._wmClass === wmClass) {
+			if (this._wmClassInstance === null) {
+				return true;
+			}
+			let wmClassInstance = window.get_wm_class_instance();
+			if (this._wmClassInstance === wmClassInstance) {
+				return true;
+			}
+		}
+		return false;
+	},
+	
+	toString: function() {
+		if (this._wmClassInstance === null) {
+			return this._wmClass;
+		}
+		return this._wmClass + ':' + this._wmClassInstance;
+	}
+});
+
+
+/*
+ * Utils 
+ */
+
+function getWorkspacesForApp(app) {
+	let workspaceIndexes = [];
+
+	let n_workspaces = global.screen.n_workspaces; // GNOME 3.24 introduces screen.workspaces
+	for (let workspaceIndex = 0; workspaceIndex < n_workspaces; workspaceIndex++) {
+		let workspace = global.screen.get_workspace_by_index(workspaceIndex);
+		if (app.is_on_workspace(workspace)) {
+			workspaceIndexes.push(workspaceIndex);
+		}
+	}
+	
+	return workspaceIndexes;
+}
+
+
+function isAppOnWorkspace(app, workspaceIndex) {
+	let workspace = global.screen.get_workspace_by_index(workspaceIndex);
+	return app.is_on_workspace(workspace);
+}
+
+
+function isFavoriteApp(app) {
+	let appId = app.id;
+	let appFavorites = AppFavorites.getAppFavorites();
+	let favorites = appFavorites.getFavoriteMap();
+	for (let theAppId in favorites) {
+		if (theAppId === appId) {
+			return true;
+		}
+	}
+	return false;
+}
