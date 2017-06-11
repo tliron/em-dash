@@ -205,7 +205,8 @@ const Dockable = new Lang.Class({
 
 		// This will be emitted automatically when GNOME Shell is started, but not if the
 		// extension is enabled when GNOME Shell is up and running
-		global.screen.emit('workareas-changed');
+		//global.screen.emit('workareas-changed');
+		this.reinitialize();
 	},
 	
 	_setRoundedCorners: function() {

@@ -8,7 +8,7 @@ A GNOME Shell extension that replaces the built-in dash with a much enhanced ver
 
 It provides the following extra features for the dash:
 
-* Move it out of the overlay and into the **top panel** or to an **edges** of one of the
+* Move it out of the overlay and into the **top panel** or to an **edge** of one of the
   **monitors**.
 * Configure to show windows in **all of the workspaces** (like the built-in dash) or only in the
   **current workspace**.
@@ -61,3 +61,13 @@ What does the name mean?
 
 The [em dash](https://en.wikipedia.org/wiki/Dash#Em_dash) is the longest version of the typographic
 dash.
+
+
+TODO
+----
+
+* Icons too big in Hi-DPI
+* Sometimes when switching position the widget size is wrong (minimal)
+* Icon dragging
+* Scrollable if there are too many icons
+* Touch to show should not have struts

@@ -54,7 +54,7 @@ zip-file: _deploy
 
 # GSchemas
 
-./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.$(SCHEMA).gschema.xml ./schemas/org.gnome.shell.extensions.$(SCHEMA).enum.xml
+./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.$(SCHEMA).gschema.xml ./schemas/org.gnome.shell.extensions.$(SCHEMA).enums.xml
 	glib-compile-schemas --strict ./schemas/
 
 # Translations
