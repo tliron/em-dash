@@ -19,9 +19,57 @@ const Shell = imports.gi.Shell;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
+const Entries = Me.imports.entries;
 const Icons = Me.imports.icons;
 
 const log = Utils.logger('dash');
+
+
+/**
+ * Manages several dash implementations, switching between them according to changed to the
+ * "position" setting.
+ */
+const DashManager = new Lang.Class({
+    Name: 'EmDash.DashManager',
+
+    _init: function(settings, dashClasses) {
+    	this._settings = settings;
+    	this._entryManager = new Entries.EntryManager(settings); 
+    	
+    	this.dashClasses = dashClasses;
+    	this.dash = null;
+    	
+		// Signals
+		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager.connect(this._settings, 'changed::position', this._onPositionChanged);
+		
+		this._settings.emit('changed::position', 'position');
+	},
+	
+	destroy: function() {
+		this._signalManager.destroy();
+		if (this.dash !== null) {
+			this.dash.destroy();
+		}
+		this._entryManager.destroy();
+	},
+	
+	_onPositionChanged: function(settings, name) {
+		let position = settings.get_string('position');
+		log('position-changed: ' + position);
+		let dashClass = this.dashClasses[position];
+		if (this.dash !== null) {
+			if (this.dash.constructor === dashClass) {
+				this.dash.setPosition(position);
+				return;
+			}
+			else {
+				this.dash.destroy();
+			}
+		}
+		this.dash = new dashClass(this._settings, this._entryManager);
+	}
+});
 
 
 /**
@@ -31,8 +79,6 @@ const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
     
     _init: function(settings, entryManager, vertical) {
-		log('init');
-		
 		this._settings = settings;
     	this._entryManager = entryManager;
     	
@@ -53,12 +99,14 @@ const Dash = new Lang.Class({
     },
 
 	destroy: function() {
-		log('destroy');
 		this._signalManager.destroy();
 		this._icons.destroy();
     	if (this._overlayDashWasVisible) {
     		Main.overview._controls.dash.actor.show();
     	}
+	},
+	
+	setPosition: function(position) {
 	},
 	
 	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {

@@ -17,7 +17,6 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 const Layout = imports.ui.layout;
 const OverviewControls = imports.ui.overviewControls;
-const Tweener = imports.ui.tweener;
 const St = imports.gi.St;
 const Clutter = imports.gi.Clutter;
 const Shell = imports.gi.Shell;
@@ -37,22 +36,22 @@ const log = Utils.logger('dockable');
 const Dockable = new Lang.Class({
 	Name: 'EmDash.Dockable',
 
-	_init: function(actor, side, toggle) {
+	_init: function(child, side, toggle) {
 		this.actor = new St.Bin({
 			name: 'EmDash-Dockable',
-			child: actor,
+			child: child,
 			reactive: true
 		});
-		//this.actor.set_clip_to_allocation(true);
 		this.actor.add_style_class_name('EmDash-DockableDash');
+		this.actor.set_clip_to_allocation(true);
+
 		//this.actor.add_style_class_name(Main.sessionMode.panelStyle);
 
 		this._side = side;
 		this._toggle = toggle;
-		this._animations = true;
 		this._monitorIndex = Main.layoutManager.primaryIndex;
 
-		this._collapsed = this._toggle;
+		this._collapsed = toggle;
 		this._collapsedSize = 3;
 		this._pressureBarrier = null;
 		this._barrier = null;
@@ -73,44 +72,39 @@ const Dockable = new Lang.Class({
 //		});
 //		this._icons.actor.add_constraint(constraint);
 
-//		if (Main.legacyTray && Main.legacyTray.actor) {
-//			// Make sure we're in front of the legacy tray (if it exists)
-//			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.legacyTray.actor);
-//		}
-//		else {
-//			// At least make sure we're behind the modal dialog group
-//			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
-//		}
-		
+		// Signals
 		this._signalManager = new Utils.SignalManager(this);
 		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
 
+		// Add chrome later, when the theme is fully applied
 		this._laterManager = new MetaUtils.LaterManager(this);
-		this._laterManager.later(() => {
-			// Wait until later so that themes are fully applied
-			Main.layoutManager.addChrome(this.actor, {
-				affectsStruts: !this._toggle,
-				trackFullscreen: true
-			});
-
-			// Only now that the actor is allocated can we get its size
-			this._width = actor.width;
-			this._height = actor.height;
-
-			// This will be emitted automatically when GNOME Shell is started, but not if the
-			// extension is enabled when GNOME Shell is up and running
-			global.screen.emit('workareas-changed');
-		});
+		this._laterManager.later(this._addToChrome);
 	},
 
 	destroy: function() {
 		this._laterManager.destroy();
 		this._signalManager.destroy();
 		this._destroyPressureBarrier();
-		this.actor.remove_all_children(); // not our responsibility to destroy
+		this.actor.remove_all_children(); // not our responsibility to destroy child
 		Main.layoutManager.removeChrome(this.actor);
 		// this.actor.destroy(); cannot and does not need to be destroyed without children!
+	},
+	
+	setSide: function(side) {
+		if (this._side !== side) {
+			this._side = side;
+			Main.layoutManager.removeChrome(this.actor);
+			this._addToChrome();
+			this.reinitialize();
+		}
+	},
+	
+	setToggle: function(toggle) {
+		if (this._toggle !== toggle) {
+			this._collapsed = this._toggle = toggle;
+			this.reinitialize();
+		}
 	},
 	
 	reinitialize: function() {
@@ -119,7 +113,6 @@ const Dockable = new Lang.Class({
 		let bounds = {}, barrier = {};
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
 		let monitor = Main.layoutManager.monitors[this._monitorIndex];
-		//let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
 		if ((this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT)) {
 			bounds.y = workArea.y;
@@ -168,31 +161,18 @@ const Dockable = new Lang.Class({
 			}
 		}
 		
-		let actor = this.actor.get_first_child();
+		let child = this.actor.get_first_child();
 		if (this._collapsed) {
-			actor.hide();
+			child.hide();
 			this._setPressureBarrier(barrier);
 		}
 		else {
-			actor.show();
+			child.show();
 			this._destroyPressureBarrier();
 		}
 
 		this._setBounds(bounds);
 		this._setRoundedCorners();
-		
-		/*if (this._animations) {
-			//this.actor.hide();
-			Tweener.addTween(this.actor, {
-				slidex: 1,
-				time: 5000,
-				delay: 5000,
-				transition: 'easeOutQuad',
-				onComplete: Lang.bind(this, () => {
-					//this.actor.show();
-				})
-			});
-		}*/
 		
 		// If our bounds have changed, the chrome layout tracker will recreate our strut, which will
 		// trigger a call to _onWorkAreasChanged, which in turn might call reinitialize *again* for
@@ -201,6 +181,31 @@ const Dockable = new Lang.Class({
 		// change in the layout for this second call, and thus _onWorkAreasChanged won't be called a
 		// third time. That's a few unnecessarily repeated calculations due to the second call, but
 		// otherwise there is no other averse effect, and we avoid an endless loop.
+	},
+	
+	_addToChrome: function() {
+		Main.layoutManager.addChrome(this.actor, {
+			affectsStruts: !this._toggle,
+			trackFullscreen: true
+		});
+
+		if (Main.legacyTray && Main.legacyTray.actor) {
+			// Make sure we're in front of the legacy tray (if it exists)
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.legacyTray.actor);
+		}
+		else {
+			// At least make sure we're behind the modal dialog group
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
+		}
+
+		// Only now that the child is allocated can we get its size
+		let child = this.actor.get_first_child();
+		this._width = child.width;
+		this._height = child.height;
+
+		// This will be emitted automatically when GNOME Shell is started, but not if the
+		// extension is enabled when GNOME Shell is up and running
+		global.screen.emit('workareas-changed');
 	},
 	
 	_setRoundedCorners: function() {

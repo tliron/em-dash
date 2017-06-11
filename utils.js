@@ -21,11 +21,12 @@ const Lang = imports.lang;
  */
 
 let DEBUG = false;
+let LOG_IMPLEMENTATION = global.log;
 
 
 function log(message) {
 	if (DEBUG) {
-		global.log('[EmDash] ' + message);
+		LOG_IMPLEMENTATION('[EmDash] ' + message);
 	}
 }
 

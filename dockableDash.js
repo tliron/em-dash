@@ -15,6 +15,7 @@
 
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
+const Clutter = imports.gi.Clutter;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
@@ -34,24 +35,43 @@ const DockableDash = new Lang.Class({
 	_init: function(settings, entryManager) {
 		log('init');
 		
-		this._side = Meta.Side.LEFT;
-		this._toggle = false;
+		let side = getSideForPosition(settings.get_string('position'));
+		let toggle = settings.get_string('visibility') === 'TOUCH_TO_SHOW';
 		
 		this.parent(settings, entryManager,
-			(this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT));
-
-		this._dockable = new Dockable.Dockable(this._icons.actor, this._side, this._toggle);
-
-		this._signalManager.connect(this._settings, 'changed::position', this._onPositionChanged);
+			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
+		this._dockable = new Dockable.Dockable(this._icons.actor, side, toggle);
+		
+		this._signalManager.connect(settings, 'changed::visibility', this._onVisibilityChanged);
 	},
 	
-	_onPositionChanged: function(settings, name) {
-		log('>>>>>>>>>>>>>>>>>>>>> changed position!');
-	},
-    
     destroy: function() {
 		log('destroy');
     	this._dockable.destroy();
     	this.parent();
-    }
+    },
+
+	setPosition: function(position) {
+		let side = getSideForPosition(position);
+		this._icons.setVertical((side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
+		this._dockable.setSide(side);
+	},
+    
+	_onVisibilityChanged: function(settings, name) {
+		let toggle = settings.get_string('visibility') === 'TOUCH_TO_SHOW';
+		this._dockable.setToggle(toggle);
+	}
 });
+
+
+function getSideForPosition(position) {
+	let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
+	switch (position) {
+	case 'EDGE_START':
+		return rtl ? Meta.Side.RIGHT : Meta.Side.LEFT;
+	case 'EDGE_END':
+		return rtl ? Meta.Side.LEFT : Meta.Side.RIGHT;
+	case 'EDGE_BOTTOM':
+		return Meta.Side.BOTTOM;
+	}
+}

@@ -342,7 +342,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame">
+          <object class="GtkFrame" id="visibility_frame">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label_xalign">0</property>
@@ -370,6 +370,7 @@
                         <property name="receives_default">False</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
+                        <signal name="toggled" handler="VisibilityAlwaysVisibleToggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -386,6 +387,7 @@
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">visibility_always_visible</property>
+                        <signal name="toggled" handler="VisibilityTouchToShowToggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>

@@ -52,12 +52,11 @@ const Icons = new Lang.Class({
 	
 	_init: function(entryManager, vertical) {
     	this._entryManager = entryManager;
-    	this._vertical = vertical;
 
 		// Box
 		this._box = new St.BoxLayout({
 			name: 'EmDash-Icons-Box',
-			vertical: vertical === true
+			vertical: vertical
 		});
 
 		// Actor
@@ -76,6 +75,19 @@ const Icons = new Lang.Class({
 	destroy: function() {
 		this._signalManager.destroy();
 		this.actor.destroy();
+	},
+	
+	setVertical: function(vertical) {
+		if (this._box.vertical !== vertical) {
+			this._box.vertical = vertical;
+//			this._box.destroy();
+//			this._box = new St.BoxLayout({
+//				name: 'EmDash-Icons-Box',
+//				vertical: vertical
+//			});
+//			this.actor.set_child(this._box);
+			this.refresh();
+		}
 	},
 
 	refresh: function(workspaceIndex) {
@@ -96,7 +108,7 @@ const Icons = new Lang.Class({
 		});
 		this._box.add_child(text);
 
-		let size = this._vertical ? 36 : Main.panel.actor.get_height() - 10; // TODO: how do we know the _dot height?
+		let size = this._box.vertical ? 36 : Main.panel.actor.get_height() - 10; // TODO: how do we know the _dot height?
 		for (let i in entrySequence._entries) {
 			let entry = entrySequence._entries[i];
 			let appIcon = new Icon(entry._app);
