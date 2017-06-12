@@ -813,7 +813,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="valign">start</property>
+            <property name="valign">center</property>
             <property name="vexpand">True</property>
             <property name="label" translatable="yes">A GNOME Shell extension that replaces the built-in dash with a much enhanced version.</property>
           </object>
