@@ -27,11 +27,6 @@ const Utils = Me.imports.utils;
 const log = Utils.logger('mpris');
 
 
-function createMpris(name, callback) {
-	let mpris = new MPRIS(name);
-}
-
-
 /**
  * DBus connection to an MPRIS2 player.
  */
@@ -40,37 +35,28 @@ const MPRIS = new Lang.Class({
 	
 	_init: function(name) {
 		log('init');
-		this._busName = 'org.mpris.MediaPlayer2.' + name;
-		this.reset();
-	},
-	
-	initialize: function() {
-		if (!this._initialized) {
-			// We shouldn't create proxies without an owner
-			getOwner(this._busName, Lang.bind(this, this._onGetOwner));
-		}
-	},
-	
-	reinitialize: function() {
-		this.reset();
-		this.initialize();
-	},
-	
-	reset: function() {
+		
 		this.canPause = null;
 		this.canGoNext = null;
 		this.canGoPrevious = null;
 
-		this._initialized = false;
+		this._busName = 'org.mpris.MediaPlayer2.' + name;
+		this._destroyed = false;
 		this._ownerName = null;
 		this._properties = null;
 		this._mediaPlayer = null;
 		this._mediaPlayerPlayer = null;
 		this._mediaPlayerPlaylists = null;
 		this._mediaPlayerTracklist = null;
+
+		// While we can create proxies without an owner, they won't work :)
+		getOwner(this._busName, Lang.bind(this, this._onGetOwner));
 	},
 	
 	destroy: function() {
+		// There is no way to disconnect the existing DBus remote calls, so we'll just make sure not
+		// to do anything if answers arrive after we've been destroyed
+		this._destroyed = true;
 	},
 	
 	play: function() {
@@ -94,6 +80,11 @@ const MPRIS = new Lang.Class({
 	},
 
 	_onGetOwner: function(owner) {
+		if (this._destroyed) {
+			log('get-owner: destroyed!');
+			return;
+		}
+
 		if (owner.length === 0) {
 			log('get-owner: none');
 			return;
@@ -101,6 +92,7 @@ const MPRIS = new Lang.Class({
 		this._ownerName = owner[0];
 		log('get-owner: ' + this._ownerName);
 
+		// Create proxies
 		let onProxyCreated = Lang.bind(this, this._onProxyCreated);
 		let interfacePath = '/org/mpris/MediaPlayer2';
 //		createProxy(PropertiesWrapper, this._busName, interfacePath,
@@ -116,18 +108,20 @@ const MPRIS = new Lang.Class({
 	},
 	
 	_onProxyCreated: function(name, proxy) {
-		log('proxy-created: ' + name + ' ' + proxy);
+		if (this._destroyed) {
+			log('proxy-created: destroyed!');
+			return;
+		}
+
+		log('proxy-created: ' + name);
 		this['_' + name] = proxy;
 		
 		if (this._mediaPlayerPlayer !== null) {
 			this.canPause = this._mediaPlayerPlayer.CanPause;
 			this.canGoNext = this._mediaPlayerPlayer.CanGoNext;
 			this.canGoPrevious = this._mediaPlayerPlayer.CanGoPrevious;
-
-			if (!this._initialized) {
-				this._initialized = true;
-				this.emit('initialize', this);
-			}
+			
+			this.emit('initialize', this);
 		}
 	}
 });
@@ -277,15 +271,4 @@ function createProxy(wrapperClass, objectPath, interfacePath, name, callback) {
 function getOwner(name, callback) {
 	let dbus = new DBusWrapper(Gio.DBus.session, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
 	dbus.GetNameOwnerRemote(name, callback);
-}
-
-
-function hasName(name) {
-	let dbus = new DBusWrapper(Gio.DBus.session, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
-	dbus.ListNamesRemote((names) => {
-		for (let i in names[0]) {
-			let name = names[0][i];
-			log(name);
-		}
-	});
 }

@@ -36,10 +36,10 @@ function enable() {
 	Utils.log('enabling...');
     settings = Convenience.getSettings();
 	dashManager = new Dash.DashManager(settings, {
-		PANEL_START: PanelDash.PanelDash,
+		PANEL_NEAR: PanelDash.PanelDash,
 		PANEL_CENTER: PanelDash.PanelDash,
-		EDGE_START: DockableDash.DockableDash, 
-		EDGE_END: DockableDash.DockableDash,
+		EDGE_NEAR: DockableDash.DockableDash, 
+		EDGE_FAR: DockableDash.DockableDash,
 		EDGE_BOTTOM: DockableDash.DockableDash
 	});
 	Utils.log('enabled');

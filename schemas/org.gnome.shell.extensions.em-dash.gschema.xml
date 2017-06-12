@@ -3,7 +3,7 @@
 <schemalist gettext-domain="em-dash">
   <schema path="/org/gnome/shell/extensions/em-dash/" id="org.gnome.shell.extensions.em-dash">
     <key name="position" enum="org.gnome.shell.extensions.em-dash.position">
-      <default>'EDGE_START'</default>
+      <default>'EDGE_NEAR'</default>
       <summary>Position</summary>
       <description>Where the dash is positioned.</description>
     </key>
@@ -23,7 +23,7 @@
       <description>Whether to to stretch the dock to fill the monitor edge.</description>
     </key>
     <key name="alignment" enum="org.gnome.shell.extensions.em-dash.alignment">
-      <default>'START'</default>
+      <default>'NEAR'</default>
       <summary>Alignment</summary>
       <description>How to align icons in the dock.</description>
     </key>
@@ -47,15 +47,15 @@
       <summary>Hover</summary>
       <description>What to do when the mouse hovers over an icon.</description>
     </key>
-    <key name="quicklist" type="b">
+    <key name="extra-window-actions" type="b">
       <default>true</default>
-      <summary>Show quicklist</summary>
-      <description>Whether to show the quicklist in the menu if supported by the application.</description>
+      <summary>Show extra window actions</summary>
+      <description>Whether to show extra window actions in the menu.</description>
     </key>
     <key name="media-controls" type="b">
       <default>true</default>
       <summary>Show media controls</summary>
-      <description>Whether to show media-controls in the menu if supported by the application.</description>
+      <description>Whether to show media controls in the menu if supported by the application.</description>
     </key>
   </schema>
 </schemalist>

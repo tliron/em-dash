@@ -67,9 +67,9 @@ const DockableDash = new Lang.Class({
 function getSideForPosition(position) {
 	let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 	switch (position) {
-	case 'EDGE_START':
+	case 'EDGE_NEAR':
 		return rtl ? Meta.Side.RIGHT : Meta.Side.LEFT;
-	case 'EDGE_END':
+	case 'EDGE_FAR':
 		return rtl ? Meta.Side.LEFT : Meta.Side.RIGHT;
 	case 'EDGE_BOTTOM':
 		return Meta.Side.BOTTOM;

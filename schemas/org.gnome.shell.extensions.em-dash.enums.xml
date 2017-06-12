@@ -2,10 +2,10 @@
 <!DOCTYPE gschema SYSTEM "/usr/share/glib-2.0/schemas/gschema.dtd">
 <schemalist>
   <enum id='org.gnome.shell.extensions.em-dash.position'>
-    <value value='0' nick='PANEL_START'/>
+    <value value='0' nick='PANEL_NEAR'/>
     <value value='1' nick='PANEL_CENTER'/>
-    <value value='2' nick='EDGE_START'/>
-    <value value='3' nick='EDGE_END'/>
+    <value value='2' nick='EDGE_NEAR'/>
+    <value value='3' nick='EDGE_FAR'/>
     <value value='4' nick='EDGE_BOTTOM'/>
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.visibility'>
@@ -13,9 +13,9 @@
     <value value='1' nick='TOUCH_TO_SHOW'/>
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.alignment'>
-    <value value='0' nick='START'/>
+    <value value='0' nick='NEAR'/>
     <value value='1' nick='CENTER'/>
-    <value value='2' nick='END'/>
+    <value value='2' nick='FAR'/>
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.click'>
     <value value='0' nick='NOTHING'/>

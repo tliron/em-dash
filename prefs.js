@@ -85,13 +85,13 @@ const PrefsWidget = new Lang.Class({
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('quicklist',
-				this._builder.get_object('icons_show_quicklist'),
+		this._settings.bind('wheel-scroll',
+				this._builder.get_object('icons_wheel_scroll'),
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('wheel-scroll',
-				this._builder.get_object('icons_wheel_scroll'),
+		this._settings.bind('extra-window-actions',
+				this._builder.get_object('icons_show_extra_actions'),
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
@@ -101,24 +101,22 @@ const PrefsWidget = new Lang.Class({
 				Gio.SettingsBindFlags.DEFAULT);
 
 		// There's no binding support for radio and combo boxes, so we'll have to do it ourselves
-		this._bindSetting('position', this._onPositionSettingChanged, 'string');
-		this._bindSetting('monitor', this._onMonitorSettingChanged, 'uint');
-		this._bindSetting('visibility', this._onVisibilitySettingChanged, 'string');
-		this._bindSetting('left-click', this._onLeftClickSettingChanged, 'string');
-		this._bindSetting('middle-click', this._onMiddleClickSettingChanged, 'string');
-		this._bindSetting('hover', this._onHoverSettingChanged, 'string');
+		this._signalManager.connectSetting(this._settings, 'position', 'string',
+			this._onPositionSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'monitor', 'uint',
+			this._onMonitorSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'visibility', 'string',
+			this._onVisibilitySettingChanged);
+		this._signalManager.connectSetting(this._settings, 'alignment', 'string',
+			this._onAlignmentSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'left-click', 'string',
+			this._onLeftClickSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'middle-click', 'string',
+			this._onMiddleClickSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'hover', 'string',
+			this._onHoverSettingChanged);
 	},
 	
-	_bindSetting: function(name, callback, type) {
-		callback = Lang.bind(this, callback);
-		let signalName = 'changed::' + name;
-		let fn = 'get_' + type;
-		this._signalManager.connect(this._settings, signalName, (settings, name) => {
-			callback(settings[fn](name));
-		});
-		this._settings.emit(signalName, name);
-	},
-
 	_onConnectBuilderSignal: function(builder, object, signal, handler) {
 		log('connect-builder-signal: ' + handler);
 		// "handler" is what we called the signal in Glade
@@ -131,23 +129,23 @@ const PrefsWidget = new Lang.Class({
 	
 	// Position radio buttons
 
-	_onPositionSettingChanged: function(position) {
+	_onPositionSettingChanged: function(settings, position) {
 		log('position-setting-changed: ' + position);
 		switch (position) {
-		case 'PANEL_START':
-			this._builder.get_object('position_panel_start').active = true;
+		case 'PANEL_NEAR':
+			this._builder.get_object('position_panel_near').active = true;
 			this._builder.get_object('dock_tab').sensitive = false;
 			break;
 		case 'PANEL_CENTER':
 			this._builder.get_object('position_panel_center').active = true;
 			this._builder.get_object('dock_tab').sensitive = false;
 			break;
-		case 'EDGE_START':
-			this._builder.get_object('position_edge_start').active = true;
+		case 'EDGE_NEAR':
+			this._builder.get_object('position_edge_near').active = true;
 			this._builder.get_object('dock_tab').sensitive = true;
 			break;
-		case 'EDGE_END':
-			this._builder.get_object('position_edge_end').active = true;
+		case 'EDGE_FAR':
+			this._builder.get_object('position_edge_far').active = true;
 			this._builder.get_object('dock_tab').sensitive = true;
 			break;
 		case 'EDGE_BOTTOM':
@@ -157,10 +155,10 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 	
-	_onPositionPanelStartToggled: function(button) {
+	_onPositionPanelNearToggled: function(button) {
 		log('position-panel-start-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'PANEL_START');
+			this._settings.set_string('position', 'PANEL_NEAR');
 		}
 	},
 	
@@ -171,17 +169,17 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 	
-	_onPositionEdgeStartToggled: function(button) {
+	_onPositionEdgeNearToggled: function(button) {
 		log('position-edge-start-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'EDGE_START');
+			this._settings.set_string('position', 'EDGE_NEAR');
 		}
 	},
 	
-	_onPositionEdgeEndToggled: function(button) {
+	_onPositionEdgeFarToggled: function(button) {
 		log('position-edge-end-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'EDGE_END');
+			this._settings.set_string('position', 'EDGE_FAR');
 		}
 	},
 	
@@ -194,7 +192,7 @@ const PrefsWidget = new Lang.Class({
 	
 	// Monitor combo box
 
-	_onMonitorSettingChanged: function(monitor) {
+	_onMonitorSettingChanged: function(settings, monitor) {
 		log('monitor-setting-changed: ' + monitor);
 		let combo = this._builder.get_object('position_monitor');
 		let id = String(monitor);
@@ -215,7 +213,7 @@ const PrefsWidget = new Lang.Class({
 	
 	// Visibility radio buttons
 	
-	_onVisibilitySettingChanged: function(visibility) {
+	_onVisibilitySettingChanged: function(settings, visibility) {
 		log('visibility-setting-changed: ' + visibility);
 		switch (visibility) {
 		case 'ALWAYS':
@@ -241,9 +239,47 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 	
+	// Alignment radio buttons
+	
+	_onAlignmentSettingChanged: function(settings, alignment) {
+		log('alignment-setting-changed: ' + alignment);
+		switch (alignment) {
+		case 'NEAR':
+			this._builder.get_object('alignment_near').active = true;
+			break;
+		case 'CENTER':
+			this._builder.get_object('alignment_center').active = true;
+			break;
+		case 'FAR':
+			this._builder.get_object('alignment_far').active = true;
+			break;
+		}
+	},
+	
+	_onAlignmentNearToggled: function(button) {
+		log('alignment-near-toggled');
+		if (button.active) {
+			this._settings.set_string('alignment', 'NEAR');
+		}
+	},
+	
+	_onAlignmentCenterToggled: function(button) {
+		log('alignment-center-toggled');
+		if (button.active) {
+			this._settings.set_string('alignment', 'CENTER');
+		}
+	},
+	
+	_onAlignmentFarToggled: function(button) {
+		log('alignment-far-toggled');
+		if (button.active) {
+			this._settings.set_string('alignment', 'FAR');
+		}
+	},
+	
 	// Left-click combo box
 
-	_onLeftClickSettingChanged: function(leftClick) {
+	_onLeftClickSettingChanged: function(settings, leftClick) {
 		log('left-click-setting-changed: ' + leftClick);
 		this._builder.get_object('icons_left_click').active_id = leftClick;
 	},
@@ -256,7 +292,7 @@ const PrefsWidget = new Lang.Class({
 	
 	// Middle-click combo box
 
-	_onMiddleClickSettingChanged: function(middleClick) {
+	_onMiddleClickSettingChanged: function(settings, middleClick) {
 		log('middle-click-setting-changed: ' + middleClick);
 		this._builder.get_object('icons_middle_click').active_id = middleClick;
 	},
@@ -269,7 +305,7 @@ const PrefsWidget = new Lang.Class({
 
 	// Hover combo box
 
-	_onHoverSettingChanged: function(hover) {
+	_onHoverSettingChanged: function(settings, hover) {
 		log('hover-setting-changed: ' + hover);
 		this._builder.get_object('icons_hover').active_id = hover;
 	},
@@ -278,7 +314,7 @@ const PrefsWidget = new Lang.Class({
 		let hover = combo.active_id;
 		log('icons-hover-changed: ' + hover);
 		this._settings.set_string('hover', hover);
-	},
+	}
 });
 
 

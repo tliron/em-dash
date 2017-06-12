@@ -73,11 +73,11 @@ const SignalManager = new Lang.Class({
 	},
 
 	connectProperty: function(site, name, callback, single) {
-		return this._connect(site, name, callback, single, 'notify');
+		return this._connect(site, name, callback, single, 'property');
 	},
 
-	connectPropertyChanged: function(site, name, callback, single) {
-		return this._connect(site, name, callback, single, 'changed');
+	connectSetting: function(site, name, type, callback, single) {
+		return this._connect(site, name, callback, single, 'setting.' + type);
 	},
 
 	disconnect: function(callback) {
@@ -138,14 +138,24 @@ const SignalConnection = new Lang.Class({
 			}
 		}
 		
-		if (this.mode == 'after') {
+		if (this.mode === 'after') {
 			this.id = this.site.connect_after(this.name, callback);
 		}
-		else if (this.mode === 'notify') {
-			this.id = this.site.connect(this.mode + '::' + this.name, (site, paramSpec) => {
+		else if (this.mode === 'property') {
+			this.id = this.site.connect('notify::' + this.name, (site, paramSpec) => {
 				let value = site[paramSpec.name];
 				callback(site, value);
 			});
+		}
+		else if ((this.mode !== null) && this.mode.startsWith('setting.')) {
+			let signalName = 'changed::' + this.name;
+			let type = this.mode.substring('setting.'.length);
+			let getterName = 'get_' + type;
+			this.id = this.site.connect(signalName, (settings, name) => {
+				let value = settings[getterName](name);
+				callback(settings, value);
+			});
+			this.site.emit(signalName, this.name);
 		}
 		else {
 			this.id = this.site.connect(this.name, callback);
@@ -157,7 +167,7 @@ const SignalConnection = new Lang.Class({
 		}
 		return false;
 	},
-	
+
 	disconnect: function(remove) {
 		if (this.id != 0) {
 			this.site.disconnect(this.id);
