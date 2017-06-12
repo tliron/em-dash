@@ -202,7 +202,7 @@ const PrefsWidget = new Lang.Class({
 		if (combo.active_id !== id) {
 			// Changing the active entry failed, meaning that our combo does not have an entry
 			// for this monitor, so we'll create one for it
-			combo.insert(-1, id, _('Monitor %s').format(id));
+			combo.insert(-1, id, _('Monitor %s (not connected)').format(id));
 			combo.active_id = id;
 		}
 	},

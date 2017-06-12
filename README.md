@@ -26,7 +26,6 @@ For the dash icons:
 
 For the drop-down menus:
 
-* Show **quicklists** in the drop-down menu for supported applications (a Unity desktop feature).
 * Show **media controls** in the drop-down menu for supported applications (MPRIS).
 
 

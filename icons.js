@@ -21,6 +21,7 @@ const Clutter = imports.gi.Clutter;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
+const MPRIS = Me.imports.mpris;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
@@ -34,12 +35,165 @@ const log = Utils.logger('icons');
  */
 const Icon = new Lang.Class({
 	Name: 'EmDash.Icon',
-    Extends: AppDisplay.AppIcon,
-    
+	Extends: AppDisplay.AppIcon,
+	
 	_init: function(app, params) {
 		params = params || {};
 		params.showLabel = false;
 		this.parent(app, params);
+		
+		// Can we extract a simple name?
+		let id = app.id;
+		let suffix = '.desktop';
+		if (id.endsWith(suffix)) {
+			this._simpleName = id.substring(0, id.length - suffix.length);
+		}
+		else {
+			this._simpleName = null;
+		}
+
+		// Signals
+		this._signalManager = new Utils.SignalManager(this);
+	},
+
+	/*
+	 * Override in order to use our menu class:
+	 * https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
+	 */
+	popupMenu: function() {
+		this._removeMenuTimeout();
+		this.actor.fake_release();
+
+		if (this._draggable) {
+			this._draggable.fakeRelease();
+		}
+		
+		if (!this._menu) {
+			this._menu = new IconMenu(this);
+			this._menu.connect('activate-window', Lang.bind(this, (menu, window) => {
+				this.activateWindow(window);
+			}));
+			this._menu.connect('open-state-changed', Lang.bind(this, (menu, isPoppedUp) => {
+				if (!isPoppedUp) {
+					this._onMenuPoppedDown();
+				}
+			}));
+			let id = Main.overview.connect('hiding', Lang.bind(this, () => {
+				this._menu.close();
+			}));
+			this.actor.connect('destroy', function() {
+				Main.overview.disconnect(id);
+			});
+
+			this._menuManager.addMenu(this._menu);
+		}
+
+		this.emit('menu-state-changed', true);
+
+		this.actor.set_hover(true);
+		this._menu.popup();
+		this._menuManager.ignoreRelease();
+		this.emit('sync-tooltip');
+
+		return false;
+	},
+	
+	/**
+	 * Override.
+	 */
+	_onDestroy: function() {
+		this._signalManager.destroy();
+		this.parent();
+	}
+});
+
+
+/**
+ * Popup menu.
+ */
+const IconMenu = new Lang.Class({
+	Name: 'EmDash.IconMenu',
+	Extends: AppDisplay.AppIconMenu,
+	
+	_init: function(source, mpris) {
+		this.parent(source);
+		
+		this._signalManager = new Utils.SignalManager(this);
+		
+		// MPRIS?
+		if (source._simpleName !== null) {
+			this._mpris = new MPRIS.MPRIS(source._simpleName);
+			this._signalManager.connect(this._mpris, 'initialize', this._onMprisInitialized);
+		}
+		else {
+			this._mpris = null;
+		}
+	},
+	
+	/**
+	 * Override.
+	 */
+	destroy: function() {
+		if (this._mpris !== null) {
+			this._mpris.destroy();
+		}
+		this._signalManager.destroy();
+		this.parent();
+	},
+	
+	/**
+	 * Override.
+	 */
+	_redisplay: function() {
+		this.parent();
+		this._mpris.reinitialize();
+	},
+	
+	_onMprisInitialized: function(mpris) {
+		log('mpris-initialized');
+		this._appendSeparator();
+		let item;
+		item = this._appendMenuItem(_('Play'));
+		this._signalManager.connect(item, 'activate', this._onPlay);
+		if (mpris.canPause) {
+			item = this._appendMenuItem(_('Pause'));
+			this._signalManager.connect(item, 'activate', this._onPause);
+		}
+		item = this._appendMenuItem(_('Stop'));
+		this._signalManager.connect(item, 'activate', this._onStop);
+		if (mpris.canGoNext) {
+			item = this._appendMenuItem(_('Next track'));
+			this._signalManager.connect(item, 'activate', this._onNext);
+		}
+		if (mpris.canGoPrevious) {
+			item = this._appendMenuItem(_('Previous track'));
+			this._signalManager.connect(item, 'activate', this._onPrevious);
+		}
+	},
+	
+	_onPlay: function() {
+		log('play');
+		this._mpris.play();
+	},
+	
+	_onPause: function() {
+		log('pause');
+		this._mpris.pause();
+	},
+	
+	_onStop: function() {
+		log('stop');
+		this._mpris.stop();
+	},
+	
+	_onNext: function() {
+		log('next');
+		this._mpris.next();
+	},
+	
+	_onPrevious: function() {
+		log('previous');
+		this._mpris.previous();
 	}
 });
 
@@ -51,7 +205,7 @@ const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 	
 	_init: function(entryManager, vertical) {
-    	this._entryManager = entryManager;
+		this._entryManager = entryManager;
 
 		// Box
 		this._box = new St.BoxLayout({

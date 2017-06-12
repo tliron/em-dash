@@ -32,11 +32,11 @@ const log = Utils.logger('dash');
 const DashManager = new Lang.Class({
     Name: 'EmDash.DashManager',
 
-    _init: function(settings, dashClasses) {
+    _init: function(settings, _dashClasses) {
     	this._settings = settings;
+    	this._dashClasses = _dashClasses;
     	this._entryManager = new Entries.EntryManager(settings); 
-    	
-    	this.dashClasses = dashClasses;
+
     	this.dash = null;
     	
 		// Signals
@@ -57,9 +57,9 @@ const DashManager = new Lang.Class({
 	_onPositionChanged: function(settings, name) {
 		let position = settings.get_string('position');
 		log('position-changed: ' + position);
-		let dashClass = this.dashClasses[position];
+		let DashClass = this._dashClasses[position];
 		if (this.dash !== null) {
-			if (this.dash.constructor === dashClass) {
+			if (this.dash.constructor === DashClass) {
 				this.dash.setPosition(position);
 				return;
 			}
@@ -67,7 +67,7 @@ const DashManager = new Lang.Class({
 				this.dash.destroy();
 			}
 		}
-		this.dash = new dashClass(this._settings, this._entryManager);
+		this.dash = new DashClass(this._settings, this._entryManager);
 	}
 });
 
