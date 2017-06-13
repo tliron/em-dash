@@ -2,6 +2,51 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkLabel" id="alignment_bottom">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">_Bottom side of edge</property>
+  </object>
+  <object class="GtkLabel" id="alignment_left">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">_Left side of edge</property>
+  </object>
+  <object class="GtkLabel" id="alignment_right">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">_Right side of edge</property>
+  </object>
+  <object class="GtkLabel" id="alignment_top">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">T_op side of edge</property>
+  </object>
+  <object class="GtkLabel" id="monitor_not_connected">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">Monitor %s (not connected)</property>
+  </object>
+  <object class="GtkLabel" id="position_edge_left">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">_Left edge</property>
+  </object>
+  <object class="GtkLabel" id="position_edge_right">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">_Right edge</property>
+  </object>
+  <object class="GtkLabel" id="position_panel_left">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">_Left</property>
+  </object>
+  <object class="GtkLabel" id="position_panel_right">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="label" translatable="yes">R_ight</property>
+  </object>
   <object class="GtkNotebook" id="prefs">
     <property name="visible">True</property>
     <property name="can_focus">True</property>
@@ -40,7 +85,7 @@
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkRadioButton" id="position_panel_near">
-                        <property name="label" translatable="yes">L_eft</property>
+                        <property name="label" translatable="yes">Near</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -57,8 +102,8 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkRadioButton" id="position_panel_center">
-                        <property name="label" translatable="yes">_Center</property>
+                      <object class="GtkRadioButton" id="position_panel_middle">
+                        <property name="label" translatable="yes">_Middle</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -67,7 +112,7 @@
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">position_panel_near</property>
-                        <signal name="toggled" handler="PositionPanelCenterToggled" swapped="no"/>
+                        <signal name="toggled" handler="PositionPanelMiddleToggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -83,7 +128,7 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Add to panel</property>
+                <property name="label" translatable="yes">In panel</property>
               </object>
             </child>
           </object>
@@ -157,7 +202,7 @@
                     </child>
                     <child>
                       <object class="GtkRadioButton" id="position_edge_near">
-                        <property name="label" translatable="yes">_Left</property>
+                        <property name="label" translatable="yes">Near edge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -176,7 +221,7 @@
                     </child>
                     <child>
                       <object class="GtkRadioButton" id="position_edge_far">
-                        <property name="label" translatable="yes">_Right</property>
+                        <property name="label" translatable="yes">Far edge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -195,7 +240,7 @@
                     </child>
                     <child>
                       <object class="GtkRadioButton" id="position_edge_bottom">
-                        <property name="label" translatable="yes">_Bottom</property>
+                        <property name="label" translatable="yes">_Bottom edge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -220,7 +265,7 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Dock on monitor edge</property>
+                <property name="label" translatable="yes">Dock at monitor edge</property>
               </object>
             </child>
           </object>
@@ -244,7 +289,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkBox" id="dock_tab">
+      <object class="GtkBox" id="docking_tab">
         <property name="name">66</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -351,7 +396,7 @@
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkCheckButton" id="size_stretch">
-                        <property name="label" translatable="yes">_Stretch to fill monitor edge</property>
+                        <property name="label" translatable="yes">_Stretch to fill edge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -406,7 +451,7 @@
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkRadioButton" id="alignment_near">
-                        <property name="label" translatable="yes">_Left/top</property>
+                        <property name="label" translatable="yes">Near side of of edge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -423,8 +468,8 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkRadioButton" id="alignment_center">
-                        <property name="label" translatable="yes">_Center</property>
+                      <object class="GtkRadioButton" id="alignment_middle">
+                        <property name="label" translatable="yes">_Middle of edge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -433,7 +478,7 @@
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">alignment_near</property>
-                        <signal name="toggled" handler="AlignmentCenterToggled" swapped="no"/>
+                        <signal name="toggled" handler="AlignmentMiddleToggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -443,7 +488,7 @@
                     </child>
                     <child>
                       <object class="GtkRadioButton" id="alignment_far">
-                        <property name="label" translatable="yes">_Right/bottom</property>
+                        <property name="label" translatable="yes">Far side of edge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -468,7 +513,7 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Align icons</property>
+                <property name="label" translatable="yes">Alignment</property>
               </object>
             </child>
           </object>
@@ -487,7 +532,7 @@
       <object class="GtkLabel">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Dock</property>
+        <property name="label" translatable="yes">_Docking</property>
         <property name="use_underline">True</property>
       </object>
       <packing>
@@ -893,18 +938,6 @@
         <property name="position">3</property>
         <property name="tab_fill">False</property>
       </packing>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child type="tab">
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child type="tab">
-      <placeholder/>
     </child>
   </object>
 </interface>

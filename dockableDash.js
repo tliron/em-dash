@@ -16,6 +16,7 @@
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 const Clutter = imports.gi.Clutter;
+const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
@@ -39,10 +40,16 @@ const DockableDash = new Lang.Class({
 		let toggle = settings.get_string('visibility') === 'TOUCH_TO_SHOW';
 		
 		this.parent(settings, entryManager,
-			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
+			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT),
+			getAlignForAlignment(settings.get_string('alignment')));
 		this._dockable = new Dockable.Dockable(this._icons.actor, side, toggle);
-		
-		this._signalManager.connect(settings, 'changed::visibility', this._onVisibilityChanged);
+
+		this._signalManager.connectSetting(settings, 'visibility', 'string',
+			this._onVisibilitySettingChanged);
+		this._signalManager.connectSetting(settings, 'alignment', 'string',
+			this._onAlignmentSettingChanged);
+		this._signalManager.connectSetting(settings, 'stretch', 'boolean',
+				this._onStretchSettingChanged);
 	},
 	
     destroy: function() {
@@ -57,9 +64,27 @@ const DockableDash = new Lang.Class({
 		this._dockable.setSide(side);
 	},
     
-	_onVisibilityChanged: function(settings, name) {
-		let toggle = settings.get_string('visibility') === 'TOUCH_TO_SHOW';
+	_onVisibilitySettingChanged: function(settings, visibility) {
+		log('visibility-setting-changed: ' + visibility);
+		let toggle = visibility === 'TOUCH_TO_SHOW';
 		this._dockable.setToggle(toggle);
+	},
+    
+	_onAlignmentSettingChanged: function(settings, alignment) {
+		log('alignment-setting-changed: ' + alignment);
+		let align = getAlignForAlignment(alignment);
+		this._icons.setAlign(align);
+	},
+	
+	_onStretchSettingChanged: function(setting, stretch) {
+		if (stretch) {
+			this._icons.actor.add_style_class_name('EmDash-DockableDash');
+			this._icons._box.remove_style_class_name('EmDash-DockableDash');
+		}
+		else {
+			this._icons._box.add_style_class_name('EmDash-DockableDash');
+			this._icons.actor.remove_style_class_name('EmDash-DockableDash');
+		}
 	}
 });
 
@@ -73,5 +98,17 @@ function getSideForPosition(position) {
 		return rtl ? Meta.Side.LEFT : Meta.Side.RIGHT;
 	case 'EDGE_BOTTOM':
 		return Meta.Side.BOTTOM;
+	}
+}
+
+
+function getAlignForAlignment(alignment) {
+	switch (alignment) {
+	case 'NEAR':
+		return St.Align.START;
+	case 'MIDDLE':
+		return St.Align.MIDDLE;
+	case 'FAR':
+		return St.Align.END;
 	}
 }

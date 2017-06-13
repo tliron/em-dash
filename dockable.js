@@ -40,9 +40,10 @@ const Dockable = new Lang.Class({
 		this.actor = new St.Bin({
 			name: 'EmDash-Dockable',
 			child: child,
+			x_fill: true,
+			y_fill: true,
 			reactive: true
 		});
-		this.actor.add_style_class_name('EmDash-DockableDash');
 		this.actor.set_clip_to_allocation(true);
 
 		//this.actor.add_style_class_name(Main.sessionMode.panelStyle);
@@ -337,7 +338,7 @@ const Container = new Lang.Class({
 	_init: function(actor) {
 		this.actor = new Shell.GenericContainer();
 		this.actor._delegate = this;
-		this.actor.add_actor(actor);
+		this.actor.add_child(actor);
 		this._width = -1;
 		this._height = -1;
 		

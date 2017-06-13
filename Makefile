@@ -10,7 +10,7 @@ INSTALLNAME = $(UUID)
 BASE_MODULES = extension.js stylesheet.css metadata.json COPYING README.md
 EXTRA_MODULES = convenience.js dash.js dockable.js dockableDash.js entries.js icons.js panelDash.js prefs.js utils.js prefs.ui
 EXTRA_IMAGES = 
-TOLOCALIZE = prefs.js icons.js
+TOLOCALIZE = icons.js
 
 
 # The command line passed variable VERSION is used to set the version string

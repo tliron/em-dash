@@ -22,10 +22,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Utils = Me.imports.utils;
 
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
-const N_ = (e) => { return e };
-
 const log = Utils.logger('prefs');
 
 
@@ -60,6 +56,30 @@ const PrefsWidget = new Lang.Class({
 		this._builder.add_from_file(Me.path + '/prefs.ui');
 		
 		this.widget = this._builder.get_object('prefs');
+
+		// Strings (we keep them as loose labels in the UI to make it easier for translators)
+		this._positionPanelLeft = this._builder.get_object('position_panel_left').label;
+		this._positionPanelRight = this._builder.get_object('position_panel_right').label;
+		this._positionEdgeLeft = this._builder.get_object('position_edge_left').label;
+		this._positionEdgeRight = this._builder.get_object('position_edge_right').label;
+		this._alignmentTop = this._builder.get_object('alignment_top').label;
+		this._alignmentBottom = this._builder.get_object('alignment_bottom').label;
+		this._alignmentLeft = this._builder.get_object('alignment_left').label;
+		this._alignmentRight = this._builder.get_object('alignment_right').label;
+		this._monitorNotConnected = this._builder.get_object('monitor_not_connected').label;
+		
+		// Update labels according to direction
+		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
+		if (rtl) {
+			this._builder.get_object('position_panel_near').label = this._positionPanelRight;
+			this._builder.get_object('position_edge_near').label = this._positionEdgeRight;
+			this._builder.get_object('position_edge_far').label = this._positionEdgeLeft;
+		}
+		else {
+			this._builder.get_object('position_panel_near').label = this._positionPanelLeft;
+			this._builder.get_object('position_edge_near').label = this._positionEdgeLeft;
+			this._builder.get_object('position_edge_far').label = this._positionEdgeRight;
+		}
 
 		// Update version
 		let version = Me.metadata.version;
@@ -134,23 +154,36 @@ const PrefsWidget = new Lang.Class({
 		switch (position) {
 		case 'PANEL_NEAR':
 			this._builder.get_object('position_panel_near').active = true;
-			this._builder.get_object('dock_tab').sensitive = false;
+			this._builder.get_object('docking_tab').sensitive = false;
 			break;
-		case 'PANEL_CENTER':
-			this._builder.get_object('position_panel_center').active = true;
-			this._builder.get_object('dock_tab').sensitive = false;
+		case 'PANEL_MIDDLE':
+			this._builder.get_object('position_panel_middle').active = true;
+			this._builder.get_object('docking_tab').sensitive = false;
 			break;
 		case 'EDGE_NEAR':
 			this._builder.get_object('position_edge_near').active = true;
-			this._builder.get_object('dock_tab').sensitive = true;
+			this._builder.get_object('docking_tab').sensitive = true;
+			this._builder.get_object('alignment_near').label = this._alignmentTop;
+			this._builder.get_object('alignment_far').label = this._alignmentBottom;
 			break;
 		case 'EDGE_FAR':
 			this._builder.get_object('position_edge_far').active = true;
-			this._builder.get_object('dock_tab').sensitive = true;
+			this._builder.get_object('docking_tab').sensitive = true;
+			this._builder.get_object('alignment_near').label = this._alignmentTop;
+			this._builder.get_object('alignment_far').label = this._alignmentBottom;
 			break;
 		case 'EDGE_BOTTOM':
 			this._builder.get_object('position_edge_bottom').active = true;
-			this._builder.get_object('dock_tab').sensitive = true;
+			this._builder.get_object('docking_tab').sensitive = true;
+			let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
+			if (rtl) {
+				this._builder.get_object('alignment_near').label = this._alignmentRight;
+				this._builder.get_object('alignment_far').label = this._alignmentLeft;
+			}
+			else {
+				this._builder.get_object('alignment_near').label = this._alignmentLeft;
+				this._builder.get_object('alignment_far').label = this._alignmentRight;
+			}
 			break;
 		}
 	},
@@ -162,10 +195,10 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 	
-	_onPositionPanelCenterToggled: function(button) {
-		log('position-panel-center-toggled');
+	_onPositionPanelMiddleToggled: function(button) {
+		log('position-panel-middle-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'PANEL_CENTER');
+			this._settings.set_string('position', 'PANEL_MIDDLE');
 		}
 	},
 	
@@ -200,7 +233,7 @@ const PrefsWidget = new Lang.Class({
 		if (combo.active_id !== id) {
 			// Changing the active entry failed, meaning that our combo does not have an entry
 			// for this monitor, so we'll create one for it
-			combo.insert(-1, id, _('Monitor %s (not connected)').format(id));
+			combo.insert(-1, id, this._monitorNotConnected.format(id));
 			combo.active_id = id;
 		}
 	},
@@ -247,8 +280,8 @@ const PrefsWidget = new Lang.Class({
 		case 'NEAR':
 			this._builder.get_object('alignment_near').active = true;
 			break;
-		case 'CENTER':
-			this._builder.get_object('alignment_center').active = true;
+		case 'MIDDLE':
+			this._builder.get_object('alignment_middle').active = true;
 			break;
 		case 'FAR':
 			this._builder.get_object('alignment_far').active = true;
@@ -263,10 +296,10 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 	
-	_onAlignmentCenterToggled: function(button) {
-		log('alignment-center-toggled');
+	_onAlignmentMiddleToggled: function(button) {
+		log('alignment-middle-toggled');
 		if (button.active) {
-			this._settings.set_string('alignment', 'CENTER');
+			this._settings.set_string('alignment', 'MIDDLE');
 		}
 	},
 	

@@ -16,8 +16,8 @@
 const Lang = imports.lang;
 const Main = imports.ui.main;
 const AppDisplay = imports.ui.appDisplay;
-const St = imports.gi.St;
 const Clutter = imports.gi.Clutter;
+const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
@@ -117,7 +117,7 @@ const Icon = new Lang.Class({
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 	
-	_init: function(entryManager, vertical) {
+	_init: function(entryManager, vertical, align) {
 		this._entryManager = entryManager;
 
 		// Box
@@ -129,7 +129,9 @@ const Icons = new Lang.Class({
 		// Actor
 		this.actor = new St.Bin({
 			name: 'EmDash-Icons',
-			child: this._box
+			child: this._box,
+			x_align: vertical ? St.Align.MIDDLE : align,
+			y_align: vertical ? align : St.Align.MIDDLE
 		});
 
 		// Signals
@@ -147,13 +149,23 @@ const Icons = new Lang.Class({
 	setVertical: function(vertical) {
 		if (this._box.vertical !== vertical) {
 			this._box.vertical = vertical;
-//			this._box.destroy();
-//			this._box = new St.BoxLayout({
-//				name: 'EmDash-Icons-Box',
-//				vertical: vertical
-//			});
-//			this.actor.set_child(this._box);
+			// Swap alignments
+			let x_align = this.actor.x_align;
+			this.actor.x_align = this.actor.y_align;
+			this.actor.y_align = x_align;
+			// New icon sizes
 			this.refresh();
+		}
+	},
+
+	setAlign: function(align) {
+		if (this._box.vertical) {
+			this.actor.x_align = St.Align.MIDDLE;
+			this.actor.y_align = align;
+		}
+		else {
+			this.actor.x_align = align;
+			this.actor.y_align = St.Align.MIDDLE;
 		}
 	},
 

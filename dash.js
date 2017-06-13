@@ -78,7 +78,7 @@ const DashManager = new Lang.Class({
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
     
-    _init: function(settings, entryManager, vertical) {
+    _init: function(settings, entryManager, vertical, align) {
 		this._settings = settings;
     	this._entryManager = entryManager;
     	
@@ -89,7 +89,7 @@ const Dash = new Lang.Class({
     	}
     	
     	// Icons
-    	this._icons = new Icons.Icons(entryManager, vertical);
+    	this._icons = new Icons.Icons(entryManager, vertical, align);
 
 		// Signals
 		let windowTracker = Shell.WindowTracker.get_default();

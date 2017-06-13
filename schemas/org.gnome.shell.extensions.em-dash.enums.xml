@@ -3,7 +3,7 @@
 <schemalist>
   <enum id='org.gnome.shell.extensions.em-dash.position'>
     <value value='0' nick='PANEL_NEAR'/>
-    <value value='1' nick='PANEL_CENTER'/>
+    <value value='1' nick='PANEL_MIDDLE'/>
     <value value='2' nick='EDGE_NEAR'/>
     <value value='3' nick='EDGE_FAR'/>
     <value value='4' nick='EDGE_BOTTOM'/>
@@ -14,7 +14,7 @@
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.alignment'>
     <value value='0' nick='NEAR'/>
-    <value value='1' nick='CENTER'/>
+    <value value='1' nick='MIDDLE'/>
     <value value='2' nick='FAR'/>
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.click'>

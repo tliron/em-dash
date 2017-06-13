@@ -37,7 +37,7 @@ function enable() {
     settings = Convenience.getSettings();
 	dashManager = new Dash.DashManager(settings, {
 		PANEL_NEAR: PanelDash.PanelDash,
-		PANEL_CENTER: PanelDash.PanelDash,
+		PANEL_MIDDLE: PanelDash.PanelDash,
 		EDGE_NEAR: DockableDash.DockableDash, 
 		EDGE_FAR: DockableDash.DockableDash,
 		EDGE_BOTTOM: DockableDash.DockableDash

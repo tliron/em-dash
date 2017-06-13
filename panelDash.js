@@ -15,6 +15,7 @@
 
 const Lang = imports.lang;
 const Main = imports.ui.main;
+const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
@@ -48,7 +49,7 @@ const PanelDash = new Lang.Class({
 		this.appMenu = this.panel.statusArea.appMenu;
 		this.panelBox = Main.layoutManager.panelBox;*/
 
-    	this.parent(settings, entryManager, false);
+    	this.parent(settings, entryManager, false, St.Align.MIDDLE);
 
 		// Remove application menu (TODO: configurable?)
 		this._appMenu = Main.panel.statusArea.appMenu.container;
