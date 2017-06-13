@@ -12,6 +12,11 @@
       <summary>Monitor</summary>
       <description>On which monitor the dock is positioned.</description>
     </key>
+    <key name="move-app-menu-to-icon" type="b">
+      <default>false</default>
+      <summary>Move application menu</summary>
+      <description>Hide the built-in application menu and show it in the relevant icon menu instead.</description>
+    </key>
     <key name="visibility" enum="org.gnome.shell.extensions.em-dash.visibility">
       <default>'ALWAYS'</default>
       <summary>Visibility</summary>
@@ -46,11 +51,6 @@
       <default>'NOTHING'</default>
       <summary>Hover</summary>
       <description>What to do when the mouse hovers over an icon.</description>
-    </key>
-    <key name="extra-window-actions" type="b">
-      <default>true</default>
-      <summary>Show extra window actions</summary>
-      <description>Whether to show extra window actions in the menu.</description>
     </key>
     <key name="media-controls" type="b">
       <default>true</default>

@@ -96,7 +96,7 @@ const PrefsWidget = new Lang.Class({
 	destroy: function() {
 		log('destroy widget');
 		this._signalManager.destroy();
-		this._settings.run_dispose();
+		// this._settings.run_dispose(); TODO: this causes errors
 	},
 	
 	_bindSettings: function() {
@@ -110,8 +110,8 @@ const PrefsWidget = new Lang.Class({
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('extra-window-actions',
-				this._builder.get_object('icons_show_extra_actions'),
+		this._settings.bind('move-app-menu-to-icon',
+				this._builder.get_object('panel_move_to_icon_menu'),
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
@@ -121,7 +121,7 @@ const PrefsWidget = new Lang.Class({
 				Gio.SettingsBindFlags.DEFAULT);
 
 		// There's no binding support for radio and combo boxes, so we'll have to do it ourselves
-		this._signalManager.connectSetting(this._settings, 'position', 'string',
+		let x =this._signalManager.connectSetting(this._settings, 'position', 'string',
 			this._onPositionSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'monitor', 'uint',
 			this._onMonitorSettingChanged);

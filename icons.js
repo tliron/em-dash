@@ -57,7 +57,7 @@ const Icon = new Lang.Class({
 		}
 
 		// Signals
-		this._signalManager = new Utils.SignalManager(this);
+		//this._signalManager = new Utils.SignalManager(this);
 	},
 
 	/*
@@ -105,7 +105,7 @@ const Icon = new Lang.Class({
 	 * Override.
 	 */
 	_onDestroy: function() {
-		this._signalManager.destroy();
+		//this._signalManager.destroy();
 		this.parent();
 	}
 });

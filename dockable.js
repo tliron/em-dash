@@ -17,14 +17,14 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 const Layout = imports.ui.layout;
 const OverviewControls = imports.ui.overviewControls;
-const St = imports.gi.St;
-const Clutter = imports.gi.Clutter;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
+const Clutter = imports.gi.Clutter;
+const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
-const MetaUtils = Me.imports.metaUtils;
+const MutterUtils = Me.imports.mutterUtils;
 const Dash = Me.imports.dash;
 
 const log = Utils.logger('dockable');
@@ -79,7 +79,7 @@ const Dockable = new Lang.Class({
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
 
 		// Add chrome later, when the theme is fully applied
-		this._laterManager = new MetaUtils.LaterManager(this);
+		this._laterManager = new MutterUtils.LaterManager(this);
 		this._laterManager.later(this._addToChrome);
 	},
 
@@ -89,6 +89,8 @@ const Dockable = new Lang.Class({
 		this._destroyPressureBarrier();
 		this.actor.remove_all_children(); // not our responsibility to destroy child
 		Main.layoutManager.removeChrome(this.actor);
+		Main.panel._leftCorner.actor.show();
+		Main.panel._rightCorner.actor.show();
 		// this.actor.destroy(); cannot and does not need to be destroyed without children!
 	},
 	

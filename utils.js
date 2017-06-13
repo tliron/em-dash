@@ -52,6 +52,21 @@ function arrayIncludes(arr, value) {
 	return false;
 }
 
+/*
+ * Actors
+ */
+
+function getActorIndexOfChild(actor, child) {
+	let n_children = actor.get_n_children();
+	for (let i = 0; i < n_children; i++) {
+		let theChild = actor.get_child_at_index(i);
+		if (theChild === child) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 
 /**
  * Manages signal connections.
@@ -138,6 +153,8 @@ const SignalConnection = new Lang.Class({
 			}
 		}
 		
+		let settingPrefix = 'setting.';
+		
 		if (this.mode === 'after') {
 			this.id = this.site.connect_after(this.name, callback);
 		}
@@ -147,9 +164,9 @@ const SignalConnection = new Lang.Class({
 				callback(site, value);
 			});
 		}
-		else if ((this.mode !== null) && this.mode.startsWith('setting.')) {
+		else if ((this.mode !== null) && this.mode.startsWith(settingPrefix)) {
 			let signalName = 'changed::' + this.name;
-			let type = this.mode.substring('setting.'.length);
+			let type = this.mode.substring(settingPrefix.length);
 			let getterName = 'get_' + type;
 			this.id = this.site.connect(signalName, (settings, name) => {
 				let value = settings[getterName](name);

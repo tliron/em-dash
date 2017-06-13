@@ -15,6 +15,7 @@
 
 const Lang = imports.lang;
 const Main = imports.ui.main;
+const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -22,16 +23,6 @@ const Utils = Me.imports.utils;
 const Dash = Me.imports.dash;
 
 const log = Utils.logger('panelDash');
-
-
-function patchAllocate(obj) {
-	let originalAllocate = obj.allocate;
-	obj.allocate = Lang.bind(obj, (box, flags, original) => {
-    	if (original) { 
-    		originalAllocate(box, flags);
-    	}
-	});
-}
 
 
 /**
@@ -44,45 +35,39 @@ const PanelDash = new Lang.Class({
 	_init: function(settings, entryManager) {
 		log('init');
     	
-		/*this.panel = Main.panel;
-		this.container = this.panel._leftBox;
-		this.appMenu = this.panel.statusArea.appMenu;
-		this.panelBox = Main.layoutManager.panelBox;*/
-
     	this.parent(settings, entryManager, false, St.Align.MIDDLE);
-
-		// Remove application menu (TODO: configurable?)
-		this._appMenu = Main.panel.statusArea.appMenu.container;
-		this._appMenuWasVisible = Main.panel._leftBox.contains(this._appMenu);
-		if (this._appMenuWasVisible) {
-			Main.panel._leftBox.remove_child(this._appMenu);
-		}
-
-		Main.panel._leftBox.add_child(this._icons.actor);
-
-		//Main.uiGroup.add_actor(text);
-		
-		/*let button = new PanelMenu.Button();
-		button.actor.add_actor(text)
-		Main.panel.addToStatusArea('hi', button);*/
-		
-//		patchAllocate(Main.panel._leftBox);
-//		patchAllocate(Main.panel._centerBox);
-//		patchAllocate(Main.panel._rightBox);
-
-		// Signals
-		//this._signalManager.connect(Main.panel.actor, 'allocate', this._onPanelAllocated);
     },
-
-	destroy: function() {
-		log('destroy');
-		this.parent();
-		if (this._appMenuWasVisible) {
-			Main.panel._leftBox.add_child(this._appMenu);
-		}
-	},
 	
-	_onPanelAllocated: function(actor, box, flags) {
-		return;
+	setPosition: function(position) {
+		let actor = this._icons.actor;
+		switch (position) {
+		case 'PANEL_NEAR':
+			if (Main.panel._centerBox.contains(actor)) {
+				Main.panel._centerBox.remove_child(actor);
+			}
+			let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
+			if (rtl) {
+				if (!Main.panel._rightBox.contains(actor)) {
+					Main.panel._rightBox.add_child(actor);
+				}
+			}
+			else {
+				if (!Main.panel._leftBox.contains(actor)) {
+					Main.panel._leftBox.add_child(actor);
+				}
+			}
+			break;
+		case 'PANEL_MIDDLE':
+			if (Main.panel._leftBox.contains(actor)) {
+				Main.panel._leftBox.remove_child(actor);
+			}
+			else if (Main.panel._rightBox.contains(actor)) {
+				Main.panel._rightBox.remove_child(actor);
+			}
+			if (!Main.panel._centerBox.contains(actor)) {
+				Main.panel._centerBox.add_child(actor);
+			}
+			break;
+		}
 	}
 });

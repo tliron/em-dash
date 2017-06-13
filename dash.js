@@ -38,10 +38,30 @@ const DashManager = new Lang.Class({
     	this._entryManager = new Entries.EntryManager(settings); 
 
     	this.dash = null;
-    	
+
+		this._appMenuParent = null;;
+		this._appMenuIndex = -1;;
+    	if (settings.get_boolean('move-app-menu-to-icon')) {
+	    	// Remember original location of app menu
+			let appMenu = Main.panel.statusArea.appMenu.container;
+    		this._appMenuIndex = Utils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
+			if (this._appMenuIndex !== -1) {
+				this._appMenuParent = Main.panel._leftBox;
+			}
+			else {
+	    		this._appMenuIndex = Utils.getActorIndexOfChild(Main.panel._RightBox, appMenu);
+				if (this._appMenuIndex !== -1) {
+					this._appMenuParent = Main.panel._rightBox;
+				}
+			}
+    	}
+
 		// Signals
 		this._signalManager = new Utils.SignalManager(this);
-		this._signalManager.connect(this._settings, 'changed::position', this._onPositionChanged);
+		this._signalManager.connectSetting(this._settings, 'position', 'string',
+			this._onPositionChanged);
+		this._signalManager.connectSetting(this._settings, 'move-app-menu-to-icon', 'boolean',
+			this._onMoveAppMenuToIconSettingChanged);
 		
 		this._settings.emit('changed::position', 'position');
 	},
@@ -52,14 +72,32 @@ const DashManager = new Lang.Class({
 			this.dash.destroy();
 		}
 		this._entryManager.destroy();
+		this.restoreAppMenu();
 	},
 	
-	_onPositionChanged: function(settings, name) {
-		let position = settings.get_string('position');
-		log('position-changed: ' + position);
+	removeAppMenu: function() {
+		if (this._appMenuParent !== null) {
+			let appMenu = Main.panel.statusArea.appMenu.container;
+			if (this._appMenuParent.contains(appMenu)) {
+				this._appMenuParent.remove_child(appMenu);
+			}
+		}
+	},
+	
+	restoreAppMenu: function() {
+		if (this._appMenuParent !== null) {
+			let appMenu = Main.panel.statusArea.appMenu.container;
+			if (!this._appMenuParent.contains(appMenu)) {
+				this._appMenuParent.insert_child_at_index(appMenu, this._appMenuIndex);
+			}
+		}
+	},
+	
+	_onPositionChanged: function(settings, position) {
+		log('position-setting-changed: ' + position);
 		let DashClass = this._dashClasses[position];
 		if (this.dash !== null) {
-			if (this.dash.constructor === DashClass) {
+			if (this.dash instanceof DashClass) {
 				this.dash.setPosition(position);
 				return;
 			}
@@ -68,6 +106,16 @@ const DashManager = new Lang.Class({
 			}
 		}
 		this.dash = new DashClass(this._settings, this._entryManager);
+	},
+	
+	_onMoveAppMenuToIconSettingChanged: function(settings, moveAppMenuToIcon) {
+		log('move-app-menu-to-icon-setting-changed: ' + moveAppMenuToIcon);
+		if (moveAppMenuToIcon) {
+			this.removeAppMenu();
+		}
+		else {
+			this.restoreAppMenu();
+		}
 	}
 });
 

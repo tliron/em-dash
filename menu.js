@@ -16,6 +16,7 @@
 const Lang = imports.lang;
 const AppDisplay = imports.ui.appDisplay;
 const PopupMenu = imports.ui.popupMenu;
+const Shell = imports.gi.Shell;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
@@ -38,6 +39,7 @@ const IconMenu = new Lang.Class({
 	_init: function(source, mpris) {
 		log('init');
 		this.parent(source);
+		this._appMenu = null;
 		this._mpris = null;
 		this._settings = this._source._icons._entryManager._settings;
 		this._signalManager = new Utils.SignalManager(this);
@@ -48,6 +50,9 @@ const IconMenu = new Lang.Class({
 	 */
 	destroy: function() {
 		log('destroy');
+		if (this._appMenu !== null) {
+			this._appMenu.destroy();
+		}
 		this._destroyMpris();
 		this._signalManager.destroy();
 		this.parent();
@@ -59,7 +64,18 @@ const IconMenu = new Lang.Class({
 	_redisplay: function() {
 		this.parent();
 		
-		// MPRIS?
+		// Application menu
+		if (this._settings.get_boolean('move-app-menu-to-icon')) {
+			let menuModel = this._source.app.menu; // Gio.DBusMenuModel
+			let actionGroup = this._source.app.action_group;
+			if ((menuModel !== null) && (actionGroup !== null)) {
+				this._appMenu = new AppMenu(actionGroup, menuModel);
+				this._appendSeparator();
+				this.addMenuItem(this._appMenu.item);
+			}
+		}
+
+		// Media controls
 		this._destroyMpris();
 		if (this._settings.get_boolean('media-controls')) {
 			let simpleName = this._source._simpleName;
@@ -137,6 +153,79 @@ const IconMenu = new Lang.Class({
 
 
 /**
+ * Application menu.
+ */
+const AppMenu = new Lang.Class({
+	Name: 'EmDash.AppMenu',
+	
+	_init: function(actionGroup, menuModel) {
+		this.item = new PopupSubMenuMenuItem(_('Application menu'));
+		this._actionGroup = actionGroup;;
+		this._menuModel = menuModel;
+		this._menuTracker = null;
+		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager.connect(this.item, 'open', this._onOpened, true);
+	},
+	
+	destroy: function() {
+		this._signalManager.destroy();
+		if (this._menuTracker != null) {
+			this._menuTracker.destroy();
+		}
+	},
+	
+	_onOpened: function(item) {
+		log('opened');
+		this._menuTracker = Shell.MenuTracker.new(this._actionGroup, this._menuModel, null,
+			this._onInsertItem.bind(this, this),
+			this._onRemoveItem.bind(this, this));
+	},
+
+	_onInsertItem: function(menu, trackerItem, position) {
+		log('insert-item: ' + position);
+		if (trackerItem.get_is_separator()) {
+			
+		}
+		else if (trackerItem.get_has_submenu()) {
+			
+		}
+		else {
+			let item = new PopupMenu.PopupMenuItem(stripMnemonics(trackerItem.label));
+			item._trackerItem = trackerItem;
+			this.item.menu.addMenuItem(item, position);
+			this._signalManager.connect(item, 'activate', this._onItemActivated);
+			this.item.setSubmenuShown(true); // can only be shown when have at least one item
+		}
+	},
+	
+	_onRemoveItem: function(menu, position) {
+		log('remove-item: ' + position);
+		let items = menu._getMenuItems();
+		items[position].destroy();
+	},
+
+	_onItemActivated: function(item) {
+		log('item-activated');
+		item._trackerItem.activated();
+	}
+});
+
+
+/**
+ * Popup sub-menu item, with support for an "open" signal.
+ */
+const PopupSubMenuMenuItem = new Lang.Class({
+	Name: 'EmDash.PopupSubMenuMenuItem',
+	Extends: PopupMenu.PopupSubMenuMenuItem,
+	
+	_setOpenState: function(open) {
+		this.parent(open);
+		this.emit('open');
+	}
+});
+
+
+/**
  * Popup menu item with an icon.
  * 
  * The original version puts the icon after the label, which looks weird. Our version flips the
@@ -156,3 +245,12 @@ const PopupImageMenuItem = new Lang.Class({
 		this.actor.add_child(this.label);
 	}
 });
+
+
+/**
+ * See: https://github.com/GNOME/gnome-shell/blob/js/ui/remoteMenu.js 
+ */
+function stripMnemonics(label) {
+	// Remove all underscores that are not followed by another underscore
+	return label.replace(/_([^_])/, '$1');
+}

@@ -6,27 +6,31 @@ Em Dash
 
 A GNOME Shell extension that replaces the built-in dash with a much enhanced version.
 
-It provides the following extra features for the dash:
+It provides the following optional extra features for the dash:
 
-* Move it out of the overlay and into the **top panel** or dock on an **edge** of one of the
+* Move it out of the overlay and into the **top panel** or dock it on an **edge** of one of the
   **monitors**.
 * Configure to show windows in **all of the workspaces** (like the built-in dash) or only in the
   **current workspace**.
 
 For the dash icons:  
   
-* Configure the dash icon indicator to show **how many** windows are open (the built-in dash only
-  shows if *any* are open).
-* Configure the behavior of **left-click** and **middle-click** on the dash icons.
-* Allow **wheel scroll** to cycle windows on the dash icons.
-* Configure the dash icons to show **window previews** when hovering over them (a Windows feature).
+* Show dots for **how many** windows are open (the built-in dash only shows a line if *any* are
+  open).
+* Configure the behavior of **left-click** and **middle-click** on the dash icons: raise window,
+  toggle raise/hide, or cycle windows.
+* **Wheel scroll** to cycle windows on the dash icons.
+* Show a **window list** or **window previews** when hovering over dash icons (a feature inspired by
+  Windows).
 * Configure icons to **"grab"** other windows. This solves a common annoyance with the built-in
   dash, in which poorly designed applications spawn extra icons for their windows. This feature even
   works for WINE applications.
 
-For the drop-down menus:
+For the dash icons' popup menus:
 
-* Show **media controls** in the drop-down menu for supported applications (MPRIS).
+* Show **media controls** for supported applications (MPRIS).
+* Hide the built-in **application menu** in the panel and show it in the relevant icon's popup menu
+  instead.
 
 
 Developers
