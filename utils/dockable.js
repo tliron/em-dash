@@ -23,11 +23,12 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
-const MutterUtils = Me.imports.mutterUtils;
+const Logging = Me.imports.utils.logging;
+const Signals = Me.imports.utils.signals;
+const MutterUtils = Me.imports.utils.mutter;
 const Dash = Me.imports.dash;
 
-const log = Utils.logger('dockable');
+const log = Logging.logger('dockable');
 
 
 /**
@@ -74,7 +75,7 @@ const Dockable = new Lang.Class({
 //		this._icons.actor.add_constraint(constraint);
 
 		// Signals
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
 
@@ -344,7 +345,7 @@ const Container = new Lang.Class({
 		this._width = -1;
 		this._height = -1;
 		
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(this.actor, 'allocate', this._onAllocated);
 		//this._signalManager.connect(this.actor, 'get-preferred-width', this._getPrefferedWidth);
 		//this._signalManager.connect(this.actor, 'get-preferred-height', this._getPrefferedHeight);

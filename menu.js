@@ -19,14 +19,15 @@ const PopupMenu = imports.ui.popupMenu;
 const Shell = imports.gi.Shell;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
-const MPRIS = Me.imports.mpris;
+const Logging = Me.imports.utils.logging;
+const Signals = Me.imports.utils.signals;
+const MPRIS = Me.imports.utils.mpris;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const N_ = (e) => { return e };
 
-const log = Utils.logger('menu');
+const log = Logging.logger('menu');
 
 
 /**
@@ -36,13 +37,14 @@ const IconMenu = new Lang.Class({
 	Name: 'EmDash.IconMenu',
 	Extends: AppDisplay.AppIconMenu,
 	
-	_init: function(source, mpris) {
+	_init: function(source, simpleName, icons) {
 		log('init');
 		this.parent(source);
+		this._simpleName = simpleName; 
 		this._appMenu = null;
 		this._mpris = null;
-		this._settings = this._source._icons._entryManager._settings;
-		this._signalManager = new Utils.SignalManager(this);
+		this._settings = icons.entryManager.settings;
+		this._signalManager = new Signals.SignalManager(this);
 	},
 	
 	/**
@@ -78,9 +80,8 @@ const IconMenu = new Lang.Class({
 		// Media controls
 		this._destroyMpris();
 		if (this._settings.get_boolean('media-controls')) {
-			let simpleName = this._source._simpleName;
-			if (simpleName !== null) {
-				this._mpris = new MPRIS.MPRIS(simpleName);
+			if (this._simpleName !== null) {
+				this._mpris = new MPRIS.MPRIS(this._simpleName);
 				this._signalManager.connect(this._mpris, 'initialize', this._onMprisInitialized);
 			}
 		}
@@ -163,7 +164,7 @@ const AppMenu = new Lang.Class({
 		this._actionGroup = actionGroup;;
 		this._menuModel = menuModel;
 		this._menuTracker = null;
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(this.item, 'open', this._onOpened, true);
 	},
 	

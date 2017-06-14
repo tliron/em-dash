@@ -16,59 +16,6 @@
 const Lang = imports.lang;
 
 
-/*
- *  Logging
- */
-
-let DEBUG = false;
-let LOG_IMPLEMENTATION = global.log;
-
-
-function log(message) {
-	if (DEBUG) {
-		LOG_IMPLEMENTATION('[EmDash] ' + message);
-	}
-}
-
-
-function logger(name) {
-	return (message) => {
-		log('{' + name + '} ' + message);
-	};
-}
-
-
-/*
- * Collections
- */
-
-function arrayIncludes(arr, value) {
-	// ECMA 6 introduces Array.prototype.includes
-	for (let i in arr) {
-		if (arr[i] === value) {
-			return true;
-		}
-	}
-	return false;
-}
-
-
-/*
- * Actors
- */
-
-function getActorIndexOfChild(actor, child) {
-	let n_children = actor.get_n_children();
-	for (let i = 0; i < n_children; i++) {
-		let theChild = actor.get_child_at_index(i);
-		if (theChild === child) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-
 /**
  * Manages signal connections.
  */

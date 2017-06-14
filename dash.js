@@ -18,11 +18,13 @@ const Main = imports.ui.main;
 const Shell = imports.gi.Shell;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
+const Logging = Me.imports.utils.logging;
+const Signals = Me.imports.utils.signals;
+const ClutterUtils = Me.imports.utils.clutter;
 const Entries = Me.imports.entries;
 const Icons = Me.imports.icons;
 
-const log = Utils.logger('dash');
+const log = Logging.logger('dash');
 
 
 /**
@@ -44,12 +46,12 @@ const DashManager = new Lang.Class({
     	if (settings.get_boolean('move-app-menu-to-icon')) {
 	    	// Remember original location of app menu
 			let appMenu = Main.panel.statusArea.appMenu.container;
-    		this._appMenuIndex = Utils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
+    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
 			if (this._appMenuIndex !== -1) {
 				this._appMenuParent = Main.panel._leftBox;
 			}
 			else {
-	    		this._appMenuIndex = Utils.getActorIndexOfChild(Main.panel._RightBox, appMenu);
+	    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._RightBox, appMenu);
 				if (this._appMenuIndex !== -1) {
 					this._appMenuParent = Main.panel._rightBox;
 				}
@@ -57,7 +59,7 @@ const DashManager = new Lang.Class({
     	}
 
 		// Signals
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connectSetting(this._settings, 'position', 'string',
 			this._onPositionChanged);
 		this._signalManager.connectSetting(this._settings, 'move-app-menu-to-icon', 'boolean',
@@ -133,7 +135,7 @@ const Dash = new Lang.Class({
     	// Hide overlay dash
     	this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
     	if (this._overlayDashWasVisible) {
-    		Main.overview._controls.dash.actor.hide();
+    		//Main.overview._controls.dash.actor.hide();
     	}
     	
     	// Icons
@@ -141,7 +143,7 @@ const Dash = new Lang.Class({
 
 		// Signals
 		let windowTracker = Shell.WindowTracker.get_default();
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
 		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusChanged);
     },

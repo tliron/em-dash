@@ -57,5 +57,10 @@
       <summary>Show media controls</summary>
       <description>Whether to show media controls in the menu if supported by the application.</description>
     </key>
+    <key name="debug" type="b">
+      <default>true</default>
+      <summary>Enable debug mode</summary>
+      <description>Whether to send debugging information to the system log.</description>
+    </key>
   </schema>
 </schemalist>

@@ -15,26 +15,30 @@
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Utils = Me.imports.utils;
+const Logging = Me.imports.utils.logging;
 const Dash = Me.imports.dash;
 const PanelDash = Me.imports.panelDash;
 const DockableDash = Me.imports.dockableDash;
 
+const log = Logging.logger('extension');
 
-let settings;
-let dashManager;
+let settings = null;
+let dashManager = null;
 
 
 function init() {
-	Utils.DEBUG = true;
-	Utils.log('init');
 	Convenience.initTranslations();
 }
 
 
 function enable() {
-	Utils.log('enabling...');
     settings = Convenience.getSettings();
+    
+    Me.LOGGING_ENABLED = settings.get_boolean('debug');
+    Me.LOGGING_IMPLEMENTATION = global.log;
+
+    log('enabling...');
+
 	dashManager = new Dash.DashManager(settings, {
 		PANEL_NEAR: PanelDash.PanelDash,
 		PANEL_MIDDLE: PanelDash.PanelDash,
@@ -42,15 +46,18 @@ function enable() {
 		EDGE_FAR: DockableDash.DockableDash,
 		EDGE_BOTTOM: DockableDash.DockableDash
 	});
-	Utils.log('enabled');
+	
+	log('enabled');
 }
 
 
 function disable() {
-	Utils.log('disabling...');
+	log('disabling...');
+	
 	dashManager.destroy();
 	dashManager = null;
 	settings.run_dispose();
 	settings = null;
-	Utils.log('disabled');
+	
+	log('disabled');
 }

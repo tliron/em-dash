@@ -22,10 +22,14 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
+const Logging = Me.imports.utils.logging;
+const Signals = Me.imports.utils.signals;
+const ClutterUtils = Me.imports.utils.clutter;
+const Draggable = Me.imports.utils.draggable;
 const Menu = Me.imports.menu;
+const Entries = Me.imports.entries;
 
-const log = Utils.logger('icons');
+const log = Logging.logger('icons');
 
 
 /**
@@ -37,13 +41,15 @@ const Icon = new Lang.Class({
 	Name: 'EmDash.Icon',
 	Extends: AppDisplay.AppIcon,
 	
-	_init: function(icons, app, params) {
-		params = params || {isDraggable: false}; // we will handle draggable ourselves
-		params.showLabel = false;
-		this.parent(app, params);
+	_init: function(icons, app, i) {
+		this.parent(app, {
+			showLabel: false,
+			isDraggable: false // we will handle draggable ourselves
+		});
 		
 		this._icons = icons;
-		this._dragMonitor = null;
+		this._entryIndex = i;
+		this._dragFromIndex = -1;
 		
 		// Can we extract a simple name?
 		let id = app.id;
@@ -55,56 +61,86 @@ const Icon = new Lang.Class({
 			this._simpleName = null;
 		}
 
-		// Signals
-		this._signalManager = new Utils.SignalManager(this);
-
-		// DND
-		if (global.settings.is_writable('favorite-apps')) {
-			this._draggable = DND.makeDraggable(this.actor);
-			this._signalManager.connect(this._draggable, 'drag-begin', this._onDragBegan);
-			this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCancelled);
-			this._signalManager.connect(this._draggable, 'drag-end', this._onDragEnded);
+		// Draggable
+		if (global.settings.is_writable('favorite-apps') && Entries.isFavoriteApp(app)) {
+			this._draggable = new Draggable.Draggable(this.actor);
+		}
+		else {
+			this._draggable = null;
 		}
 	},
 	
+	// Dragging us
+
+	handleDragBegin: function() {
+		// Hooked from EmDash.Draggable
+		this._dragFromIndex = ClutterUtils.getActorIndexOfChild(this._icons._box, this.actor);
+		log('drag-begin: ' + this._dragFromIndex);
+		this._removeMenuTimeout();
+		//this._icons._box.remove_child(this.actor);
+		this.actor.hide();
+		//this.actor.opacity = 64;
+		//this.actor.add_style_class_name('EmDash-Icon-Dragging');
+	},
+
+	handleDragEnd: function(dropped) {
+		// Hooked from EmDash.Draggable
+		log('drag-end: ' + dropped);
+		if (!dropped) {
+			//this._icons._box.insert_child_at_index(this.actor, this._dragFromIndex);
+			this.actor.show();
+			//this.actor.opacity = 255;
+		}
+		endDropHovering();
+	},
+	
+	// Dropping on us
+
 	handleDragOver: function(source, actor, x, y, time) {
-		// Automatically hooked using our actor._delegate
+		// Hooked from DND using our actor._delegate
 		if (source instanceof AppDisplay.AppIcon) {
 			log('drag-over: ' + source.app.id);
-			return DND.DragMotionResult.MOVE_DROP;
+			if (Entries.isFavoriteApp(this.app)) {
+				startDropHovering(this.actor);
+				return DND.DragMotionResult.MOVE_DROP;
+			}
 		}
 		else {
 			log('drag-over: unsupported');
-			return DND.DragMotionResult.NO_DROP;
 		}
+		endDropHovering();
+		return DND.DragMotionResult.NO_DROP;
 	},
 	
 	acceptDrop: function(source, actor, x, y, time) {
-		// Automatically hooked using our actor._delegate
-		log('accept-drop');
+		// Hooked from DND using our actor._delegate
 		if (source instanceof AppDisplay.AppIcon) {
 			let appId = source.app.id;
-			let sourceIndex = Utils.getActorIndexOfChild(this._icons._box, source.actor);
-			let targetIndex = Utils.getActorIndexOfChild(this._icons._box, this.actor);
 			log('accept-drop: ' + appId + ' from ' +
-				(sourceIndex === -1 ? 'overview' : sourceIndex) + ' to ' + targetIndex);
+				(source._dragFromIndex === -1 ? 'elsewhere' : source._dragFromIndex) +
+				' to entry ' + this._entryIndex);
 			let favorites = AppFavorites.getAppFavorites();
-			if (sourceIndex === -1) {
+			if (source._dragFromIndex === -1) {
 				// Dragged from overview
-				favorites.addFavoriteAtPos(appId, targetIndex);
+				favorites.addFavoriteAtPos(appId, this._entryIndex);
 			}
 			else {
-				// Moved in dash
-				favorites.moveFavoriteToPos(appId, targetIndex);
+				// Moved within the dash
+				// favorites.moveFavoriteToPos(appId, this._entryIndex); this is totally broken!
+				favorites._removeFavorite(appId);
+				if (source._entryIndex < this._entryIndex) {
+					this._entryIndex--;
+				}
+				favorites._addFavorite(appId, this._entryIndex);
 			}
 			return true;
 		}
 		else {
-			log('accept-drop: unsupported');
+			log('accept-drop: not an app');
 			return false;
 		}
 	},
-
+	
 	/*
 	 * Override and copy original code, just use our menu class instead.
 	 */
@@ -117,7 +153,7 @@ const Icon = new Lang.Class({
 		}
 		
 		if (!this._menu) {
-			this._menu = new Menu.IconMenu(this);
+			this._menu = new Menu.IconMenu(this, this._simpleName, this._icons);
 			this._menu.connect('activate-window', Lang.bind(this, (menu, window) => {
 				this.activateWindow(window);
 			}));
@@ -150,30 +186,10 @@ const Icon = new Lang.Class({
 	 * Override.
 	 */
 	_onDestroy: function() {
-		this._signalManager.destroy();
+		if (this._draggable !== null) {
+			this._draggable.destroy();
+		}
 		this.parent();
-	},
-	
-	_onDragBegan: function(draggable, time) {
-		log('drag-began:' + time);
-		this._removeMenuTimeout();
-		this._dragMonitor = Lang.bind(this, this._onDragMotion);
-		DND.addDragMonitor(this._dragMonitor);
-	},
-
-	_onDragCancelled: function(draggable, time) {
-		log('drag-cancelled: ' + time);
-	},
-
-	_onDragEnded: function(draggable, time, dropped) {
-		log('drag-ended: ' + dropped  + ' ' + time);
-		DND.removeDragMonitor(this._dragMonitor);
-	},
-	
-	_onDragMotion: function(dragEvent) {
-		// Never called!
-		log('drag-motion');
-		return DND.DragMotionResult.CONTINUE;
 	}
 });
 
@@ -185,7 +201,7 @@ const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 	
 	_init: function(entryManager, vertical, align) {
-		this._entryManager = entryManager;
+		this.entryManager = entryManager;
 
 		// Box
 		this._box = new St.BoxLayout({
@@ -202,7 +218,7 @@ const Icons = new Lang.Class({
 		});
 
 		// Signals
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
 		
 		this.refresh();
@@ -240,7 +256,7 @@ const Icons = new Lang.Class({
 		if (workspaceIndex === undefined) {
 			workspaceIndex = global.screen.get_active_workspace().index();
 		}
-		let entrySequence = this._entryManager.getEntrySequence(workspaceIndex);
+		let entrySequence = this.entryManager.getEntrySequence(workspaceIndex);
 		this._refresh(entrySequence);
 	},
 	
@@ -250,7 +266,7 @@ const Icons = new Lang.Class({
 		let size = this._box.vertical ? 36 : Main.panel.actor.get_height() - 10; // TODO: how do we know the _dot height?
 		for (let i in entrySequence._entries) {
 			let entry = entrySequence._entries[i];
-			let appIcon = new Icon(this, entry._app);
+			let appIcon = new Icon(this, entry._app, i);
 			//log(appIcon._dot.get_height()); 0
 			appIcon.icon.iconSize = size; // IconGrid.BaseIcon
 			this._box.add_child(appIcon.actor);
@@ -263,6 +279,55 @@ const Icons = new Lang.Class({
 	}
 });
 
+
+/*
+ * Drop hovering (handled globally)
+ */
+
+let _dropHoveringActor = null;
+
+function startDropHovering(actor) {
+	if (_dropHoveringActor !== actor) {
+		endDropHovering();
+
+		log('start-drop-hovering');
+		
+		_dropHoveringActor = actor;
+		
+		//_dropHoveringActor.add_style_class_name('EmDash-Icon-Dragging');
+
+		// Replace child with a box
+		let originalChild = _dropHoveringActor.get_child();
+		box = new St.BoxLayout({
+			vertical: true
+		});
+		_dropHoveringActor.set_child(box);
+
+		// Put a space before the original child in the box
+		let space = new St.Widget({
+			width: originalChild.width,
+			height: originalChild.height
+		});
+		box.add_child(space);
+		box.add_child(originalChild);
+	}
+}
+
+function endDropHovering() {
+	if (_dropHoveringActor !== null) {
+		log('end-drop-hovering');
+		//_dropHoveringActor.remove_style_class_name('EmDash-Icon-Dragging');
+
+		// Restore original child
+		let box = _dropHoveringActor.get_child();
+		let originalChild = box.get_child_at_index(1);
+		box.remove_child(originalChild);
+		box.destroy();
+		_dropHoveringActor.set_child(originalChild);
+		
+		_dropHoveringActor = null;
+	}
+}
 
 
 /*

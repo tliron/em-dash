@@ -19,10 +19,10 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
+const Logging = Me.imports.utils.Logging;
 const Dash = Me.imports.dash;
 
-const log = Utils.logger('panelDash');
+const log = Logging.logger('panelDash');
 
 
 /**

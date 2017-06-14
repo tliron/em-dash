@@ -19,9 +19,11 @@ const AppFavorites = imports.ui.appFavorites;
 const Shell = imports.gi.Shell;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
+const Logging = Me.imports.utils.logging;
+const SignalsUtils = Me.imports.utils.signals;
+const Collections = Me.imports.utils.collections;
 
-const log = Utils.logger('entries');
+const log = Logging.logger('entries');
 
 
 /*
@@ -137,7 +139,7 @@ const Entry = new Lang.Class({
 				let workspaceWindows = workspace.list_windows();
 				for (let i in workspaceWindows) {
 					let window = workspaceWindows[i];
-					if (this.isGrabbing(window) && !Utils.arrayIncludes(windows, window)) {
+					if (this.isGrabbing(window) && !Collections.arrayIncludes(windows, window)) {
 						windows.push(window);
 					}
 				}
@@ -288,7 +290,7 @@ const EntryManager = new Lang.Class({
 	_init: function(settings) {
 		log('init');
 		
-		this._settings = settings;
+		this.settings = settings;
 		
 		this.single = false;
 
@@ -302,7 +304,7 @@ const EntryManager = new Lang.Class({
 		// Signals
 		let appSystem = Shell.AppSystem.get_default();
 		let appFavorites = AppFavorites.getAppFavorites();
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new SignalsUtils.SignalManager(this);
 		this._signalManager.connect(appSystem, 'installed-changed', this._onInstalledChanged);
 		this._signalManager.connect(appSystem, 'app-state-changed', this._onStateChanged);
 		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);

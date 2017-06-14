@@ -20,22 +20,19 @@ const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Utils = Me.imports.utils;
+const Logging = Me.imports.utils.logging;
+const Signals = Me.imports.utils.signals;
 
-const log = Utils.logger('prefs');
+
+const log = Logging.logger('prefs');
 
 
 function init() {
-	Utils.DEBUG = true;
-	Utils.LOG_IMPLEMENTATION = _log;
-	settings = Convenience.getSettings();
-	log('init');
 	Convenience.initTranslations();
 }
 
 
 function buildPrefsWidget() {
-	log('build-widget');
 	let prefsWidget = new PrefsWidget();
 	prefsWidget.widget.show_all();
 	return prefsWidget.widget;
@@ -46,10 +43,13 @@ const PrefsWidget = new Lang.Class({
 	Name: 'EmDash.PrefsWidget',
 
 	_init: function() {
-		log('init widget')
-		
 		this._settings = Convenience.getSettings();
-		
+
+		Me.LOGGING_ENABLED = this._settings.get_boolean('debug');
+		Me.LOGGING_IMPLEMENTATION = _log;
+
+		log('init widget')
+
 		// The UI was designed using Glade
 		this._builder = new Gtk.Builder();
 		this._builder.set_translation_domain(Me.metadata['gettext-domain']);
@@ -88,7 +88,7 @@ const PrefsWidget = new Lang.Class({
 		}
 		this._builder.get_object('about_version').label = version;
 
-		this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Signals.SignalManager(this);
 		this._builder.connect_signals_full(Lang.bind(this, this._onConnectBuilderSignal));
 		this._bindSettings();
 	},

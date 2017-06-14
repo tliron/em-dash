@@ -19,11 +19,11 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
+const Logging = Me.imports.utils.logging;
+const Dockable = Me.imports.utils.dockable;
 const Dash = Me.imports.dash;
-const Dockable = Me.imports.dockable;
 
-const log = Utils.logger('dockableDash');
+const log = Logging.logger('dockableDash');
 
 
 /**
