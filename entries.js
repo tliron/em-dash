@@ -387,10 +387,9 @@ const EntryManager = new Lang.Class({
 	 */
 	addFavorites: function(workspaceIndex) {
 		let changed = false;
-		let appFavorites = AppFavorites.getAppFavorites();
-		let favorites = appFavorites.getFavoriteMap();
-		for (let appId in favorites) {
-			let app = favorites[appId];
+		let favorites = AppFavorites.getAppFavorites().getFavorites();
+		for (let i in favorites) {
+			let app = favorites[i];
 			if (workspaceIndex === undefined) {
 				if (this.addToAll(app)) {
 					changed = true;
@@ -511,18 +510,9 @@ const EntryManager = new Lang.Class({
 		}
 	},
 
-	_onFavoritesChanged: function() {
+	_onFavoritesChanged: function(favorites) {
 		log('favorites-changed');
-		let changed = false;
-		if (this.prune()) {
-			changed = true;
-		}
-		if (this.addFavorites()) {
-			changed = true;
-		}
-		if (changed) {
-			this.emit('changed');
-		}
+		this.refresh();
 	},
 	
 	_onWorkspaceAdded: function(screen, workspaceIndex) {
@@ -603,13 +593,6 @@ function isAppOnWorkspace(app, workspaceIndex) {
 
 
 function isFavoriteApp(app) {
-	let appId = app.id;
-	let appFavorites = AppFavorites.getAppFavorites();
-	let favorites = appFavorites.getFavoriteMap();
-	for (let theAppId in favorites) {
-		if (theAppId === appId) {
-			return true;
-		}
-	}
-	return false;
+	let favorites = AppFavorites.getAppFavorites().getFavorites();
+	return favorites.indexOf(app) != -1;
 }

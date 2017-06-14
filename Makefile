@@ -10,7 +10,7 @@ INSTALLNAME = $(UUID)
 BASE_MODULES = extension.js stylesheet.css metadata.json COPYING README.md
 EXTRA_MODULES = convenience.js dash.js dockable.js dockableDash.js entries.js icons.js panelDash.js prefs.js utils.js prefs.ui
 EXTRA_IMAGES = 
-TOLOCALIZE = icons.js menu.js
+TOLOCALIZE = menu.js
 
 
 # The command line passed variable VERSION is used to set the version string
@@ -53,6 +53,8 @@ zip-file: _deploy
 	zip -qr "$(ZIP)" .
 	mv "./_build/$(ZIP)" ./
 	-rm -fR ./_build
+
+.PHONY: all clean install zip-file update-translations _deploy register-schema unregister-schema
 
 # GSchemas
 

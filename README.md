@@ -129,4 +129,4 @@ TODO
 * Icon dragging
 * Scrollable if there are too many icons
 * Sometimes in always visible the struts don't seem to work
-
+* In touch-to-show, make sure it is shown in overview! Also on all monitors!

@@ -16,16 +16,14 @@
 const Lang = imports.lang;
 const Main = imports.ui.main;
 const AppDisplay = imports.ui.appDisplay;
+const AppFavorites = imports.ui.appFavorites;
+const DND = imports.ui.dnd;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Me.imports.utils;
 const Menu = Me.imports.menu;
-
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
-const N_ = (e) => { return e };
 
 const log = Utils.logger('icons');
 
@@ -40,11 +38,12 @@ const Icon = new Lang.Class({
 	Extends: AppDisplay.AppIcon,
 	
 	_init: function(icons, app, params) {
-		params = params || {};
+		params = params || {isDraggable: false}; // we will handle draggable ourselves
 		params.showLabel = false;
 		this.parent(app, params);
 		
 		this._icons = icons;
+		this._dragMonitor = null;
 		
 		// Can we extract a simple name?
 		let id = app.id;
@@ -57,11 +56,57 @@ const Icon = new Lang.Class({
 		}
 
 		// Signals
-		//this._signalManager = new Utils.SignalManager(this);
+		this._signalManager = new Utils.SignalManager(this);
+
+		// DND
+		if (global.settings.is_writable('favorite-apps')) {
+			this._draggable = DND.makeDraggable(this.actor);
+			this._signalManager.connect(this._draggable, 'drag-begin', this._onDragBegan);
+			this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCancelled);
+			this._signalManager.connect(this._draggable, 'drag-end', this._onDragEnded);
+		}
+	},
+	
+	handleDragOver: function(source, actor, x, y, time) {
+		// Automatically hooked using our actor._delegate
+		if (source instanceof AppDisplay.AppIcon) {
+			log('drag-over: ' + source.app.id);
+			return DND.DragMotionResult.MOVE_DROP;
+		}
+		else {
+			log('drag-over: unsupported');
+			return DND.DragMotionResult.NO_DROP;
+		}
+	},
+	
+	acceptDrop: function(source, actor, x, y, time) {
+		// Automatically hooked using our actor._delegate
+		log('accept-drop');
+		if (source instanceof AppDisplay.AppIcon) {
+			let appId = source.app.id;
+			let sourceIndex = Utils.getActorIndexOfChild(this._icons._box, source.actor);
+			let targetIndex = Utils.getActorIndexOfChild(this._icons._box, this.actor);
+			log('accept-drop: ' + appId + ' from ' +
+				(sourceIndex === -1 ? 'overview' : sourceIndex) + ' to ' + targetIndex);
+			let favorites = AppFavorites.getAppFavorites();
+			if (sourceIndex === -1) {
+				// Dragged from overview
+				favorites.addFavoriteAtPos(appId, targetIndex);
+			}
+			else {
+				// Moved in dash
+				favorites.moveFavoriteToPos(appId, targetIndex);
+			}
+			return true;
+		}
+		else {
+			log('accept-drop: unsupported');
+			return false;
+		}
 	},
 
 	/*
-	 * Override in order to use our menu class
+	 * Override and copy original code, just use our menu class instead.
 	 */
 	popupMenu: function() {
 		this._removeMenuTimeout();
@@ -105,8 +150,30 @@ const Icon = new Lang.Class({
 	 * Override.
 	 */
 	_onDestroy: function() {
-		//this._signalManager.destroy();
+		this._signalManager.destroy();
 		this.parent();
+	},
+	
+	_onDragBegan: function(draggable, time) {
+		log('drag-began:' + time);
+		this._removeMenuTimeout();
+		this._dragMonitor = Lang.bind(this, this._onDragMotion);
+		DND.addDragMonitor(this._dragMonitor);
+	},
+
+	_onDragCancelled: function(draggable, time) {
+		log('drag-cancelled: ' + time);
+	},
+
+	_onDragEnded: function(draggable, time, dropped) {
+		log('drag-ended: ' + dropped  + ' ' + time);
+		DND.removeDragMonitor(this._dragMonitor);
+	},
+	
+	_onDragMotion: function(dragEvent) {
+		// Never called!
+		log('drag-motion');
+		return DND.DragMotionResult.CONTINUE;
 	}
 });
 
@@ -180,13 +247,6 @@ const Icons = new Lang.Class({
 	_refresh: function(entrySequence) {
 		this._box.remove_all_children();
 
-		let text = new St.Label({
-			text: _('Dash'),
-			x_align: Clutter.ActorAlign.CENTER,
-			y_align: Clutter.ActorAlign.CENTER
-		});
-		this._box.add_child(text);
-
 		let size = this._box.vertical ? 36 : Main.panel.actor.get_height() - 10; // TODO: how do we know the _dot height?
 		for (let i in entrySequence._entries) {
 			let entry = entrySequence._entries[i];
@@ -202,3 +262,14 @@ const Icons = new Lang.Class({
 		this.refresh();
 	}
 });
+
+
+
+/*
+ * Utils 
+ */
+
+function isFavoriteApp(app) {
+	let favorites = AppFavorites.getAppFavorites().getFavorites();
+	return favorites.indexOf(app) != -1;
+}
