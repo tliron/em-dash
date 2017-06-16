@@ -99,7 +99,7 @@ const Icon = new Lang.Class({
 	handleDragOver: function(source, actor, x, y, extra) {
 		// Hooked from DND using our actor._delegate
 		if (source instanceof AppDisplay.AppIcon) {
-			log('drag-over: ' + source.app.id + ' ' + x + ' ' + y);
+			log('handleDragOver: ' + source.app.id + ' ' + x + ' ' + y);
 			if (Entries.isFavoriteApp(this.app)) {
 				let vertical = this._icons.box.vertical;
 				let after = vertical ? y > 60 : x > 30;
@@ -108,7 +108,7 @@ const Icon = new Lang.Class({
 			}
 		}
 		else {
-			log('drag-over: unsupported');
+			log('handleDragOver: unsupported');
 		}
 		endDropHovering();
 		return DND.DragMotionResult.NO_DROP;
@@ -118,7 +118,7 @@ const Icon = new Lang.Class({
 		// Hooked from DND using our actor._delegate
 		if (source instanceof AppDisplay.AppIcon) {
 			let appId = source.app.id;
-			log('accept-drop: ' + appId + ' from ' +
+			log('acceptDrop: ' + appId + ' from ' +
 				(source._dragFromIndex === -1 ? 'elsewhere' : source._dragFromIndex) +
 				' to entry ' + this._entryIndex);
 			if (source._dragFromIndex === -1) {
@@ -137,7 +137,7 @@ const Icon = new Lang.Class({
 			return true;
 		}
 		else {
-			log('accept-drop: not an app');
+			log('acceptDrop: not an app');
 			return false;
 		}
 	},
@@ -208,8 +208,10 @@ const Icon = new Lang.Class({
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 	
-	_init: function(entryManager, vertical) {
+	_init: function(entryManager, vertical, iconSize) {
 		this.entryManager = entryManager;
+		
+		this._iconSize = iconSize;
 
 		// Box
 		this.box = new St.BoxLayout({
@@ -245,6 +247,13 @@ const Icons = new Lang.Class({
 			this.refresh();
 		}
 	},
+	
+	setSize: function(iconSize) {
+		if (this._iconSize !== iconSize) {
+			this._iconSize = iconSize;
+			this.refresh();
+		}
+	},
 
 	refresh: function(workspaceIndex) {
 		if (workspaceIndex === undefined) {
@@ -257,12 +266,16 @@ const Icons = new Lang.Class({
 	_refresh: function(entrySequence) {
 		this.box.remove_all_children();
 
-		let size = this.box.vertical ? 36 : Main.panel.actor.get_height() - 10; // TODO: how do we know the _dot height?
 		for (let i in entrySequence._entries) {
 			let entry = entrySequence._entries[i];
 			let appIcon = new Icon(this, entry._app, i);
-			//log(appIcon._dot.get_height()); 0
-			appIcon.icon.iconSize = size; // IconGrid.BaseIcon
+//			appIcon.icon._getPreferredHeight = Lang.bind(this, (actor, forWidth, alloc) => {
+//				return this._iconSize;
+//			});
+			//appIcon.icon.actor.set_height(this._iconSize);
+			//log(appIcon._dot.get_preferred_height(100));
+			appIcon.icon.setIconSize(this._iconSize);
+			//appIcon.actor.set_height(this._iconSize);
 			this.box.add_child(appIcon.actor);
 		}
 	},
@@ -286,7 +299,7 @@ function startDropHovering(actor, after, vertical) {
 	if ((_dropHoveringActor !== actor) || (_dropHoveringAfter !== after)) {
 		endDropHovering();
 
-		log('start-drop-hovering');
+		log('startDropHovering');
 		
 		_dropHoveringActor = actor;
 		_dropHoveringAfter = after;
@@ -308,7 +321,6 @@ function startDropHovering(actor, after, vertical) {
 			width: width,
 			height: height,
 			style_class: 'placeholder' // GNOME theme styling
-			//style_class: 'em-dash.placeholder'
 		});
 		if (_dropHoveringAfter) {
 			box.add_child(originalChild);
@@ -325,7 +337,7 @@ function startDropHovering(actor, after, vertical) {
 
 function endDropHovering() {
 	if (_dropHoveringActor !== null) {
-		log('end-drop-hovering');
+		log('endDropHovering');
 
 		// Restore original child
 		let box = _dropHoveringActor.get_child();

@@ -35,6 +35,8 @@ const DashManager = new Lang.Class({
     Name: 'EmDash.DashManager',
 
     _init: function(settings, _dashClasses) {
+    	log('DashManager._init');
+    	
     	this._settings = settings;
     	this._dashClasses = _dashClasses;
     	this._entryManager = new Entries.EntryManager(settings); 
@@ -42,32 +44,31 @@ const DashManager = new Lang.Class({
     	this.dash = null;
 
 		this._appMenuParent = null;;
-		this._appMenuIndex = -1;;
-    	if (settings.get_boolean('move-app-menu-to-icon')) {
-	    	// Remember original location of app menu
-			let appMenu = Main.panel.statusArea.appMenu.container;
-    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
+		
+    	// Remember original location of app menu
+		let appMenu = Main.panel.statusArea.appMenu.container;
+		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
+		if (this._appMenuIndex !== -1) {
+			this._appMenuParent = Main.panel._leftBox;
+		}
+		else {
+    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._RightBox, appMenu);
 			if (this._appMenuIndex !== -1) {
-				this._appMenuParent = Main.panel._leftBox;
+				this._appMenuParent = Main.panel._rightBox;
 			}
-			else {
-	    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._RightBox, appMenu);
-				if (this._appMenuIndex !== -1) {
-					this._appMenuParent = Main.panel._rightBox;
-				}
-			}
-    	}
+		}
 
 		this._signalManager = new Signals.SignalManager(this);
-		this._signalManager.connectSetting(this._settings, 'location', 'string',
-			this._onLocationChanged);
-		this._signalManager.connectSetting(this._settings, 'move-app-menu-to-icon', 'boolean',
-			this._onMoveAppMenuToIconSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dash-location', 'string',
+			this._onDashLocationChanged);
+		this._signalManager.connectSetting(this._settings, 'icons-app-menu', 'boolean',
+			this._onIconsAppMenuSettingChanged);
 		
-		this._settings.emit('changed::location', 'location');
+		this._settings.emit('changed::dash-location', 'dash-location');
 	},
 	
 	destroy: function() {
+    	log('DashManager.destroy');
 		this._signalManager.destroy();
 		if (this.dash !== null) {
 			this.dash.destroy();
@@ -94,24 +95,24 @@ const DashManager = new Lang.Class({
 		}
 	},
 	
-	_onLocationChanged: function(settings, location) {
-		log('location-setting-changed: ' + location);
-		let DashClass = this._dashClasses[location];
+	_onDashLocationChanged: function(settings, dashLocation) {
+		log('dash-location setting changed: ' + dashLocation);
+		let DashClass = this._dashClasses[dashLocation];
 		if (this.dash !== null) {
 			if (this.dash instanceof DashClass) {
-				this.dash.setLocation(location);
+				this.dash.setLocation(dashLocation);
 				return;
 			}
 			else {
 				this.dash.destroy();
 			}
 		}
-		this.dash = new DashClass(this._settings, this._entryManager, location);
+		this.dash = new DashClass(this._settings, this._entryManager, dashLocation);
 	},
 	
-	_onMoveAppMenuToIconSettingChanged: function(settings, moveAppMenuToIcon) {
-		log('move-app-menu-to-icon-setting-changed: ' + moveAppMenuToIcon);
-		if (moveAppMenuToIcon) {
+	_onIconsAppMenuSettingChanged: function(settings, iconsAppMenu) {
+		log('icons-app-menu setting changed: ' + iconsAppMenu);
+		if (iconsAppMenu) {
 			this.removeAppMenu();
 		}
 		else {
@@ -127,7 +128,7 @@ const DashManager = new Lang.Class({
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
     
-    _init: function(settings, entryManager, vertical) {
+    _init: function(settings, entryManager, vertical, iconSize) {
 		this._settings = settings;
     	this._entryManager = entryManager;
     	
@@ -138,7 +139,7 @@ const Dash = new Lang.Class({
     	}
     	
     	// Icons
-    	this._icons = new Icons.Icons(entryManager, vertical);
+    	this._icons = new Icons.Icons(entryManager, vertical, iconSize);
 
 		let windowTracker = Shell.WindowTracker.get_default();
 		this._signalManager = new Signals.SignalManager(this);
@@ -167,10 +168,10 @@ const Dash = new Lang.Class({
 
 	_onFocusChanged: function(windowTracker, app) {
 		if (app === null) {
-			log('focus-changed: none');
+			log('focus-app: none');
 		}
 		else {
-			log('focus-changed: ' + app.id + ' ' + app.get_name());
+			log('focus-app: ' + app.id + ' ' + app.get_name());
 		}
 	}
 });

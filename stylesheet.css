@@ -1,11 +1,13 @@
 
+/* Overrides the current theme */
 #dash.em-dash-no-border {
 	border-width: 0;
 	border-radius: 0 0 0 0;
 }
 
-/*.em-dash-placeholder {
-	background-image: url("common-assets/dash/dash-placeholder.svg");
+/* Copied from the default theme */
+#em-dash .placeholder {
+	background-image: url("resource:///org/gnome/shell/theme/dash-placeholder.svg");
 	background-size: contain;
 	height: 24px;
-}*/
+}

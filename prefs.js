@@ -48,7 +48,7 @@ const PrefsWidget = new Lang.Class({
 		Me.LOGGING_ENABLED = this._settings.get_boolean('debug');
 		Me.LOGGING_IMPLEMENTATION = _log;
 
-		log('init widget')
+		log('PrefsWidget._init')
 
 		// The UI was designed using Glade
 		this._builder = new Gtk.Builder();
@@ -80,6 +80,14 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('location_edge_near').label = this._locationEdgeLeft;
 			this._builder.get_object('location_edge_far').label = this._locationEdgeRight;
 		}
+		
+		// Marks
+		let panelHeight = this._builder.get_object('panel_height')
+		panelHeight.add_mark(16, Gtk.PositionType.BOTTOM, '16');
+		panelHeight.add_mark(32, Gtk.PositionType.BOTTOM, '32');
+		panelHeight.add_mark(64, Gtk.PositionType.BOTTOM, '64');
+		panelHeight.add_mark(96, Gtk.PositionType.BOTTOM, '96');
+		panelHeight.add_mark(128, Gtk.PositionType.BOTTOM, '128');
 
 		// Update version
 		let version = Me.metadata.version;
@@ -94,61 +102,75 @@ const PrefsWidget = new Lang.Class({
 	},
 	
 	destroy: function() {
-		log('destroy widget');
+		log('PrefsWidget.destroy');
 		this._signalManager.destroy();
 		// this._settings.run_dispose(); TODO: this causes errors
 	},
 	
 	_bindSettings: function() {
-		this._settings.bind('stretch',
-				this._builder.get_object('size_stretch'),
-				'active',
-				Gio.SettingsBindFlags.DEFAULT);
+		this._settings.bind('panel-appearance-merge',
+			this._builder.get_object('panel_merge'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('highlight-focused',
-				this._builder.get_object('icons_higlight_focused'),
-				'active',
-				Gio.SettingsBindFlags.DEFAULT);
+		this._settings.bind('dock-stretch',
+			this._builder.get_object('size_stretch'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('dots',
-				this._builder.get_object('icons_show_dots'),
-				'active',
-				Gio.SettingsBindFlags.DEFAULT);
+		this._settings.bind('dock-borders',
+			this._builder.get_object('borders_show'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('move-app-menu-to-icon',
-				this._builder.get_object('icons_move_application_menu'),
-				'active',
-				Gio.SettingsBindFlags.DEFAULT);
+		this._settings.bind('icons-highlight-focused',
+			this._builder.get_object('icons_higlight_focused'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('media-controls',
-				this._builder.get_object('icons_show_media_controls'),
-				'active',
-				Gio.SettingsBindFlags.DEFAULT);
+		this._settings.bind('icons-dots',
+			this._builder.get_object('icons_show_dots'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('wheel-scroll',
-				this._builder.get_object('icons_wheel_scroll'),
-				'active',
-				Gio.SettingsBindFlags.DEFAULT);
+		this._settings.bind('icons-app-menu',
+			this._builder.get_object('icons_move_application_menu'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
+
+		this._settings.bind('icons-media-controls',
+			this._builder.get_object('icons_show_media_controls'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
+
+		this._settings.bind('icons-wheel-scroll',
+			this._builder.get_object('icons_wheel_scroll'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
 
 		// There's no binding support for radio and combo boxes, so we'll have to do it ourselves
-		let x =this._signalManager.connectSetting(this._settings, 'location', 'string',
-			this._onLocationSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'monitor', 'uint',
-			this._onMonitorSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'visibility', 'string',
-			this._onVisibilitySettingChanged);
-		this._signalManager.connectSetting(this._settings, 'alignment', 'string',
-			this._onAlignmentSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'left-click', 'string',
-			this._onLeftClickSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'middle-click', 'string',
-			this._onMiddleClickSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'hover', 'string',
-			this._onHoverSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dash-location', 'string',
+			this._onDashLocationSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dash-location-monitor', 'uint',
+			this._onDashLocationMonitorSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'panel-custom-height', 'boolean',
+			this._onPanelCustomHeightSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'panel-height', 'uint',
+			this._onPanelHeightSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dock-visibility', 'string',
+			this._onDockVisibilitySettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dock-alignment', 'string',
+			this._onDockAlignmentSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'icons-left-click', 'string',
+			this._onIconsLeftClickSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'icons-middle-click', 'string',
+			this._onIconsMiddleClickSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'icons-hover', 'string',
+			this._onIconsHoverSettingChanged);
 	},
 	
 	_onConnectBuilderSignal: function(builder, object, signal, handler) {
-		log('connect-builder-signal: ' + handler);
+		log('connect builder signal: ' + handler);
 		// "handler" is what we called the signal in Glade
 		this._signalManager.connect(object, signal, this['_on' + handler]);
 	},
@@ -159,9 +181,9 @@ const PrefsWidget = new Lang.Class({
 	
 	// Location radio buttons
 
-	_onLocationSettingChanged: function(settings, location) {
-		log('location-setting-changed: ' + location);
-		switch (location) {
+	_onDashLocationSettingChanged: function(settings, dashLocation) {
+		log('dash-location setting changed: ' + dashLocation);
+		switch (dashLocation) {
 		case 'PANEL_NEAR':
 			this._builder.get_object('location_panel_near').active = true;
 			this._builder.get_object('panel_tab').sensitive = true;
@@ -176,6 +198,7 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('location_edge_near').active = true;
 			this._builder.get_object('panel_tab').sensitive = false;
 			this._builder.get_object('dock_tab').sensitive = true;
+			this._builder.get_object('borders_show').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
 			break;
@@ -183,6 +206,7 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('location_edge_far').active = true;
 			this._builder.get_object('panel_tab').sensitive = false;
 			this._builder.get_object('dock_tab').sensitive = true;
+			this._builder.get_object('borders_show').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
 			break;
@@ -190,6 +214,7 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('location_edge_bottom').active = true;
 			this._builder.get_object('panel_tab').sensitive = false;
 			this._builder.get_object('dock_tab').sensitive = true;
+			this._builder.get_object('borders_show').sensitive = false;
 			let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 			if (rtl) {
 				this._builder.get_object('alignment_near').label = this._alignmentRight;
@@ -204,46 +229,46 @@ const PrefsWidget = new Lang.Class({
 	},
 	
 	_onLocationPanelNearToggled: function(button) {
-		log('location-panel-start-toggled');
+		log('location_panel_start radio button toggled');
 		if (button.active) {
-			this._settings.set_string('location', 'PANEL_NEAR');
+			this._settings.set_string('dash-location', 'PANEL_NEAR');
 		}
 	},
 	
 	_onLocationPanelMiddleToggled: function(button) {
-		log('location-panel-middle-toggled');
+		log('location_panel_middle radio button toggled');
 		if (button.active) {
-			this._settings.set_string('location', 'PANEL_MIDDLE');
+			this._settings.set_string('dash-location', 'PANEL_MIDDLE');
 		}
 	},
 	
 	_onLocationEdgeNearToggled: function(button) {
-		log('location-edge-start-toggled');
+		log('location_edge_start radio button toggled');
 		if (button.active) {
-			this._settings.set_string('location', 'EDGE_NEAR');
+			this._settings.set_string('dash-location', 'EDGE_NEAR');
 		}
 	},
 	
 	_onLocationEdgeFarToggled: function(button) {
-		log('location-edge-end-toggled');
+		log('location_edge_end radio button toggled');
 		if (button.active) {
-			this._settings.set_string('location', 'EDGE_FAR');
+			this._settings.set_string('dash-location', 'EDGE_FAR');
 		}
 	},
 	
 	_onLocationEdgeBottomToggled: function(button) {
-		log('location-edge-bottom-toggled');
+		log('location_edge_bottom radio button toggled');
 		if (button.active) {
-			this._settings.set_string('location', 'EDGE_BOTTOM');
+			this._settings.set_string('dash-location', 'EDGE_BOTTOM');
 		}
 	},
 	
 	// Monitor combo box
 
-	_onMonitorSettingChanged: function(settings, monitor) {
-		log('monitor-setting-changed: ' + monitor);
+	_onDashLocationMonitorSettingChanged: function(settings, dashLocationMonitor) {
+		log('dash-location-monitor setting changed: ' + dashLocationMonitor);
 		let combo = this._builder.get_object('location_monitor');
-		let id = String(monitor);
+		let id = String(dashLocationMonitor);
 		combo.active_id = id;
 		if (combo.active_id !== id) {
 			// Changing the active entry failed, meaning that our combo does not have an entry
@@ -254,16 +279,57 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onLocationMonitorChanged: function(combo) {
-		let monitor = combo.active_id;
-		log('location-monitor-changed: ' + monitor);
-		this._settings.set_uint('monitor', parseInt(monitor));
+		let locationMonitor = combo.active_id;
+		log('location_monitor combo box changed: ' + locationMonitor);
+		this._settings.set_uint('dash-location-monitor', parseInt(locationMonitor));
 	},
 	
+	// Custom height radio buttons
+
+	_onPanelCustomHeightSettingChanged: function(settings, panelCustomHeight) {
+		log('panel-custom-height setting changed: ' + panelCustomHeight);
+		if (panelCustomHeight) {
+			this._builder.get_object('panel_custom_height').active = true;
+			this._builder.get_object('panel_height').sensitive = true;
+		}
+		else {
+			this._builder.get_object('panel_default_height').active = true;
+			this._builder.get_object('panel_height').sensitive = false;
+		}
+	},
+
+	_onPanelDefaultHeightToggled: function(button) {
+		log('panel_default_height radio button toggled');
+		if (button.active) {
+			this._settings.set_boolean('panel-custom-height', false);
+		}
+	},
+
+	_onPanelCustomHeightToggled: function(button) {
+		log('panel_custom_height radio button toggled');
+		if (button.active) {
+			this._settings.set_boolean('panel-custom-height', true);
+		}
+	},
+	
+	// Height scale
+
+	_onPanelHeightSettingChanged: function(settings, panelHeight) {
+		log('panel-height setting changed: ' + panelHeight);
+		this._builder.get_object('panel_height').set_value(panelHeight);
+	},
+	
+	_onPanelHeightValueChanged: function(scale) {
+		let value = scale.get_value();
+		log('panel_height scale value changed: ' + value);
+		this._settings.set_uint('panel-height', value);
+	},
+		
 	// Visibility radio buttons
 	
-	_onVisibilitySettingChanged: function(settings, visibility) {
-		log('visibility-setting-changed: ' + visibility);
-		switch (visibility) {
+	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
+		log('dock-visibility setting changed: ' + dockVisibility);
+		switch (dockVisibility) {
 		case 'ALWAYS':
 			this._builder.get_object('visibility_always_visible').active = true;
 			break;
@@ -274,24 +340,24 @@ const PrefsWidget = new Lang.Class({
 	},
 	
 	_onVisibilityAlwaysVisibleToggled: function(button) {
-		log('visibility-always-visible-toggled');
+		log('visibility_always_visible radio button toggled');
 		if (button.active) {
-			this._settings.set_string('visibility', 'ALWAYS');
+			this._settings.set_string('dock-visibility', 'ALWAYS');
 		}
 	},
 	
 	_onVisibilityTouchToShowToggled: function(button) {
-		log('visibility-touch-to-show-toggled');
+		log('visibility_touch_to_show radio button toggled');
 		if (button.active) {
-			this._settings.set_string('visibility', 'TOUCH_TO_SHOW');
+			this._settings.set_string('dock-visibility', 'TOUCH_TO_SHOW');
 		}
 	},
 	
 	// Alignment radio buttons
 	
-	_onAlignmentSettingChanged: function(settings, alignment) {
-		log('alignment-setting-changed: ' + alignment);
-		switch (alignment) {
+	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
+		log('dock-alignment setting changed: ' + dockAlignment);
+		switch (dockAlignment) {
 		case 'NEAR':
 			this._builder.get_object('alignment_near').active = true;
 			break;
@@ -305,63 +371,63 @@ const PrefsWidget = new Lang.Class({
 	},
 	
 	_onAlignmentNearToggled: function(button) {
-		log('alignment-near-toggled');
+		log('alignment_near radio button toggled');
 		if (button.active) {
-			this._settings.set_string('alignment', 'NEAR');
+			this._settings.set_string('dock-alignment', 'NEAR');
 		}
 	},
 	
 	_onAlignmentMiddleToggled: function(button) {
-		log('alignment-middle-toggled');
+		log('alignment_middle radio button toggled');
 		if (button.active) {
-			this._settings.set_string('alignment', 'MIDDLE');
+			this._settings.set_string('dock-alignment', 'MIDDLE');
 		}
 	},
 	
 	_onAlignmentFarToggled: function(button) {
-		log('alignment-far-toggled');
+		log('alignment_far radio button toggled');
 		if (button.active) {
-			this._settings.set_string('alignment', 'FAR');
+			this._settings.set_string('dock-alignment', 'FAR');
 		}
 	},
 	
 	// Left-click combo box
 
-	_onLeftClickSettingChanged: function(settings, leftClick) {
-		log('left-click-setting-changed: ' + leftClick);
-		this._builder.get_object('icons_left_click').active_id = leftClick;
+	_onIconsLeftClickSettingChanged: function(settings, iconsLeftClick) {
+		log('icons-left-click setting changed: ' + iconsLeftClick);
+		this._builder.get_object('icons_left_click').active_id = iconsLeftClick;
 	},
 	
 	_onIconsLeftClickChanged: function(combo) {
 		let leftClick = combo.active_id;
-		log('icons-left-click-changed: ' + leftClick);
-		this._settings.set_string('left-click', leftClick);
+		log('icons_left_click combo box changed: ' + leftClick);
+		this._settings.set_string('icons-left-click', leftClick);
 	},
 	
 	// Middle-click combo box
 
-	_onMiddleClickSettingChanged: function(settings, middleClick) {
-		log('middle-click-setting-changed: ' + middleClick);
-		this._builder.get_object('icons_middle_click').active_id = middleClick;
+	_onIconsMiddleClickSettingChanged: function(settings, iconsMiddleClick) {
+		log('icons-middle-click setting changed: ' + iconsMiddleClick);
+		this._builder.get_object('icons_middle_click').active_id = iconsMiddleClick;
 	},
 	
 	_onIconsMiddleClickChanged: function(combo) {
 		let middleClick = combo.active_id;
-		log('icons-middle-click-changed: ' + middleClick);
-		this._settings.set_string('middle-click', middleClick);
+		log('icons_middle_click combo box changed: ' + middleClick);
+		this._settings.set_string('icons-middle-click', middleClick);
 	},
 
 	// Hover combo box
 
-	_onHoverSettingChanged: function(settings, hover) {
-		log('hover-setting-changed: ' + hover);
-		this._builder.get_object('icons_hover').active_id = hover;
+	_onIconsHoverSettingChanged: function(settings, iconsHover) {
+		log('icons-hover setting changed: ' + iconsHover);
+		this._builder.get_object('icons_hover').active_id = iconsHover;
 	},
 	
 	_onIconsHoverChanged: function(combo) {
 		let hover = combo.active_id;
-		log('icons-hover-changed: ' + hover);
-		this._settings.set_string('hover', hover);
+		log('icons_hover combo box changed: ' + hover);
+		this._settings.set_string('icons-hover', hover);
 	}
 });
 

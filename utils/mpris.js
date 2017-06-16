@@ -34,7 +34,7 @@ const MPRIS = new Lang.Class({
 	Name: 'EmDash.MPRIS',
 	
 	_init: function(name) {
-		log('init');
+		log('MPRIS._init');
 		
 		this.canPause = null;
 		this.canGoNext = null;
@@ -54,6 +54,7 @@ const MPRIS = new Lang.Class({
 	},
 	
 	destroy: function() {
+		log('MPRIS.destroy');
 		// There is no way to disconnect the existing DBus remote calls, so we'll just make sure not
 		// to do anything if answers arrive after we've been destroyed
 		this._destroyed = true;
@@ -81,16 +82,16 @@ const MPRIS = new Lang.Class({
 
 	_onGetOwner: function(owner) {
 		if (this._destroyed) {
-			log('get-owner: destroyed!');
+			log('_onGetOwner: destroyed!');
 			return;
 		}
 
 		if (owner.length === 0) {
-			log('get-owner: none');
+			log('_onGetOwner: none');
 			return;
 		}
 		this._ownerName = owner[0];
-		log('get-owner: ' + this._ownerName);
+		log('_onGetOwner: ' + this._ownerName);
 
 		// Create proxies
 		let onProxyCreated = Lang.bind(this, this._onProxyCreated);
@@ -109,11 +110,11 @@ const MPRIS = new Lang.Class({
 	
 	_onProxyCreated: function(name, proxy) {
 		if (this._destroyed) {
-			log('proxy-created: destroyed!');
+			log('_onProxyCreated: destroyed!');
 			return;
 		}
 
-		log('proxy-created: ' + name);
+		log('_onProxyCreated: ' + name);
 		this['_' + name] = proxy;
 		
 		if (this._mediaPlayerPlayer !== null) {
@@ -261,7 +262,7 @@ const MediaPlayerTracklistWrapper = Gio.DBusProxy.makeProxyWrapper(
 
 
 function createProxy(wrapperClass, objectPath, interfacePath, name, callback) {
-	log('create-proxy: ' + name);
+	log('createProxy: ' + name);
 	new wrapperClass(Gio.DBus.session, objectPath, interfacePath, (proxy) => {
 		callback(name, proxy);
 	});

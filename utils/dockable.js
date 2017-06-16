@@ -38,6 +38,8 @@ const Dockable = new Lang.Class({
 	Name: 'EmDash.Dockable',
 
 	_init: function(child, side, align, stretch, toggle) {
+		log('Dockable._init');
+		
 		this.actor = new St.Bin({
 			name: 'em-dash-dockable',
 			child: child,
@@ -54,6 +56,8 @@ const Dockable = new Lang.Class({
 		this._stretch = stretch;
 		this._toggle = toggle;
 		this._monitorIndex = Main.layoutManager.primaryIndex;
+		this._leftCornerWasVisible = Main.panel._leftCorner.actor.visible;
+		this._rightCornerWasVisible = Main.panel._rightCorner.actor.visible;
 
 		this._collapsed = toggle;
 		this._collapsedSize = 5;
@@ -73,6 +77,7 @@ const Dockable = new Lang.Class({
 	},
 
 	destroy: function() {
+		log('Dockable.destroy');
 		this._laterManager.destroy();
 		this._signalManager.destroy();
 		this._destroyPressureBarrier();
@@ -81,8 +86,12 @@ const Dockable = new Lang.Class({
 		if (this._initialized()) {
 			Main.layoutManager.removeChrome(this.actor);
 		}
-		Main.panel._leftCorner.actor.show();
-		Main.panel._rightCorner.actor.show();
+		if (this._leftCornerWasVisible) {
+			Main.panel._leftCorner.actor.show();
+		}
+		if (this._rightCornerWasVisible) {
+			Main.panel._rightCorner.actor.show();
+		}
 	},
 	
 	setSide: function(side) {
@@ -158,7 +167,7 @@ const Dockable = new Lang.Class({
 			return;
 		}
 
-		log('reinitialize');
+		log('_reinitialize');
 
 		let bounds = {}, barrier = {};
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
@@ -237,7 +246,7 @@ const Dockable = new Lang.Class({
 	},
 	
 	_setBounds: function(bounds) {
-		log('set-bounds: ' + bounds.x + ' ' + bounds.y + ' ' + bounds.width + ' ' + bounds.height);
+		log('_setBounds: ' + bounds.x + ' ' + bounds.y + ' ' + bounds.width + ' ' + bounds.height);
 		let child = this._getChild();
 		if (bounds.width === -1) {
 			bounds.width = this.actor.get_preferred_width(bounds.height);
@@ -295,7 +304,7 @@ const Dockable = new Lang.Class({
 	},
 	
 	_setPressureBarrier: function(barrier) {
-		log('pressure-barrier: ' + barrier.x1 + ' ' + barrier.y1 + ' ' +
+		log('_setPressureBarrier: ' + barrier.x1 + ' ' + barrier.y1 + ' ' +
 			barrier.x2 + ' ' + barrier.y2);
 		this._destroyPressureBarrier();
 		barrier.display = global.display;
@@ -323,20 +332,36 @@ const Dockable = new Lang.Class({
 
 	_setRoundedCorners: function() {
 		if (this._side === Meta.Side.LEFT) {
-			Main.panel._leftCorner.actor.hide();
-			Main.panel._rightCorner.actor.show();
+			if (this._leftCornerWasVisible) {
+				Main.panel._leftCorner.actor.hide();
+			}
+			if (this._rightCornerWasVisible) {
+				Main.panel._rightCorner.actor.show();
+			}
 		}
 		else if (this._side === Meta.Side.RIGHT) {
-			Main.panel._leftCorner.actor.show();
-			Main.panel._rightCorner.actor.hide();
+			if (this._leftCornerWasVisible) {
+				Main.panel._leftCorner.actor.show();
+			}
+			if (this._rightCornerWasVisible) {
+				Main.panel._rightCorner.actor.hide();
+			}
 		}
 		else if (this._side === Meta.Side.TOP) {
-			Main.panel._leftCorner.actor.hide();
-			Main.panel._rightCorner.actor.hide();
+			if (this._leftCornerWasVisible) {
+				Main.panel._leftCorner.actor.hide();
+			}
+			if (this._rightCornerWasVisible) {
+				Main.panel._rightCorner.actor.hide();
+			}
 		}
 		else { // BOTTOM
-			Main.panel._leftCorner.actor.show();
-			Main.panel._rightCorner.actor.show();
+			if (this._leftCornerWasVisible) {
+				Main.panel._leftCorner.actor.show();
+			}
+			if (this._rightCornerWasVisible) {
+				Main.panel._rightCorner.actor.show();
+			}
 		}
 	},
 
@@ -361,7 +386,7 @@ const Dockable = new Lang.Class({
 	},
 	
 	_onPressureBarrierTriggered: function(pressureBarrier) {
-		log('pressure-barrier-triggered');
+		log('pressure barrier trigger');
 		this._collapsed = false;
 		this._reinitialize();
 		this.actor.track_hover = true;

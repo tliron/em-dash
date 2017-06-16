@@ -38,7 +38,7 @@ const IconMenu = new Lang.Class({
 	Extends: AppDisplay.AppIconMenu,
 	
 	_init: function(source, simpleName, icons) {
-		log('init');
+		log('IconMenu._init');
 		this.parent(source);
 		this._simpleName = simpleName; 
 		this._appMenu = null;
@@ -51,7 +51,7 @@ const IconMenu = new Lang.Class({
 	 * Override.
 	 */
 	destroy: function() {
-		log('destroy');
+		log('IconMenu.destroy');
 		if (this._appMenu !== null) {
 			this._appMenu.destroy();
 		}
@@ -67,7 +67,7 @@ const IconMenu = new Lang.Class({
 		this.parent();
 		
 		// Application menu
-		if (this._settings.get_boolean('move-app-menu-to-icon')) {
+		if (this._settings.get_boolean('icons-app-menu')) {
 			let menuModel = this._source.app.menu; // Gio.DBusMenuModel
 			let actionGroup = this._source.app.action_group;
 			if ((menuModel !== null) && (actionGroup !== null)) {
@@ -79,7 +79,7 @@ const IconMenu = new Lang.Class({
 
 		// Media controls
 		this._destroyMpris();
-		if (this._settings.get_boolean('media-controls')) {
+		if (this._settings.get_boolean('icons-media-controls')) {
 			if (this._simpleName !== null) {
 				this._mpris = new MPRIS.MPRIS(this._simpleName);
 				this._signalManager.connect(this._mpris, 'initialize', this._onMprisInitialized);
@@ -176,14 +176,14 @@ const AppMenu = new Lang.Class({
 	},
 	
 	_onOpened: function(item) {
-		log('opened');
+		log('opene');
 		this._menuTracker = Shell.MenuTracker.new(this._actionGroup, this._menuModel, null,
 			this._onInsertItem.bind(this, this),
 			this._onRemoveItem.bind(this, this));
 	},
 
 	_onInsertItem: function(menu, trackerItem, position) {
-		log('insert-item: ' + position);
+		log('_onInsertItem: ' + position);
 		if (trackerItem.get_is_separator()) {
 			
 		}
@@ -200,13 +200,13 @@ const AppMenu = new Lang.Class({
 	},
 	
 	_onRemoveItem: function(menu, position) {
-		log('remove-item: ' + position);
+		log('_onRemoveItem: ' + position);
 		let items = menu._getMenuItems();
 		items[position].destroy();
 	},
 
 	_onItemActivated: function(item) {
-		log('item-activated');
+		log('activate');
 		item._trackerItem.activated();
 	}
 });

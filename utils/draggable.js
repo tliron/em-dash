@@ -17,7 +17,7 @@ const Lang = imports.lang;
 const DND = imports.ui.dnd;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.Logging;
+const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
 
 const log = Logging.logger('draggable');
@@ -30,7 +30,7 @@ const Draggable = new Lang.Class({
 	Name: 'EmDash.Draggable',
 	
 	_init: function(actor) {
-		log('init');
+		log('Draggable._init');
 		this.actor = actor;
 		
 		this._dragMonitor = {
@@ -47,7 +47,7 @@ const Draggable = new Lang.Class({
 	},
 
 	destroy: function() {
-		log('destroy');
+		log('Draggable.destroy');
 		this._signalManager.destroy();
 		DND.removeDragMonitor(this._dragMonitor);
 	},
@@ -76,13 +76,13 @@ const Draggable = new Lang.Class({
 	},
 	
 	_onDragMotion: function(dragEvent) {
-		log('drag-motion: ' + dragEvent.x + ' ' + dragEvent.y);
+		log('_onDragMotion: ' + dragEvent.x + ' ' + dragEvent.y);
 		// Keeping it just for debugging
 		return DND.DragMotionResult.CONTINUE;
 	},
 	
 	_onDragDrop: function(dropEvent) {
-		log('drag-drop');
+		log('_onDragDrop');
 		// Keeping it just for debugging, _onDragEnded will be called anyway
 		return DND.DragDropResult.CONTINUE;
 	}

@@ -34,36 +34,34 @@ const DockableDash = new Lang.Class({
 	Extends: Dash.Dash,
 
 	_init: function(settings, entryManager, location) {
-		log('init');
+		log('DockableDash._init');
 		
 		let side = getMutterSideForLocation(location);
-		let align = getStAlignForAlignment(settings.get_string('alignment'));
-		let stretch = settings.get_boolean('stretch');
-		let toggle = settings.get_string('visibility') === 'TOUCH_TO_SHOW';
+		let align = getStAlignForAlignment(settings.get_string('dock-alignment'));
+		let stretch = settings.get_boolean('dock-stretch');
+		let toggle = settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 		
 		this.parent(settings, entryManager,
-			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
+			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT), 36);
 
 		// Give our dash the GNOME theme's styling
 		this._icons.actor.name = 'dash';
 		this._updateStyle(side);
 		
-		//this._icons.actor.set_text_direction(Clutter.TextDirection.RTL);
-		//this._icons.actor.add_style_class_name('dash-item-container');
-		
 		this._dockable = new Dockable.Dockable(this._icons.actor, side, align, stretch, toggle);
-		//this._icons.actor.add_style_class_name('EmDash-DockableDash');
 
-		this._signalManager.connectSetting(settings, 'visibility', 'string',
-			this._onVisibilitySettingChanged);
-		this._signalManager.connectSetting(settings, 'alignment', 'string',
-			this._onAlignmentSettingChanged);
-		this._signalManager.connectSetting(settings, 'stretch', 'boolean',
-			this._onStretchSettingChanged);
+		this._signalManager.connectSetting(settings, 'dock-visibility', 'string',
+			this._onDockVisibilitySettingChanged);
+		this._signalManager.connectSetting(settings, 'dock-alignment', 'string',
+			this._onDockAlignmentSettingChanged);
+		this._signalManager.connectSetting(settings, 'dock-stretch', 'boolean',
+			this._onDockStretchSettingChanged);
+		this._signalManager.connectSetting(settings, 'dock-borders', 'boolean',
+			this._onDockBordersSettingChanged);
 	},
 	
     destroy: function() {
-		log('destroy');
+		log('DockableDash.destroy');
     	this._dockable.destroy();
     	this.parent();
     },
@@ -76,34 +74,49 @@ const DockableDash = new Lang.Class({
 	},
 	
 	_updateStyle: function(side) {
+		let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 		if (side === Meta.Side.RIGHT) {
+			if (rtl) {
+				this._icons.actor.text_direction = Clutter.TextDirection.RTL;
+			}
 			this._icons.actor.add_style_pseudo_class('rtl');
 		}
 		else {
+			if (rtl) {
+				this._icons.actor.text_direction = Clutter.TextDirection.LTR;
+			}
 			this._icons.actor.remove_style_pseudo_class('rtl');
 		}
-		if (side === Meta.Side.BOTTOM) {
+		if ((side === Meta.Side.BOTTOM) || !this._settings.get_boolean('dock-borders')) {
 			this._icons.actor.add_style_class_name('em-dash-no-border');
 		}
 		else {
 			this._icons.actor.remove_style_class_name('em-dash-no-border');
 		}
+		//this._icons.actor.add_style_class_name('dash-item-container');
 	},
     
-	_onVisibilitySettingChanged: function(settings, visibility) {
-		log('visibility-setting-changed: ' + visibility);
-		let toggle = visibility === 'TOUCH_TO_SHOW';
+	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
+		log('dock-visibility setting changed: ' + dockVisibility);
+		let toggle = dockVisibility === 'TOUCH_TO_SHOW';
 		this._dockable.setToggle(toggle);
 	},
     
-	_onAlignmentSettingChanged: function(settings, alignment) {
-		log('alignment-setting-changed: ' + alignment);
-		let align = getStAlignForAlignment(alignment);
+	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
+		log('dock-alignment setting changed: ' + dockAlignment);
+		let align = getStAlignForAlignment(dockAlignment);
 		this._dockable.setAlign(align);
 	},
 	
-	_onStretchSettingChanged: function(setting, stretch) {
-		this._dockable.setStretch(stretch);
+	_onDockStretchSettingChanged: function(setting, dockStretch) {
+		log('dock-stretch setting changed: ' + dockStretch);
+		this._dockable.setStretch(dockStretch);
+	},
+
+	_onDockBordersSettingChanged: function(setting, dockBorders) {
+		log('dock-borders setting changed: ' + dockBorders);
+		let location = this._settings.get_string('dash-location');
+		this._updateStyle(getMutterSideForLocation(location));
 	}
 });
 

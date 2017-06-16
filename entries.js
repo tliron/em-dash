@@ -288,7 +288,7 @@ const EntryManager = new Lang.Class({
 	SINGLE_WORKSPACE_INDEX: -1,
 
 	_init: function(settings) {
-		log('init');
+		log('EntryManager._init');
 		
 		this.settings = settings;
 		
@@ -312,7 +312,7 @@ const EntryManager = new Lang.Class({
 	},
 
 	destroy: function() {
-		log('destroy');
+		log('EntryManager.destroy');
 		this._signalManager.destroy();
 	},
 

@@ -2,75 +2,95 @@
 <!DOCTYPE gschema SYSTEM "/usr/share/glib-2.0/schemas/gschema.dtd">
 <schemalist gettext-domain="em-dash">
   <schema path="/org/gnome/shell/extensions/em-dash/" id="org.gnome.shell.extensions.em-dash">
-    <key name="location" enum="org.gnome.shell.extensions.em-dash.location">
+    <key name="debug" type="b">
+      <default>false</default>
+      <summary>Debug mode</summary>
+      <description>Whether to send debug information to the system log.</description>
+    </key>
+    <key name="dash-location" enum="org.gnome.shell.extensions.em-dash.location">
       <default>'EDGE_NEAR'</default>
       <summary>Location</summary>
       <description>Where the dash is located.</description>
     </key>
-    <key name="monitor" type="u">
+    <key name="dash-location-monitor" type="u">
       <default>0</default>
-      <summary>Monitor</summary>
+      <summary>Location monitor</summary>
       <description>On which monitor the dock is located.</description>
     </key>
-    <key name="move-app-menu-to-icon" type="b">
-      <default>false</default>
-      <summary>Move application menu</summary>
-      <description>Hide the built-in application menu and show it in the relevant icon menu instead.</description>
+    <key name="panel-appearance-merge" type="b">
+      <default>true</default>
+      <summary>Merge panel appearance</summary>
+      <description>Whether to use a custom theme for the panel dash that allows it to visually blend into the panel.</description>
     </key>
-    <key name="visibility" enum="org.gnome.shell.extensions.em-dash.visibility">
+    <key name="panel-custom-height" type="b">
+      <default>false</default>
+      <summary>Panel custom height</summary>
+      <description>Whether to set a custom height for the panel.</description>
+    </key>
+    <key name="panel-height" type="u">
+      <default>32</default>
+      <summary>Panel height</summary>
+      <description>Custom height for the panel.</description>
+    </key>
+    <key name="dock-visibility" enum="org.gnome.shell.extensions.em-dash.visibility">
       <default>'ALWAYS'</default>
-      <summary>Visibility</summary>
+      <summary>Dock visibility</summary>
       <description>When to show the dock.</description>
     </key>
-    <key name="stretch" type="b">
+    <key name="dock-stretch" type="b">
       <default>true</default>
-      <summary>Stretch</summary>
+      <summary>Dock stretch</summary>
       <description>Whether to to stretch the dock to fill the monitor edge.</description>
     </key>
-    <key name="alignment" enum="org.gnome.shell.extensions.em-dash.alignment">
+    <key name="dock-alignment" enum="org.gnome.shell.extensions.em-dash.alignment">
       <default>'NEAR'</default>
-      <summary>Alignment</summary>
+      <summary>Dock alignment</summary>
       <description>How to align icons in the dock.</description>
     </key>
-    <key name="highlight-focused" type="b">
+    <key name="dock-borders" type="b">
+      <default>true</default>
+      <summary>Dock borders</summary>
+      <description>Whether to show border when docked on left or right monitor edges.</description>
+    </key>
+    <key name="icons-highlight-focused" type="b">
       <default>false</default>
-      <summary>Highlight focused application</summary>
+      <summary>Icon highlight</summary>
       <description>Whether to highlight the icon for the currently focused application.</description>
     </key>
-    <key name="dots" type="b">
+    <key name="icons-dots" type="b">
       <default>false</default>
-      <summary>Show dots</summary>
+      <summary>Icon dots</summary>
       <description>Whether to show dots for the number of open windows for each icon.</description>
     </key>
-    <key name="left-click" enum="org.gnome.shell.extensions.em-dash.click">
-      <default>'LAUNCH_OR_SHOW'</default>
-      <summary>Left-click</summary>
-      <description>What to do when an icon is left-clicked.</description>
-    </key>
-    <key name="middle-click" enum="org.gnome.shell.extensions.em-dash.click">
-      <default>'NOTHING'</default>
-      <summary>Middle-click</summary>
-      <description>What to do when an icon is middle-clicked.</description>
-    </key>
-    <key name="wheel-scroll" type="b">
+    <key name="icons-app-menu" type="b">
       <default>false</default>
-      <summary>Support wheel scroll</summary>
-      <description>Whether to cycle windows when wheel scrolling on an icon.</description>
+      <summary>Application menu in icon menu</summary>
+      <description>Hide the built-in application menu and show it in the relevant icon menu instead.</description>
     </key>
-    <key name="hover" enum="org.gnome.shell.extensions.em-dash.hover">
-      <default>'NOTHING'</default>
-      <summary>Hover</summary>
-      <description>What to do when the mouse hovers over an icon.</description>
-    </key>
-    <key name="media-controls" type="b">
+    <key name="icons-media-controls" type="b">
       <default>true</default>
-      <summary>Show media controls</summary>
+      <summary>Media controls in icon menu</summary>
       <description>Whether to show media controls in the menu if supported by the application.</description>
     </key>
-    <key name="debug" type="b">
+    <key name="icons-left-click" enum="org.gnome.shell.extensions.em-dash.click">
+      <default>'LAUNCH_OR_SHOW'</default>
+      <summary>Icon left-click</summary>
+      <description>What to do when an icon is left-clicked.</description>
+    </key>
+    <key name="icons-middle-click" enum="org.gnome.shell.extensions.em-dash.click">
+      <default>'NOTHING'</default>
+      <summary>Icon middle-click</summary>
+      <description>What to do when an icon is middle-clicked.</description>
+    </key>
+    <key name="icons-hover" enum="org.gnome.shell.extensions.em-dash.hover">
+      <default>'NOTHING'</default>
+      <summary>Icon hover</summary>
+      <description>What to do when the mouse hovers over an icon.</description>
+    </key>
+    <key name="icons-wheel-scroll" type="b">
       <default>false</default>
-      <summary>Enable debug mode</summary>
-      <description>Whether to send debugging information to the system log.</description>
+      <summary>Icon wheel scroll</summary>
+      <description>Whether to cycle windows when mouse wheel scrolling on an icon.</description>
     </key>
   </schema>
 </schemalist>
