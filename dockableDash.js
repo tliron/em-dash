@@ -33,23 +33,33 @@ const DockableDash = new Lang.Class({
 	Name: 'EmDash.DockableDash',
 	Extends: Dash.Dash,
 
-	_init: function(settings, entryManager) {
+	_init: function(settings, entryManager, location) {
 		log('init');
 		
-		let side = getSideForPosition(settings.get_string('position'));
+		let side = getMutterSideForLocation(location);
+		let align = getStAlignForAlignment(settings.get_string('alignment'));
+		let stretch = settings.get_boolean('stretch');
 		let toggle = settings.get_string('visibility') === 'TOUCH_TO_SHOW';
 		
 		this.parent(settings, entryManager,
-			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT),
-			getAlignForAlignment(settings.get_string('alignment')));
-		this._dockable = new Dockable.Dockable(this._icons.actor, side, toggle);
+			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
+
+		// Give our dash the GNOME theme's styling
+		this._icons.actor.name = 'dash';
+		this._updateStyle(side);
+		
+		//this._icons.actor.set_text_direction(Clutter.TextDirection.RTL);
+		//this._icons.actor.add_style_class_name('dash-item-container');
+		
+		this._dockable = new Dockable.Dockable(this._icons.actor, side, align, stretch, toggle);
+		//this._icons.actor.add_style_class_name('EmDash-DockableDash');
 
 		this._signalManager.connectSetting(settings, 'visibility', 'string',
 			this._onVisibilitySettingChanged);
 		this._signalManager.connectSetting(settings, 'alignment', 'string',
 			this._onAlignmentSettingChanged);
 		this._signalManager.connectSetting(settings, 'stretch', 'boolean',
-				this._onStretchSettingChanged);
+			this._onStretchSettingChanged);
 	},
 	
     destroy: function() {
@@ -58,10 +68,26 @@ const DockableDash = new Lang.Class({
     	this.parent();
     },
 
-	setPosition: function(position) {
-		let side = getSideForPosition(position);
+	setLocation: function(location) {
+		let side = getMutterSideForLocation(location);
 		this._icons.setVertical((side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
 		this._dockable.setSide(side);
+		this._updateStyle(side);
+	},
+	
+	_updateStyle: function(side) {
+		if (side === Meta.Side.RIGHT) {
+			this._icons.actor.add_style_pseudo_class('rtl');
+		}
+		else {
+			this._icons.actor.remove_style_pseudo_class('rtl');
+		}
+		if (side === Meta.Side.BOTTOM) {
+			this._icons.actor.add_style_class_name('em-dash-no-border');
+		}
+		else {
+			this._icons.actor.remove_style_class_name('em-dash-no-border');
+		}
 	},
     
 	_onVisibilitySettingChanged: function(settings, visibility) {
@@ -72,26 +98,23 @@ const DockableDash = new Lang.Class({
     
 	_onAlignmentSettingChanged: function(settings, alignment) {
 		log('alignment-setting-changed: ' + alignment);
-		let align = getAlignForAlignment(alignment);
-		this._icons.setAlign(align);
+		let align = getStAlignForAlignment(alignment);
+		this._dockable.setAlign(align);
 	},
 	
 	_onStretchSettingChanged: function(setting, stretch) {
-		if (stretch) {
-			this._icons.actor.add_style_class_name('EmDash-DockableDash');
-			this._icons._box.remove_style_class_name('EmDash-DockableDash');
-		}
-		else {
-			this._icons._box.add_style_class_name('EmDash-DockableDash');
-			this._icons.actor.remove_style_class_name('EmDash-DockableDash');
-		}
+		this._dockable.setStretch(stretch);
 	}
 });
 
 
-function getSideForPosition(position) {
+/*
+ * Utils
+ */
+
+function getMutterSideForLocation(location) {
 	let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
-	switch (position) {
+	switch (location) {
 	case 'EDGE_NEAR':
 		return rtl ? Meta.Side.RIGHT : Meta.Side.LEFT;
 	case 'EDGE_FAR':
@@ -102,7 +125,7 @@ function getSideForPosition(position) {
 }
 
 
-function getAlignForAlignment(alignment) {
+function getStAlignForAlignment(alignment) {
 	switch (alignment) {
 	case 'NEAR':
 		return St.Align.START;

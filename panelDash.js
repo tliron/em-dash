@@ -32,15 +32,21 @@ const PanelDash = new Lang.Class({
 	Name: 'EmDash.PanelDash',
 	Extends: Dash.Dash,
     
-	_init: function(settings, entryManager) {
+	_init: function(settings, entryManager, location) {
 		log('init');
     	
-    	this.parent(settings, entryManager, false, St.Align.MIDDLE);
+    	this.parent(settings, entryManager, false);
+
+		// Give our dash the GNOME theme's styling
+		this._icons.actor.name = 'dash';
+		this._icons.actor.add_style_class_name('em-dash-no-border');
+
+    	this.setLocation(location);
     },
 	
-	setPosition: function(position) {
+	setLocation: function(location) {
 		let actor = this._icons.actor;
-		switch (position) {
+		switch (location) {
 		case 'PANEL_NEAR':
 			if (Main.panel._centerBox.contains(actor)) {
 				Main.panel._centerBox.remove_child(actor);

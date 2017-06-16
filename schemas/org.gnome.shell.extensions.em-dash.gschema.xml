@@ -2,15 +2,15 @@
 <!DOCTYPE gschema SYSTEM "/usr/share/glib-2.0/schemas/gschema.dtd">
 <schemalist gettext-domain="em-dash">
   <schema path="/org/gnome/shell/extensions/em-dash/" id="org.gnome.shell.extensions.em-dash">
-    <key name="position" enum="org.gnome.shell.extensions.em-dash.position">
+    <key name="location" enum="org.gnome.shell.extensions.em-dash.location">
       <default>'EDGE_NEAR'</default>
-      <summary>Position</summary>
-      <description>Where the dash is positioned.</description>
+      <summary>Location</summary>
+      <description>Where the dash is located.</description>
     </key>
     <key name="monitor" type="u">
       <default>0</default>
       <summary>Monitor</summary>
-      <description>On which monitor the dock is positioned.</description>
+      <description>On which monitor the dock is located.</description>
     </key>
     <key name="move-app-menu-to-icon" type="b">
       <default>false</default>
@@ -31,6 +31,16 @@
       <default>'NEAR'</default>
       <summary>Alignment</summary>
       <description>How to align icons in the dock.</description>
+    </key>
+    <key name="highlight-focused" type="b">
+      <default>false</default>
+      <summary>Highlight focused application</summary>
+      <description>Whether to highlight the icon for the currently focused application.</description>
+    </key>
+    <key name="dots" type="b">
+      <default>false</default>
+      <summary>Show dots</summary>
+      <description>Whether to show dots for the number of open windows for each icon.</description>
     </key>
     <key name="left-click" enum="org.gnome.shell.extensions.em-dash.click">
       <default>'LAUNCH_OR_SHOW'</default>
@@ -58,7 +68,7 @@
       <description>Whether to show media controls in the menu if supported by the application.</description>
     </key>
     <key name="debug" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Enable debug mode</summary>
       <description>Whether to send debugging information to the system log.</description>
     </key>

@@ -74,10 +74,10 @@ const Icon = new Lang.Class({
 
 	handleDragBegin: function() {
 		// Hooked from EmDash.Draggable
-		this._dragFromIndex = ClutterUtils.getActorIndexOfChild(this._icons._box, this.actor);
+		this._dragFromIndex = ClutterUtils.getActorIndexOfChild(this._icons.box, this.actor);
 		log('drag-begin: ' + this._dragFromIndex);
 		this._removeMenuTimeout();
-		//this._icons._box.remove_child(this.actor);
+		//this._icons.box.remove_child(this.actor);
 		this.actor.hide();
 		//this.actor.opacity = 64;
 		//this.actor.add_style_class_name('EmDash-Icon-Dragging');
@@ -87,7 +87,7 @@ const Icon = new Lang.Class({
 		// Hooked from EmDash.Draggable
 		log('drag-end: ' + dropped);
 		if (!dropped) {
-			//this._icons._box.insert_child_at_index(this.actor, this._dragFromIndex);
+			//this._icons.box.insert_child_at_index(this.actor, this._dragFromIndex);
 			this.actor.show();
 			//this.actor.opacity = 255;
 		}
@@ -96,12 +96,14 @@ const Icon = new Lang.Class({
 	
 	// Dropping on us
 
-	handleDragOver: function(source, actor, x, y, time) {
+	handleDragOver: function(source, actor, x, y, extra) {
 		// Hooked from DND using our actor._delegate
 		if (source instanceof AppDisplay.AppIcon) {
-			log('drag-over: ' + source.app.id);
+			log('drag-over: ' + source.app.id + ' ' + x + ' ' + y);
 			if (Entries.isFavoriteApp(this.app)) {
-				startDropHovering(this.actor);
+				let vertical = this._icons.box.vertical;
+				let after = vertical ? y > 60 : x > 30;
+				startDropHovering(this.actor, after, vertical);
 				return DND.DragMotionResult.MOVE_DROP;
 			}
 		}
@@ -119,19 +121,18 @@ const Icon = new Lang.Class({
 			log('accept-drop: ' + appId + ' from ' +
 				(source._dragFromIndex === -1 ? 'elsewhere' : source._dragFromIndex) +
 				' to entry ' + this._entryIndex);
-			let favorites = AppFavorites.getAppFavorites();
 			if (source._dragFromIndex === -1) {
 				// Dragged from overview
+				let favorites = AppFavorites.getAppFavorites();
 				favorites.addFavoriteAtPos(appId, this._entryIndex);
 			}
 			else {
 				// Moved within the dash
-				// favorites.moveFavoriteToPos(appId, this._entryIndex); this is totally broken!
-				favorites._removeFavorite(appId);
-				if (source._entryIndex < this._entryIndex) {
-					this._entryIndex--;
+				let newEntryIndex = this._entryIndex; 
+				if (_dropHoveringAfter) {
+					newEntryIndex++;
 				}
-				favorites._addFavorite(appId, this._entryIndex);
+				moveFavoriteToPos(appId, source._entryIndex, newEntryIndex);
 			}
 			return true;
 		}
@@ -139,6 +140,13 @@ const Icon = new Lang.Class({
 			log('accept-drop: not an app');
 			return false;
 		}
+	},
+	
+	/*
+	 * Override to make sure the drag actor is the same size as us.
+	 */
+	getDragActor: function() {
+		return this.app.create_icon_texture(this.icon.iconSize);
 	},
 	
 	/*
@@ -200,24 +208,21 @@ const Icon = new Lang.Class({
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 	
-	_init: function(entryManager, vertical, align) {
+	_init: function(entryManager, vertical) {
 		this.entryManager = entryManager;
 
 		// Box
-		this._box = new St.BoxLayout({
-			name: 'EmDash-Icons-Box',
+		this.box = new St.BoxLayout({
+			name: 'em-dash-icons-box',
 			vertical: vertical
 		});
 
 		// Actor
 		this.actor = new St.Bin({
-			name: 'EmDash-Icons',
-			child: this._box,
-			x_align: vertical ? St.Align.MIDDLE : align,
-			y_align: vertical ? align : St.Align.MIDDLE
+			name: 'em-dash-icons',
+			child: this.box
 		});
 
-		// Signals
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
 		
@@ -230,25 +235,14 @@ const Icons = new Lang.Class({
 	},
 	
 	setVertical: function(vertical) {
-		if (this._box.vertical !== vertical) {
-			this._box.vertical = vertical;
+		if (this.box.vertical !== vertical) {
+			this.box.vertical = vertical;
 			// Swap alignments
-			let x_align = this.actor.x_align;
-			this.actor.x_align = this.actor.y_align;
-			this.actor.y_align = x_align;
+//			let x_align = this.actor.x_align;
+//			this.actor.x_align = this.actor.y_align;
+//			this.actor.y_align = x_align;
 			// New icon sizes
 			this.refresh();
-		}
-	},
-
-	setAlign: function(align) {
-		if (this._box.vertical) {
-			this.actor.x_align = St.Align.MIDDLE;
-			this.actor.y_align = align;
-		}
-		else {
-			this.actor.x_align = align;
-			this.actor.y_align = St.Align.MIDDLE;
 		}
 	},
 
@@ -261,15 +255,15 @@ const Icons = new Lang.Class({
 	},
 	
 	_refresh: function(entrySequence) {
-		this._box.remove_all_children();
+		this.box.remove_all_children();
 
-		let size = this._box.vertical ? 36 : Main.panel.actor.get_height() - 10; // TODO: how do we know the _dot height?
+		let size = this.box.vertical ? 36 : Main.panel.actor.get_height() - 10; // TODO: how do we know the _dot height?
 		for (let i in entrySequence._entries) {
 			let entry = entrySequence._entries[i];
 			let appIcon = new Icon(this, entry._app, i);
 			//log(appIcon._dot.get_height()); 0
 			appIcon.icon.iconSize = size; // IconGrid.BaseIcon
-			this._box.add_child(appIcon.actor);
+			this.box.add_child(appIcon.actor);
 		}
 	},
 
@@ -285,47 +279,65 @@ const Icons = new Lang.Class({
  */
 
 let _dropHoveringActor = null;
+let _dropHoveringAfter = null;
 
-function startDropHovering(actor) {
-	if (_dropHoveringActor !== actor) {
+
+function startDropHovering(actor, after, vertical) {
+	if ((_dropHoveringActor !== actor) || (_dropHoveringAfter !== after)) {
 		endDropHovering();
 
 		log('start-drop-hovering');
 		
 		_dropHoveringActor = actor;
-		
-		//_dropHoveringActor.add_style_class_name('EmDash-Icon-Dragging');
+		_dropHoveringAfter = after;
 
-		// Replace child with a box
 		let originalChild = _dropHoveringActor.get_child();
-		box = new St.BoxLayout({
-			vertical: true
+		let width = originalChild.width;
+		let height = originalChild.height;
+
+		// Replace original child with a box
+		let box = new St.BoxLayout({
+			name: 'em-dash-drop-hovering',
+			vertical: vertical
 		});
 		_dropHoveringActor.set_child(box);
 
-		// Put a space before the original child in the box
-		let space = new St.Widget({
-			width: originalChild.width,
-			height: originalChild.height
+		// Put a placeholder before or after the original child in the box
+		let placeholder = new St.Widget({
+			name: 'em-dash-drop-hovering-placeholder',
+			width: width,
+			height: height,
+			style_class: 'placeholder' // GNOME theme styling
+			//style_class: 'em-dash.placeholder'
 		});
-		box.add_child(space);
-		box.add_child(originalChild);
+		if (_dropHoveringAfter) {
+			box.add_child(originalChild);
+			box.add_child(placeholder);
+		}
+		else {
+			box.add_child(placeholder);
+			box.add_child(originalChild);
+		}
+
+		//_dropHoveringActor.add_style_class_name('EmDash-Icon-Dragging');
 	}
 }
 
 function endDropHovering() {
 	if (_dropHoveringActor !== null) {
 		log('end-drop-hovering');
-		//_dropHoveringActor.remove_style_class_name('EmDash-Icon-Dragging');
 
 		// Restore original child
 		let box = _dropHoveringActor.get_child();
-		let originalChild = box.get_child_at_index(1);
+		let originalChild = box.get_child_at_index(_dropHoveringAfter ? 0 : 1);
 		box.remove_child(originalChild);
 		box.destroy();
 		_dropHoveringActor.set_child(originalChild);
-		
+
+		//_dropHoveringActor.remove_style_class_name('EmDash-Icon-Dragging');
+
 		_dropHoveringActor = null;
+		_dropHoveringAfter = null;
 	}
 }
 
@@ -337,4 +349,21 @@ function endDropHovering() {
 function isFavoriteApp(app) {
 	let favorites = AppFavorites.getAppFavorites().getFavorites();
 	return favorites.indexOf(app) != -1;
+}
+
+
+/**
+ * The built-in favorites.moveFavoriteToPos is broken. It does does not decrement new position if
+ * necessary, nor does it verify that there is no change.
+ */
+function moveFavoriteToPos(appId, fromPos, toPos) {
+	if (fromPos < toPos) {
+		toPos--;
+	}
+	if (fromPos === toPos) {
+		return;
+	}
+	let favorites = AppFavorites.getAppFavorites();
+	favorites._removeFavorite(appId);
+	favorites._addFavorite(appId, toPos);
 }

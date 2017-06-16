@@ -37,154 +37,100 @@ const log = Logging.logger('dockable');
 const Dockable = new Lang.Class({
 	Name: 'EmDash.Dockable',
 
-	_init: function(child, side, toggle) {
+	_init: function(child, side, align, stretch, toggle) {
 		this.actor = new St.Bin({
-			name: 'EmDash-Dockable',
+			name: 'em-dash-dockable',
 			child: child,
 			x_fill: true,
 			y_fill: true,
-			reactive: true
+			reactive: true // for tracking hover
 		});
-		this.actor.set_clip_to_allocation(true);
 
-		//this.actor.add_style_class_name(Main.sessionMode.panelStyle);
+		this._align = align;
+
+		//this.actor.set_clip_to_allocation(true);
 
 		this._side = side;
+		this._stretch = stretch;
 		this._toggle = toggle;
 		this._monitorIndex = Main.layoutManager.primaryIndex;
 
 		this._collapsed = toggle;
-		this._collapsedSize = 3;
+		this._collapsedSize = 5;
 		this._pressureBarrier = null;
 		this._barrier = null;
 		this._workArea = {};
 		
-		// Sizeless to make sure a strut is not created when added to the chrome
+		// Sizeless at first to make sure a strut is not created when added to the chrome
 		this.actor.width = 0;
 		this.actor.height = 0;
 
-//		this._dashSpacer = new OverviewControls.DashSpacer();
-//		this._dashSpacer.setDashActor(this.actor);
-//		Main.uiGroup.add_child(this._dashSpacer);
-
-//		let constraint = new Clutter.BindConstraint({
-//		source: this._icons.actor,
-//		coordinate: (this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT) ?
-//			Clutter.BindCoordinate.WIDTH : Clutter.BindCoordinate.HEIGHT
-//		});
-//		this._icons.actor.add_constraint(constraint);
-
-		// Signals
 		this._signalManager = new Signals.SignalManager(this);
-		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
-		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
-
-		// Add chrome later, when the theme is fully applied
 		this._laterManager = new MutterUtils.LaterManager(this);
-		this._laterManager.later(this._addToChrome);
+
+		// Initialize later, to make sure the theme is fully applied
+		this._laterManager.later(this.initialize);
 	},
 
 	destroy: function() {
 		this._laterManager.destroy();
 		this._signalManager.destroy();
 		this._destroyPressureBarrier();
-		this.actor.remove_all_children(); // not our responsibility to destroy child
-		Main.layoutManager.removeChrome(this.actor);
+		// Note: *cannot* destroy a Bin without children
+		this.actor.remove_all_children();
+		if (this._initialized()) {
+			Main.layoutManager.removeChrome(this.actor);
+		}
 		Main.panel._leftCorner.actor.show();
 		Main.panel._rightCorner.actor.show();
-		// this.actor.destroy(); cannot and does not need to be destroyed without children!
 	},
 	
 	setSide: function(side) {
 		if (this._side !== side) {
 			this._side = side;
-			Main.layoutManager.removeChrome(this.actor);
-			this._addToChrome();
-			this.reinitialize();
+			this._reinitialize();
+		}
+	},
+	
+	setAlign: function(align) {
+		if (this._align !== align) {
+			this._align = align;
+			this._refreshAlign();
+		}
+	},
+	
+	setStretch: function(stretch) {
+		if (this._stretch !== stretch) {
+			this._stretch = stretch;
+			this._refreshAlign();
 		}
 	},
 	
 	setToggle: function(toggle) {
 		if (this._toggle !== toggle) {
 			this._collapsed = this._toggle = toggle;
-			this.reinitialize();
+			if (this._initialized()) {
+				Main.layoutManager._untrackActor(this.actor);
+				Main.layoutManager._trackActor(this.actor, {
+					affectsStruts: !this._toggle,
+					trackFullscreen: true
+				});
+			}
 		}
 	},
 	
-	reinitialize: function() {
-		log('reinitialize');
-
-		let bounds = {}, barrier = {};
-		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
-		let monitor = Main.layoutManager.monitors[this._monitorIndex];
-
-		if ((this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT)) {
-			bounds.y = workArea.y;
-			bounds.width = this._collapsed ? this._collapsedSize : this._width;
-			bounds.height = workArea.height;
-			bounds.y_align = St.Align.START;
-			barrier.y1 = bounds.y;
-			barrier.y2 = bounds.y + bounds.height;
-
-			if (this._side === Meta.Side.LEFT) { 
-				bounds.anchor = Clutter.Gravity.NORTH_WEST;
-				bounds.x = monitor.x;
-				bounds.x_align = St.Align.START;
-				barrier.x1 = barrier.x2 = bounds.x + this._collapsedSize;
-				barrier.directions = Meta.BarrierDirection.POSITIVE_X;
-			}
-			else { // RIGHT
-				bounds.anchor = Clutter.Gravity.NORTH_EAST;
-				bounds.x = monitor.x + monitor.width;
-				bounds.x_align = St.Align.END;
-				barrier.x1 = barrier.x2 = bounds.x - this._collapsedSize;
-				barrier.directions = Meta.BarrierDirection.NEGATIVE_X;
-			}
-		}
-		else { // TOP || BOTTOM
-			bounds.x = workArea.x;
-			bounds.width = workArea.width;
-			bounds.height = this._collapsed ? this._collapsedSize : this._height;
-			bounds.x_align = St.Align.START;
-			barrier.x1 = bounds.x;
-			barrier.x2 = bounds.x + bounds.width;
-
-			if (this._side === Meta.Side.TOP) {
-				bounds.anchor = Clutter.Gravity.NORTH_WEST;
-				bounds.y = monitor.y;
-				bounds.y_align = St.Align.START;
-				barrier.y1 = barrier.y2 = bounds.y + this._collapsedSize;
-				barrier.directions = Meta.BarrierDirection.POSITIVE_Y;
-			}
-			else { // BOTTOM
-				bounds.anchor = Clutter.Gravity.SOUTH_WEST;
-				bounds.y = monitor.y + monitor.height;
-				bounds.y_align = St.Align.END;
-				barrier.y1 = barrier.y2 = bounds.y - this._collapsedSize;
-				barrier.directions = Meta.BarrierDirection.NEGATIVE_Y;
-			}
-		}
-		
-		let child = this.actor.get_first_child();
-		if (this._collapsed) {
-			child.hide();
-			this._setPressureBarrier(barrier);
-		}
-		else {
-			child.show();
-			this._destroyPressureBarrier();
-		}
-
-		this._setBounds(bounds);
-		this._setRoundedCorners();
-		
-		// If our bounds have changed, the chrome layout tracker will recreate our strut, which will
-		// trigger a call to _onWorkAreasChanged, which in turn might call reinitialize *again* for
-		// the updated work area. I could not find a way to avoid this situation. However, this
-		// extra call will result in us calculating the same exact bounds, so nothing will actually
-		// change in the layout for this second call, and thus _onWorkAreasChanged won't be called a
-		// third time. That's a few unnecessarily repeated calculations due to the second call, but
-		// otherwise there is no other averse effect, and we avoid an endless loop.
+	initialize: function() {
+		this._addToChrome();
+		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
+		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
+	},
+	
+	_initialized: function() {
+		return this.actor.get_parent() !== null;
+	},
+	
+	_getChild: function() {
+		return this.actor.get_first_child();
 	},
 	
 	_addToChrome: function() {
@@ -195,24 +141,186 @@ const Dockable = new Lang.Class({
 
 		if (Main.legacyTray && Main.legacyTray.actor) {
 			// Make sure we're in front of the legacy tray (if it exists)
-			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.legacyTray.actor);
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor,
+				Main.legacyTray.actor);
 		}
 		else {
 			// At least make sure we're behind the modal dialog group
-			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor,
+				Main.layoutManager.modalDialogGroup);
 		}
 
-		// Only now that the child is allocated can we get its size
-		let child = this.actor.get_first_child();
-		this._width = child.width;
-		this._height = child.height;
-
-		// This will be emitted automatically when GNOME Shell is started, but not if the
-		// extension is enabled when GNOME Shell is up and running
-		//global.screen.emit('workareas-changed');
-		this.reinitialize();
+		this._reinitialize();
 	},
 	
+	_reinitialize: function() {
+		if (!this._initialized()) {
+			return;
+		}
+
+		log('reinitialize');
+
+		let bounds = {}, barrier = {};
+		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
+		let monitor = Main.layoutManager.monitors[this._monitorIndex];
+
+		if ((this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT)) {
+			bounds = {
+				y: workArea.y,
+				width: -1,
+				height: workArea.height,
+			};
+			barrier = {
+				y1: bounds.y,
+				y2: bounds.y + workArea.height
+			};
+
+			if (this._side === Meta.Side.LEFT) { 
+				bounds.anchor = Clutter.Gravity.NORTH_WEST;
+				bounds.x = monitor.x;
+				barrier.x1 = barrier.x2 = bounds.x + this._collapsedSize;
+				barrier.directions = Meta.BarrierDirection.POSITIVE_X;
+			}
+			else { // RIGHT
+				bounds.anchor = Clutter.Gravity.NORTH_EAST;
+				bounds.x = monitor.x + monitor.width;
+				barrier.x1 = barrier.x2 = bounds.x - this._collapsedSize;
+				barrier.directions = Meta.BarrierDirection.NEGATIVE_X;
+			}
+		}
+		else { // TOP || BOTTOM
+			bounds = {
+				x: workArea.x,
+				width: workArea.width,
+				height: -1,
+			};
+			barrier = {
+				x1: bounds.x,
+				x2: bounds.x + workArea.width
+			};
+
+			if (this._side === Meta.Side.TOP) {
+				bounds.anchor = Clutter.Gravity.NORTH_WEST;
+				bounds.y = monitor.y;
+				barrier.y1 = barrier.y2 = bounds.y + this._collapsedSize;
+				barrier.directions = Meta.BarrierDirection.POSITIVE_Y;
+			}
+			else { // BOTTOM
+				bounds.anchor = Clutter.Gravity.SOUTH_WEST;
+				bounds.y = monitor.y + monitor.height;
+				barrier.y1 = barrier.y2 = bounds.y - this._collapsedSize;
+				barrier.directions = Meta.BarrierDirection.NEGATIVE_Y;
+			}
+		}
+		
+		let child = this._getChild();
+		if (this._collapsed) {
+			child.hide();
+			this._setPressureBarrier(barrier);
+		}
+		else {
+			child.show();
+			this._destroyPressureBarrier();
+		}
+
+		this._refreshAlign();
+		this._setBounds(bounds);
+		this._setRoundedCorners();
+		
+		// If our bounds have changed, the chrome layout tracker will recreate our strut, which will
+		// trigger a call to _onWorkAreasChanged, which in turn might call _reinitialize *again* for
+		// the updated work area. I could not find a way to avoid this situation. However, this
+		// extra call will result in us calculating the same exact bounds, so nothing will actually
+		// change in the layout for this second call, and thus _onWorkAreasChanged won't be called a
+		// third time. That's a few unnecessarily repeated calculations due to the second call, but
+		// otherwise there is no other averse effect, and we avoid an endless loop.
+	},
+	
+	_setBounds: function(bounds) {
+		log('set-bounds: ' + bounds.x + ' ' + bounds.y + ' ' + bounds.width + ' ' + bounds.height);
+		let child = this._getChild();
+		if (bounds.width === -1) {
+			bounds.width = this.actor.get_preferred_width(bounds.height);
+		}
+		if (bounds.height === -1) {
+			bounds.height = this.actor.get_preferred_height(bounds.width);
+		}
+		this.actor.move_anchor_point_from_gravity(bounds.anchor);
+		this.actor.set_position(bounds.x, bounds.y);
+		this.actor.set_size(bounds.width, bounds.height);
+	},
+
+	_refreshAlign: function() {
+		let child = this._getChild();
+		
+		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine. 
+
+		let vertical = (this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT);
+
+		if (this._stretch) {
+			if (vertical) {
+				// St
+				child.y_align = this._align;
+				// Clutter
+				child.set_y_align(Clutter.ActorAlign.FILL);
+			}
+			else {
+				// St
+				child.x_align = this._align;
+				// Clutter
+				child.set_x_align(Clutter.ActorAlign.FILL);
+			}
+		}
+		else {
+			// Clutter (St has no visible effect here, so we can ignore it)
+			let align;
+			switch (this._align) {
+			case St.Align.START:
+				align = Clutter.ActorAlign.START;
+				break;
+			case St.Align.MIDDLE:
+				align = Clutter.ActorAlign.CENTER;
+				break;
+			case St.Align.END:
+				align = Clutter.ActorAlign.END;
+				break;
+			}
+			if (vertical) {
+				child.set_y_align(align);
+			}
+			else {
+				child.set_x_align(align);
+			}
+		}
+	},
+	
+	_setPressureBarrier: function(barrier) {
+		log('pressure-barrier: ' + barrier.x1 + ' ' + barrier.y1 + ' ' +
+			barrier.x2 + ' ' + barrier.y2);
+		this._destroyPressureBarrier();
+		barrier.display = global.display;
+		this._barrier = new Meta.Barrier(barrier);
+		this._pressureBarrier = new Layout.PressureBarrier(
+			100, // pressure threshold (pixels)
+			100, // pressure timeout (ms)
+			Shell.ActionMode.NORMAL);
+		this._pressureBarrier.addBarrier(this._barrier);
+		this._signalManager.connect(this._pressureBarrier, 'trigger',
+			this._onPressureBarrierTriggered, true);
+	},
+	
+	_destroyPressureBarrier: function() {
+		if (this._barrier !== null) {
+			this._pressureBarrier.removeBarrier(this._barrier);
+			this._barrier.destroy();
+			this._barrier = null;
+		}
+		if (this._pressureBarrier !== null) {
+			this._pressureBarrier.destroy();
+			this._pressureBarrier = null;
+		}
+	},
+
 	_setRoundedCorners: function() {
 		if (this._side === Meta.Side.LEFT) {
 			Main.panel._leftCorner.actor.hide();
@@ -231,63 +339,7 @@ const Dockable = new Lang.Class({
 			Main.panel._rightCorner.actor.show();
 		}
 	},
-	
-	_setBounds: function(bounds) {
-		log('set-bounds: ' + bounds.x + ' ' + bounds.y + ' ' + bounds.width + ' ' + bounds.height);
-		this.actor.move_anchor_point_from_gravity(bounds.anchor);
-		this.actor.x = bounds.x;
-		this.actor.y = bounds.y;
-		this.actor.width = bounds.width;
-		this.actor.height = bounds.height;
-		this.actor.x_align = bounds.x_align;
-		this.actor.y_align = bounds.y_align;
-	},
-	
-//	_createStrut: function() {
-//		let strutRect = new Meta.Rectangle({
-//			x: this.actor.x,
-//			y: this.actor.y,
-//			width: this.actor.width + 20,
-//			height: this.actor.height
-//		});
-//		log('strut: ' + strutRect.x + ' ' + strutRect.y + ' ' + strutRect.width + ' ' + strutRect.height);
-//		let strut = new Meta.Strut({
-//			rect: strutRect,
-//			side: this._side
-//		});
-//		let struts = [strut];
-//		let screen = global.screen;
-//		for (let w = 0; w < screen.n_workspaces; w++) {
-//			let workspace = screen.get_workspace_by_index(w);
-//			workspace.set_builtin_struts(struts);
-//		}
-//	},
-	
-	_setPressureBarrier: function(barrier) {
-		log('pressure-barrier: ' + barrier.x1 + ' ' + barrier.y1 + ' ' + barrier.x2 + ' ' + barrier.y2);
-		this._destroyPressureBarrier();
-		barrier.display = global.display;
-		this._barrier = new Meta.Barrier(barrier);
-		this._pressureBarrier = new Layout.PressureBarrier(
-			100, // pressure threshold (pixels)
-			100, // pressure timeout (ms)
-			Shell.ActionMode.NORMAL);
-		this._pressureBarrier.addBarrier(this._barrier);
-		this._signalManager.connect(this._pressureBarrier, 'trigger', this._onPressureBarrierTriggered, true);
-	},
-	
-	_destroyPressureBarrier: function() {
-		if (this._barrier !== null) {
-			this._pressureBarrier.removeBarrier(this._barrier);
-			this._barrier.destroy();
-			this._barrier = null;
-		}
-		if (this._pressureBarrier !== null) {
-			this._pressureBarrier.destroy();
-			this._pressureBarrier = null;
-		}
-	},
-	
+
 	_hasWorkAreaChanged: function() {
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
 		if ((workArea.x === this._workArea.x) &&
@@ -295,10 +347,12 @@ const Dockable = new Lang.Class({
 			(workArea.width === this._workArea.width) &&
 			(workArea.height === this._workArea.height)) {
 			// No change
-			log('work area not changed: ' + workArea.x + ' ' + workArea.y + ' ' + workArea.width + ' ' + workArea.height);
+			log('work area not changed: ' + workArea.x + ' ' + workArea.y + ' ' +
+				workArea.width + ' ' + workArea.height);
 			return false;
 		}
-		log('work area changed: ' + workArea.x + ' ' + workArea.y + ' ' + workArea.width + ' ' + workArea.height);
+		log('work area changed: ' + workArea.x + ' ' + workArea.y + ' ' +
+			workArea.width + ' ' + workArea.height);
 		this._workArea.x = workArea.x;
 		this._workArea.y = workArea.y;
 		this._workArea.width = workArea.width;
@@ -309,90 +363,24 @@ const Dockable = new Lang.Class({
 	_onPressureBarrierTriggered: function(pressureBarrier) {
 		log('pressure-barrier-triggered');
 		this._collapsed = false;
-		this.reinitialize();
+		this._reinitialize();
 		this.actor.track_hover = true;
 	},
 	
 	_onHover: function(actor, hover) {
-		// We considered using the leave-event for this, but it proved problematic: it would be
-		// emitted even if we move to children of our actor. :( But hover tracking works as
-		// expected!
+		// We tried using the leave-event for this, but it proved problematic: it would be emitted
+		// even if we move into children of our actor. But hover tracking works for us!
 		log('hover: ' + hover);
 		if (!hover) {
 			this._collapsed = true;
-			this.reinitialize();
+			this._reinitialize();
 			this.actor.track_hover = false;
 		}
 	},
 	
 	_onWorkAreasChanged: function(screen) {
 		if (this._hasWorkAreaChanged()) {
-			this.reinitialize();
+			this._reinitialize();
 		}
-	}
-});
-
-
-
-
-const Container = new Lang.Class({
-	Name: 'EmDash.Container',
-	
-	_init: function(actor) {
-		this.actor = new Shell.GenericContainer();
-		this.actor._delegate = this;
-		this.actor.add_child(actor);
-		this._width = -1;
-		this._height = -1;
-		
-		this._signalManager = new Signals.SignalManager(this);
-		this._signalManager.connect(this.actor, 'allocate', this._onAllocated);
-		//this._signalManager.connect(this.actor, 'get-preferred-width', this._getPrefferedWidth);
-		//this._signalManager.connect(this.actor, 'get-preferred-height', this._getPrefferedHeight);
-	},
-	
-	destroy: function() {
-		this._signalManager.destroy();
-	},
-	
-	move: function(anchor, x, y, width, height, x_align, y_align) {
-		this.actor.move_anchor_point_from_gravity(anchor);
-		this.actor.x = x;
-		this.actor.y = y;
-		this._width = width;
-		this._height = height;
-		this.actor.x_align = x_align;
-		this.actor.y_align = y_align;
-	},
-	
-	_onAllocated: function(actor, box, flags) {
-		log('>>>> box ' + box.x1 + ' ' + box.y1 + ' ' + box.x2 + ' ' + box.y2);
-		
-		let child = actor.get_first_child();
-		let allocWidth = box.x2 - box.x1;
-		let allocHeight = box.y2 - box.y1;
-		let [minChildWidth, minChildHeight, natChildWidth, natChildHeight] = 
-			child.get_preferred_size();
-        
-		let childBox = new Clutter.ActorBox();
-		childBox.x1 = 0;
-		childBox.x2 = natChildWidth;
-		childBox.y1 = child.y;
-		childBox.y2 = allocHeight;
-		child.allocate(box, flags);
-		//child.set_clip(-childBox.x1, -childBox.y1,
-		//	-childBox.x1 + allocWidth, -childBox.y1 + allocHeight);
-	},
-	
-	_getPrefferedWidth: function(actor, forHeight, alloc) {
-		log('>>>>>>>>>> width');
-		alloc.min_size = -1;
-		alloc.natural_size = this._width;
-	},
-	
-	_getPrefferedHeight: function(actor, forWidth, alloc) {
-		log('>>>>>>>>>> height');
-		alloc.min_size = -1;
-		alloc.natural_size = this._height;
 	}
 });

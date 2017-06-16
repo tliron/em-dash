@@ -1,9 +1,11 @@
 
-.EmDash-DockableDash {
-	background-color: gray;
+#dash.em-dash-no-border {
+	border-width: 0;
+	border-radius: 0 0 0 0;
 }
 
-.EmDash-Icon-Dragging {
-	/*background-color: rgba(200, 200, 200, .4);*/
-	background-color: red;
-}
+/*.em-dash-placeholder {
+	background-image: url("common-assets/dash/dash-placeholder.svg");
+	background-size: contain;
+	height: 24px;
+}*/

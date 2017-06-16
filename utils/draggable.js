@@ -33,14 +33,13 @@ const Draggable = new Lang.Class({
 		log('init');
 		this.actor = actor;
 		
-		this._dragMonitor = null;
-		this._draggable = DND.makeDraggable(actor);
 		this._dragMonitor = {
 			dragMotion: Lang.bind(this, this._onDragMotion),
 			dragDrop: Lang.bind(this, this._onDragDrop)
 		};
 
-		// Signals
+		this._draggable = DND.makeDraggable(actor);
+
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(this._draggable, 'drag-begin', this._onDragBegan);
 		this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCancelled);
@@ -49,8 +48,8 @@ const Draggable = new Lang.Class({
 
 	destroy: function() {
 		log('destroy');
-		DND.removeDragMonitor(this._dragMonitor);
 		this._signalManager.destroy();
+		DND.removeDragMonitor(this._dragMonitor);
 	},
 	
 	fakeRelease: function() {
@@ -71,14 +70,13 @@ const Draggable = new Lang.Class({
 
 	_onDragEnded: function(draggable, time, dropped) {
 		DND.removeDragMonitor(this._dragMonitor);
-		this._dragMonitor = null;
 		if (this.actor._delegate && this.actor._delegate.handleDragEnd) {
 			this.actor._delegate.handleDragEnd(dropped);
 		}
 	},
 	
 	_onDragMotion: function(dragEvent) {
-		log('drag-motion');
+		log('drag-motion: ' + dragEvent.x + ' ' + dragEvent.y);
 		// Keeping it just for debugging
 		return DND.DragMotionResult.CONTINUE;
 	},

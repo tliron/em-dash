@@ -58,10 +58,10 @@ const PrefsWidget = new Lang.Class({
 		this.widget = this._builder.get_object('prefs');
 
 		// Strings (we keep them as loose labels in the UI to make it easier for translators)
-		this._positionPanelLeft = this._builder.get_object('position_panel_left').label;
-		this._positionPanelRight = this._builder.get_object('position_panel_right').label;
-		this._positionEdgeLeft = this._builder.get_object('position_edge_left').label;
-		this._positionEdgeRight = this._builder.get_object('position_edge_right').label;
+		this._locationPanelLeft = this._builder.get_object('location_panel_left').label;
+		this._locationPanelRight = this._builder.get_object('location_panel_right').label;
+		this._locationEdgeLeft = this._builder.get_object('location_edge_left').label;
+		this._locationEdgeRight = this._builder.get_object('location_edge_right').label;
 		this._alignmentTop = this._builder.get_object('alignment_top').label;
 		this._alignmentBottom = this._builder.get_object('alignment_bottom').label;
 		this._alignmentLeft = this._builder.get_object('alignment_left').label;
@@ -71,20 +71,20 @@ const PrefsWidget = new Lang.Class({
 		// Update labels according to direction
 		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 		if (rtl) {
-			this._builder.get_object('position_panel_near').label = this._positionPanelRight;
-			this._builder.get_object('position_edge_near').label = this._positionEdgeRight;
-			this._builder.get_object('position_edge_far').label = this._positionEdgeLeft;
+			this._builder.get_object('location_panel_near').label = this._locationPanelRight;
+			this._builder.get_object('location_edge_near').label = this._locationEdgeRight;
+			this._builder.get_object('location_edge_far').label = this._locationEdgeLeft;
 		}
 		else {
-			this._builder.get_object('position_panel_near').label = this._positionPanelLeft;
-			this._builder.get_object('position_edge_near').label = this._positionEdgeLeft;
-			this._builder.get_object('position_edge_far').label = this._positionEdgeRight;
+			this._builder.get_object('location_panel_near').label = this._locationPanelLeft;
+			this._builder.get_object('location_edge_near').label = this._locationEdgeLeft;
+			this._builder.get_object('location_edge_far').label = this._locationEdgeRight;
 		}
 
 		// Update version
 		let version = Me.metadata.version;
 		if (version === -1) {
-			version = 'DEVELOPMENT';
+			version = '<i>DEVELOPMENT</i>';
 		}
 		this._builder.get_object('about_version').label = version;
 
@@ -105,13 +105,18 @@ const PrefsWidget = new Lang.Class({
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('wheel-scroll',
-				this._builder.get_object('icons_wheel_scroll'),
+		this._settings.bind('highlight-focused',
+				this._builder.get_object('icons_higlight_focused'),
+				'active',
+				Gio.SettingsBindFlags.DEFAULT);
+
+		this._settings.bind('dots',
+				this._builder.get_object('icons_show_dots'),
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
 		this._settings.bind('move-app-menu-to-icon',
-				this._builder.get_object('panel_move_to_icon_menu'),
+				this._builder.get_object('icons_move_application_menu'),
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
@@ -120,9 +125,14 @@ const PrefsWidget = new Lang.Class({
 				'active',
 				Gio.SettingsBindFlags.DEFAULT);
 
+		this._settings.bind('wheel-scroll',
+				this._builder.get_object('icons_wheel_scroll'),
+				'active',
+				Gio.SettingsBindFlags.DEFAULT);
+
 		// There's no binding support for radio and combo boxes, so we'll have to do it ourselves
-		let x =this._signalManager.connectSetting(this._settings, 'position', 'string',
-			this._onPositionSettingChanged);
+		let x =this._signalManager.connectSetting(this._settings, 'location', 'string',
+			this._onLocationSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'monitor', 'uint',
 			this._onMonitorSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'visibility', 'string',
@@ -147,34 +157,39 @@ const PrefsWidget = new Lang.Class({
 		this.destroy();
 	},
 	
-	// Position radio buttons
+	// Location radio buttons
 
-	_onPositionSettingChanged: function(settings, position) {
-		log('position-setting-changed: ' + position);
-		switch (position) {
+	_onLocationSettingChanged: function(settings, location) {
+		log('location-setting-changed: ' + location);
+		switch (location) {
 		case 'PANEL_NEAR':
-			this._builder.get_object('position_panel_near').active = true;
-			this._builder.get_object('docking_tab').sensitive = false;
+			this._builder.get_object('location_panel_near').active = true;
+			this._builder.get_object('panel_tab').sensitive = true;
+			this._builder.get_object('dock_tab').sensitive = false;
 			break;
 		case 'PANEL_MIDDLE':
-			this._builder.get_object('position_panel_middle').active = true;
-			this._builder.get_object('docking_tab').sensitive = false;
+			this._builder.get_object('location_panel_middle').active = true;
+			this._builder.get_object('panel_tab').sensitive = true;
+			this._builder.get_object('dock_tab').sensitive = false;
 			break;
 		case 'EDGE_NEAR':
-			this._builder.get_object('position_edge_near').active = true;
-			this._builder.get_object('docking_tab').sensitive = true;
+			this._builder.get_object('location_edge_near').active = true;
+			this._builder.get_object('panel_tab').sensitive = false;
+			this._builder.get_object('dock_tab').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
 			break;
 		case 'EDGE_FAR':
-			this._builder.get_object('position_edge_far').active = true;
-			this._builder.get_object('docking_tab').sensitive = true;
+			this._builder.get_object('location_edge_far').active = true;
+			this._builder.get_object('panel_tab').sensitive = false;
+			this._builder.get_object('dock_tab').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
 			break;
 		case 'EDGE_BOTTOM':
-			this._builder.get_object('position_edge_bottom').active = true;
-			this._builder.get_object('docking_tab').sensitive = true;
+			this._builder.get_object('location_edge_bottom').active = true;
+			this._builder.get_object('panel_tab').sensitive = false;
+			this._builder.get_object('dock_tab').sensitive = true;
 			let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 			if (rtl) {
 				this._builder.get_object('alignment_near').label = this._alignmentRight;
@@ -188,38 +203,38 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 	
-	_onPositionPanelNearToggled: function(button) {
-		log('position-panel-start-toggled');
+	_onLocationPanelNearToggled: function(button) {
+		log('location-panel-start-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'PANEL_NEAR');
+			this._settings.set_string('location', 'PANEL_NEAR');
 		}
 	},
 	
-	_onPositionPanelMiddleToggled: function(button) {
-		log('position-panel-middle-toggled');
+	_onLocationPanelMiddleToggled: function(button) {
+		log('location-panel-middle-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'PANEL_MIDDLE');
+			this._settings.set_string('location', 'PANEL_MIDDLE');
 		}
 	},
 	
-	_onPositionEdgeNearToggled: function(button) {
-		log('position-edge-start-toggled');
+	_onLocationEdgeNearToggled: function(button) {
+		log('location-edge-start-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'EDGE_NEAR');
+			this._settings.set_string('location', 'EDGE_NEAR');
 		}
 	},
 	
-	_onPositionEdgeFarToggled: function(button) {
-		log('position-edge-end-toggled');
+	_onLocationEdgeFarToggled: function(button) {
+		log('location-edge-end-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'EDGE_FAR');
+			this._settings.set_string('location', 'EDGE_FAR');
 		}
 	},
 	
-	_onPositionEdgeBottomToggled: function(button) {
-		log('position-edge-bottom-toggled');
+	_onLocationEdgeBottomToggled: function(button) {
+		log('location-edge-bottom-toggled');
 		if (button.active) {
-			this._settings.set_string('position', 'EDGE_BOTTOM');
+			this._settings.set_string('location', 'EDGE_BOTTOM');
 		}
 	},
 	
@@ -227,7 +242,7 @@ const PrefsWidget = new Lang.Class({
 
 	_onMonitorSettingChanged: function(settings, monitor) {
 		log('monitor-setting-changed: ' + monitor);
-		let combo = this._builder.get_object('position_monitor');
+		let combo = this._builder.get_object('location_monitor');
 		let id = String(monitor);
 		combo.active_id = id;
 		if (combo.active_id !== id) {
@@ -238,9 +253,9 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 
-	_onPositionMonitorChanged: function(combo) {
+	_onLocationMonitorChanged: function(combo) {
 		let monitor = combo.active_id;
-		log('position-monitor-changed: ' + monitor);
+		log('location-monitor-changed: ' + monitor);
 		this._settings.set_uint('monitor', parseInt(monitor));
 	},
 	

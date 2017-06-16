@@ -33,6 +33,13 @@ For the dash icons' popup menus:
   instead.
 
 
+What does the name mean?
+------------------------
+
+The [em dash](https://en.wikipedia.org/wiki/Dash#Em_dash) is the longest version of the typographic
+dash.
+
+
 Developers
 ----------
 
@@ -44,9 +51,8 @@ And if you want to use some of the UI features, you might enjoy `Dockable`, a ge
 be used to dock any St actor to a monitor edge. Also, our Icon class can be used independently in
 your own dash-like extension.
 
-We owe a great debt to Michele G, the original author of the
-[Dash-to-Dock extension](https://github.com/micheleg/dash-to-dock). That codebase contains
-solutions to many thorny problems with docking.
+We owe a debt to the developers of [Dash-to-Dock](https://github.com/micheleg/dash-to-dock) and
+[Dash-to-Panel](https://github.com/jderose9/dash-to-panel). There was much to learn from their code.
 
 Let's make GNOME better, together!
 
@@ -112,13 +118,6 @@ reference material:
 * The preferences page is quite different from all the above, as it's actually a GTK+ widget. The
   [Glade designer](https://glade.gnome.org/) can be used to edit the `prefs.ui` file used by the
   GTK+ builder.
-
-
-What does the name mean?
-------------------------
-
-The [em dash](https://en.wikipedia.org/wiki/Dash#Em_dash) is the longest version of the typographic
-dash.
 
 
 TODO

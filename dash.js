@@ -29,7 +29,7 @@ const log = Logging.logger('dash');
 
 /**
  * Manages several dash implementations, switching between them according to changed to the
- * "position" setting.
+ * "location" setting.
  */
 const DashManager = new Lang.Class({
     Name: 'EmDash.DashManager',
@@ -58,14 +58,13 @@ const DashManager = new Lang.Class({
 			}
     	}
 
-		// Signals
 		this._signalManager = new Signals.SignalManager(this);
-		this._signalManager.connectSetting(this._settings, 'position', 'string',
-			this._onPositionChanged);
+		this._signalManager.connectSetting(this._settings, 'location', 'string',
+			this._onLocationChanged);
 		this._signalManager.connectSetting(this._settings, 'move-app-menu-to-icon', 'boolean',
 			this._onMoveAppMenuToIconSettingChanged);
 		
-		this._settings.emit('changed::position', 'position');
+		this._settings.emit('changed::location', 'location');
 	},
 	
 	destroy: function() {
@@ -95,19 +94,19 @@ const DashManager = new Lang.Class({
 		}
 	},
 	
-	_onPositionChanged: function(settings, position) {
-		log('position-setting-changed: ' + position);
-		let DashClass = this._dashClasses[position];
+	_onLocationChanged: function(settings, location) {
+		log('location-setting-changed: ' + location);
+		let DashClass = this._dashClasses[location];
 		if (this.dash !== null) {
 			if (this.dash instanceof DashClass) {
-				this.dash.setPosition(position);
+				this.dash.setLocation(location);
 				return;
 			}
 			else {
 				this.dash.destroy();
 			}
 		}
-		this.dash = new DashClass(this._settings, this._entryManager);
+		this.dash = new DashClass(this._settings, this._entryManager, location);
 	},
 	
 	_onMoveAppMenuToIconSettingChanged: function(settings, moveAppMenuToIcon) {
@@ -128,7 +127,7 @@ const DashManager = new Lang.Class({
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
     
-    _init: function(settings, entryManager, vertical, align) {
+    _init: function(settings, entryManager, vertical) {
 		this._settings = settings;
     	this._entryManager = entryManager;
     	
@@ -139,9 +138,8 @@ const Dash = new Lang.Class({
     	}
     	
     	// Icons
-    	this._icons = new Icons.Icons(entryManager, vertical, align);
+    	this._icons = new Icons.Icons(entryManager, vertical);
 
-		// Signals
 		let windowTracker = Shell.WindowTracker.get_default();
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
@@ -156,7 +154,7 @@ const Dash = new Lang.Class({
     	}
 	},
 	
-	setPosition: function(position) {
+	setLocation: function(location) {
 	},
 	
 	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
@@ -174,6 +172,5 @@ const Dash = new Lang.Class({
 		else {
 			log('focus-changed: ' + app.id + ' ' + app.get_name());
 		}
-		this._entryManager.log();
 	}
 });

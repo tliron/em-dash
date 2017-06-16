@@ -301,7 +301,6 @@ const EntryManager = new Lang.Class({
 		this.addFavorites();
 		this.addRunning();
 		
-		// Signals
 		let appSystem = Shell.AppSystem.get_default();
 		let appFavorites = AppFavorites.getAppFavorites();
 		this._signalManager = new SignalsUtils.SignalManager(this);
@@ -466,6 +465,7 @@ const EntryManager = new Lang.Class({
 		this.reset();
 		this.addFavorites();
 		this.addRunning();
+		this.log();
 		this.emit('changed');
 	},
 

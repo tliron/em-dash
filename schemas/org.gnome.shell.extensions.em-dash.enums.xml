@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE gschema SYSTEM "/usr/share/glib-2.0/schemas/gschema.dtd">
 <schemalist>
-  <enum id='org.gnome.shell.extensions.em-dash.position'>
+  <enum id='org.gnome.shell.extensions.em-dash.location'>
     <value value='0' nick='PANEL_NEAR'/>
     <value value='1' nick='PANEL_MIDDLE'/>
     <value value='2' nick='EDGE_NEAR'/>
