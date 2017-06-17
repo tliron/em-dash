@@ -54,7 +54,7 @@ const LaterManager = new Lang.Class({
 	},
 	
 	cancel: function(callback) {
-		for (let i in this._laters) {
+		for (let i  = 0; i < this._laters.length; i++) {
 			let later = this._laters[i];
 			if (later.callback === callback) {
 				later.destroy();

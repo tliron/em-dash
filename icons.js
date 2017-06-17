@@ -41,15 +41,16 @@ const Icon = new Lang.Class({
 	Name: 'EmDash.Icon',
 	Extends: AppDisplay.AppIcon,
 	
-	_init: function(icons, app, i) {
+	_init: function(icons, app, entryIndex, height) {
+		log('Icon._init: ' + entryIndex);
 		this.parent(app, {
 			showLabel: false,
 			isDraggable: false // we will handle draggable ourselves
 		});
+		this.actor.height = height;
 		
 		this._icons = icons;
-		this._entryIndex = i;
-		this._dragFromIndex = -1;
+		this._entryIndex = entryIndex;
 		
 		// Can we extract a simple name?
 		let id = app.id;
@@ -74,79 +75,55 @@ const Icon = new Lang.Class({
 
 	handleDragBegin: function() {
 		// Hooked from EmDash.Draggable
-		this._dragFromIndex = ClutterUtils.getActorIndexOfChild(this._icons.box, this.actor);
-		log('drag-begin: ' + this._dragFromIndex);
+		log('handleDragBegin: ' + this.app.id);
 		this._removeMenuTimeout();
-		//this._icons.box.remove_child(this.actor);
 		this.actor.hide();
-		//this.actor.opacity = 64;
-		//this.actor.add_style_class_name('EmDash-Icon-Dragging');
-	},
-
-	handleDragEnd: function(dropped) {
-		// Hooked from EmDash.Draggable
-		log('drag-end: ' + dropped);
-		if (!dropped) {
-			//this._icons.box.insert_child_at_index(this.actor, this._dragFromIndex);
-			this.actor.show();
-			//this.actor.opacity = 255;
-		}
-		endDropHovering();
 	},
 	
-	// Dropping on us
+	handleDragEnd: function(dropped) {
+		// Hooked from EmDash.Draggable
+		log('handleDragEnd: ' + this.app.id + ' ' + dropped);
+		this.actor.show();
+	},
+
+	// Dragging over us
 
 	handleDragOver: function(source, actor, x, y, extra) {
 		// Hooked from DND using our actor._delegate
-		if (source instanceof AppDisplay.AppIcon) {
-			log('handleDragOver: ' + source.app.id + ' ' + x + ' ' + y);
-			if (Entries.isFavoriteApp(this.app)) {
-				let vertical = this._icons.box.vertical;
-				let after = vertical ? y > 60 : x > 30;
-				startDropHovering(this.actor, after, vertical);
-				return DND.DragMotionResult.MOVE_DROP;
-			}
+		if (!(source instanceof AppDisplay.AppIcon)) {
+			log('handleDragOver: not an app');
+			return DND.DragMotionResult.NO_DROP;
+		}
+		
+		let vertical = this._icons.box.vertical;
+		let after = vertical ? y > this.actor.height / 2 : x > this.actor.width / 2;
+
+		let app = null;
+		if (after || (this._entryIndex === 0)) {
+			app = this.app;
 		}
 		else {
-			log('handleDragOver: unsupported');
-		}
-		endDropHovering();
-		return DND.DragMotionResult.NO_DROP;
-	},
-	
-	acceptDrop: function(source, actor, x, y, time) {
-		// Hooked from DND using our actor._delegate
-		if (source instanceof AppDisplay.AppIcon) {
-			let appId = source.app.id;
-			log('acceptDrop: ' + appId + ' from ' +
-				(source._dragFromIndex === -1 ? 'elsewhere' : source._dragFromIndex) +
-				' to entry ' + this._entryIndex);
-			if (source._dragFromIndex === -1) {
-				// Dragged from overview
-				let favorites = AppFavorites.getAppFavorites();
-				favorites.addFavoriteAtPos(appId, this._entryIndex);
+			let icon = this._icons.getIconAt(this._entryIndex - 1);
+			if (icon !== null) {
+				app = icon.app;
 			}
-			else {
-				// Moved within the dash
-				let newEntryIndex = this._entryIndex; 
-				if (_dropHoveringAfter) {
-					newEntryIndex++;
-				}
-				moveFavoriteToPos(appId, source._entryIndex, newEntryIndex);
-			}
-			return true;
 		}
-		else {
-			log('acceptDrop: not an app');
-			return false;
+		if ((app === null) || !Entries.isFavoriteApp(app)) {
+			log('handleDragOver: not a favorite app');
+			return DND.DragMotionResult.NO_DROP;
 		}
+
+		log('handleDragOver: ' + this.app.id + ' ' + Math.round(x) + ' ' + Math.round(y));
+		startDropHovering(this.actor, after);
+		return DND.DragMotionResult.MOVE_DROP;
 	},
-	
+
 	/*
-	 * Override to make sure the drag actor is the same size as us.
+	 * Override to make sure the drag actor is the same size as our icon.
 	 */
 	getDragActor: function() {
-		return this.app.create_icon_texture(this.icon.iconSize);
+		log('getDragActor: ' + this.icon._iconBin.height);
+		return this.app.create_icon_texture(this.icon._iconBin.height);
 	},
 	
 	/*
@@ -194,10 +171,32 @@ const Icon = new Lang.Class({
 	 * Override.
 	 */
 	_onDestroy: function() {
+		log('Icon._onDestroy');
 		if (this._draggable !== null) {
 			this._draggable.destroy();
 		}
 		this.parent();
+	},
+	
+	/**
+	 * Override to fit icon in us (instead of default, which is the other way around)
+	 */
+	_createIcon: function(iconSize) {
+		log('_createIcon: ' + iconSize);
+		let dotVisible = this._dot.visible;
+		this._dot.show();
+		let margin = this._dot.height;
+		if (!dotVisible) {
+			this._dot.hide();
+		}
+		if (this.actor.label_actor) {
+			let labelVisible = this.actor.label_actor.visible;
+			margin += this.actor.label_actor.height;
+			if (!labelVisible) {
+				this.actor.label_actor.hide();
+			}
+		}
+		return this.parent(this.actor.height - margin);
 	}
 });
 
@@ -208,17 +207,20 @@ const Icon = new Lang.Class({
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 	
-	_init: function(entryManager, vertical, iconSize) {
+	_init: function(entryManager, vertical, iconHeight) {
 		this.entryManager = entryManager;
 		
-		this._iconSize = iconSize;
+		this._iconHeight = iconHeight;
 
 		// Box
 		this.box = new St.BoxLayout({
 			name: 'em-dash-icons-box',
-			vertical: vertical
+			vertical: vertical,
 		});
-
+		if (vertical) {
+			this.box.add_style_class_name('vertical');
+		}
+		
 		// Actor
 		this.actor = new St.Bin({
 			name: 'em-dash-icons',
@@ -236,21 +238,26 @@ const Icons = new Lang.Class({
 		this.actor.destroy();
 	},
 	
+	getIconAt: function(index) {
+		let actor = this.box.get_child_at_index(index);
+		return actor !== null ? actor._delegate : null;
+	},
+	
 	setVertical: function(vertical) {
 		if (this.box.vertical !== vertical) {
 			this.box.vertical = vertical;
-			// Swap alignments
-//			let x_align = this.actor.x_align;
-//			this.actor.x_align = this.actor.y_align;
-//			this.actor.y_align = x_align;
-			// New icon sizes
-			this.refresh();
+			if (vertical) {
+				this.box.add_style_class_name('vertical');
+			}
+			else {
+				this.box.remove_style_class_name('vertical');
+			}
 		}
 	},
 	
 	setSize: function(iconSize) {
-		if (this._iconSize !== iconSize) {
-			this._iconSize = iconSize;
+		if (this._iconHeight !== iconSize) {
+			this._iconHeight = iconSize;
 			this.refresh();
 		}
 	},
@@ -266,20 +273,13 @@ const Icons = new Lang.Class({
 	_refresh: function(entrySequence) {
 		this.box.remove_all_children();
 
-		for (let i in entrySequence._entries) {
-			let entry = entrySequence._entries[i];
-			let appIcon = new Icon(this, entry._app, i);
-//			appIcon.icon._getPreferredHeight = Lang.bind(this, (actor, forWidth, alloc) => {
-//				return this._iconSize;
-//			});
-			//appIcon.icon.actor.set_height(this._iconSize);
-			//log(appIcon._dot.get_preferred_height(100));
-			appIcon.icon.setIconSize(this._iconSize);
-			//appIcon.actor.set_height(this._iconSize);
+		for (let i = 0; i < entrySequence.entries.length; i++) {
+			let entry = entrySequence.entries[i];
+			let appIcon = new Icon(this, entry.app, i, this._iconHeight);
 			this.box.add_child(appIcon.actor);
 		}
 	},
-
+	
 	_onEntriesChanged: function(entryManager) {
 		log('entries-changed');
 		this.refresh();
@@ -287,69 +287,107 @@ const Icons = new Lang.Class({
 });
 
 
-/*
- * Drop hovering (handled globally)
+/**
+ * Drop hovering placeholder.
  */
-
-let _dropHoveringActor = null;
-let _dropHoveringAfter = null;
-
-
-function startDropHovering(actor, after, vertical) {
-	if ((_dropHoveringActor !== actor) || (_dropHoveringAfter !== after)) {
-		endDropHovering();
-
-		log('startDropHovering');
+const Placeholder = new Lang.Class({
+	Name: 'EmDash.Placeholder',
+	
+	_init: function(actor, after) {
+		this._icon = actor._delegate;
+		this._after = after;
+		log('Placeholder._init: ' + this._icon.app.id + ' ' + after);
 		
-		_dropHoveringActor = actor;
-		_dropHoveringAfter = after;
-
-		let originalChild = _dropHoveringActor.get_child();
-		let width = originalChild.width;
-		let height = originalChild.height;
-
-		// Replace original child with a box
-		let box = new St.BoxLayout({
-			name: 'em-dash-drop-hovering',
-			vertical: vertical
-		});
-		_dropHoveringActor.set_child(box);
-
-		// Put a placeholder before or after the original child in the box
-		let placeholder = new St.Widget({
+		this.actor = new St.Widget({
 			name: 'em-dash-drop-hovering-placeholder',
-			width: width,
-			height: height,
+			width: actor.width,
+			height: actor.height,
 			style_class: 'placeholder' // GNOME theme styling
 		});
-		if (_dropHoveringAfter) {
-			box.add_child(originalChild);
-			box.add_child(placeholder);
+		this.actor._delegate = this;
+
+		// Before or after actor?
+		let container = this._icon._icons.box;
+		let index = ClutterUtils.getActorIndexOfChild(container, actor);
+		if (after) {
+			container.insert_child_at_index(this.actor, index + 1);
+			this._entryIndex = this._icon._entryIndex + 1;
 		}
 		else {
-			box.add_child(placeholder);
-			box.add_child(originalChild);
+			container.insert_child_at_index(this.actor, index);
+			this._entryIndex = this._icon._entryIndex;
 		}
 
-		//_dropHoveringActor.add_style_class_name('EmDash-Icon-Dragging');
+		// Drag monitor
+		this._dragMonitor = {
+			dragMotion: Lang.bind(this, this._onDragMotion),
+			dragDrop: Lang.bind(this, this._onDragDrop)
+		};
+		DND.addDragMonitor(this._dragMonitor);
+	},
+	
+	destroy: function() {
+		log('Placeholder.destroy');
+		DND.removeDragMonitor(this._dragMonitor);
+		this.actor.destroy();
+	},
+	
+	isFor: function(actor, after) {
+		return (this._icon.actor === actor) && (this._after === after);
+	},
+
+	// Dropping on us
+
+	acceptDrop: function(source, actor, x, y, time) {
+		// Hooked from DND using our actor._delegate
+		let appId = source.app.id;
+		if (source._entryIndex === undefined) {
+			// Dragged from elsewhere (likely overview)
+			log('acceptDrop: ' + appId + ' from elsewhere to ' + this._entryIndex);
+			let favorites = AppFavorites.getAppFavorites();
+			favorites.addFavoriteAtPos(appId, this._entryIndex);
+		}
+		else {
+			// Moved within the dash
+			log('acceptDrop: ' + appId + ' from ' + source._entryIndex + ' to ' + this._entryIndex);
+			moveFavoriteToPos(appId, source._entryIndex, this._entryIndex);
+		}
+		return true;
+	},
+
+	_onDragMotion: function(dragEvent) {
+		// We're checking for the icon box, too, so that moving into the spaces between icons won't
+		// cause hovering to stop
+		if ((dragEvent.targetActor !== this.actor) &&
+			(dragEvent.targetActor !== this._icon._icons.box)) {
+			endDropHovering();
+		}
+		return DND.DragMotionResult.CONTINUE;
+	},
+
+	_onDragDrop: function(dropEvent) {
+		log('_onDragDrop');
+		endDropHovering();
+		return DND.DragDropResult.CONTINUE;
+	}
+});
+
+
+let _dropHoveringPlaceholder = null;
+
+
+function startDropHovering(actor, after) {
+	if ((_dropHoveringPlaceholder === null) || !_dropHoveringPlaceholder.isFor(actor, after)) {
+		endDropHovering();
+		_dropHoveringPlaceholder = new Placeholder(actor, after);
 	}
 }
 
+
 function endDropHovering() {
-	if (_dropHoveringActor !== null) {
-		log('endDropHovering');
-
-		// Restore original child
-		let box = _dropHoveringActor.get_child();
-		let originalChild = box.get_child_at_index(_dropHoveringAfter ? 0 : 1);
-		box.remove_child(originalChild);
-		box.destroy();
-		_dropHoveringActor.set_child(originalChild);
-
-		//_dropHoveringActor.remove_style_class_name('EmDash-Icon-Dragging');
-
-		_dropHoveringActor = null;
-		_dropHoveringAfter = null;
+	if (_dropHoveringPlaceholder !== null) {
+		_dropHoveringPlaceholder.destroy();
+		_dropHoveringPlaceholder = null;
 	}
 }
 

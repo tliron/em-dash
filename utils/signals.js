@@ -44,7 +44,7 @@ const SignalManager = new Lang.Class({
 	},
 
 	disconnect: function(callback) {
-		for (let i in this._connections) {
+		for (let i = 0; i < this._connections.length; i++) {
 			let connection = this._connections[i];
 			if (connection.callback === callback) {
 				connection.disconnect();
@@ -142,7 +142,7 @@ const SignalConnection = new Lang.Class({
 			remove = true;
 		}
 		if (remove) {
-			for (let i in this.manager._connections) {
+			for (let i = 0; i < this.manager._connections.length; i++) {
 				let connection = this.manager._connections[i];
 				if (connection === this) {
 					this.manager._connections.splice(i, 1);

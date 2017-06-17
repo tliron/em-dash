@@ -128,7 +128,7 @@ TODO
 * Scrollable if there are too many icons
 * Sometimes in always visible the struts don't seem to work
 * In touch-to-show, make sure it is shown in overview! Also on all monitors!
-* When dragging under lower half of icon, move to next icon
 * Allow dragging to after all other favorites
 * Window previews/lists on hover
 * Animations
+* Dragging on empty dash

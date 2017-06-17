@@ -33,11 +33,6 @@ const Draggable = new Lang.Class({
 		log('Draggable._init');
 		this.actor = actor;
 		
-		this._dragMonitor = {
-			dragMotion: Lang.bind(this, this._onDragMotion),
-			dragDrop: Lang.bind(this, this._onDragDrop)
-		};
-
 		this._draggable = DND.makeDraggable(actor);
 
 		this._signalManager = new Signals.SignalManager(this);
@@ -60,7 +55,6 @@ const Draggable = new Lang.Class({
 		if (this.actor._delegate && this.actor._delegate.handleDragBegin) {
 			this.actor._delegate.handleDragBegin();
 		}
-		DND.addDragMonitor(this._dragMonitor);
 	},
 
 	_onDragCancelled: function(draggable, time) {
@@ -73,17 +67,5 @@ const Draggable = new Lang.Class({
 		if (this.actor._delegate && this.actor._delegate.handleDragEnd) {
 			this.actor._delegate.handleDragEnd(dropped);
 		}
-	},
-	
-	_onDragMotion: function(dragEvent) {
-		log('_onDragMotion: ' + dragEvent.x + ' ' + dragEvent.y);
-		// Keeping it just for debugging
-		return DND.DragMotionResult.CONTINUE;
-	},
-	
-	_onDragDrop: function(dropEvent) {
-		log('_onDragDrop');
-		// Keeping it just for debugging, _onDragEnded will be called anyway
-		return DND.DragDropResult.CONTINUE;
 	}
 });

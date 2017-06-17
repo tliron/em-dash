@@ -124,6 +124,7 @@ const Dockable = new Lang.Class({
 					affectsStruts: !this._toggle,
 					trackFullscreen: true
 				});
+				this._reinitialize();
 			}
 		}
 	},
@@ -233,8 +234,8 @@ const Dockable = new Lang.Class({
 		}
 
 		this._refreshAlign();
+		this._refreshRoundedCorners();
 		this._setBounds(bounds);
-		this._setRoundedCorners();
 		
 		// If our bounds have changed, the chrome layout tracker will recreate our strut, which will
 		// trigger a call to _onWorkAreasChanged, which in turn might call _reinitialize *again* for
@@ -330,7 +331,7 @@ const Dockable = new Lang.Class({
 		}
 	},
 
-	_setRoundedCorners: function() {
+	_refreshRoundedCorners: function() {
 		if (this._side === Meta.Side.LEFT) {
 			if (this._leftCornerWasVisible) {
 				Main.panel._leftCorner.actor.hide();

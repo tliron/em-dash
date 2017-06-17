@@ -5,6 +5,10 @@
 	border-radius: 0 0 0 0;
 }
 
+#em-dash-icons-box.vertical {
+	spacing: 10px; /* special property for St.BoxLayout */
+}
+
 /* Copied from the default theme */
 #em-dash .placeholder {
 	background-image: url("resource:///org/gnome/shell/theme/dash-placeholder.svg");

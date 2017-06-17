@@ -43,7 +43,7 @@ const DashManager = new Lang.Class({
 
     	this.dash = null;
 
-		this._appMenuParent = null;;
+		this._appMenuParent = null;
 		
     	// Remember original location of app menu
 		let appMenu = Main.panel.statusArea.appMenu.container;
@@ -128,18 +128,18 @@ const DashManager = new Lang.Class({
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
     
-    _init: function(settings, entryManager, vertical, iconSize) {
+    _init: function(settings, entryManager, vertical, iconHeight) {
 		this._settings = settings;
     	this._entryManager = entryManager;
     	
     	// Hide overlay dash
     	this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
     	if (this._overlayDashWasVisible) {
-    		//Main.overview._controls.dash.actor.hide();
+    		Main.overview._controls.dash.actor.hide();
     	}
     	
     	// Icons
-    	this._icons = new Icons.Icons(entryManager, vertical, iconSize);
+    	this._icons = new Icons.Icons(entryManager, vertical, iconHeight);
 
 		let windowTracker = Shell.WindowTracker.get_default();
 		this._signalManager = new Signals.SignalManager(this);

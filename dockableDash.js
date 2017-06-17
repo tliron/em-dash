@@ -42,7 +42,7 @@ const DockableDash = new Lang.Class({
 		let toggle = settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 		
 		this.parent(settings, entryManager,
-			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT), 36);
+			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT), 32);
 
 		// Give our dash the GNOME theme's styling
 		this._icons.actor.name = 'dash';

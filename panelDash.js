@@ -80,16 +80,16 @@ const PanelDash = new Lang.Class({
 	},
 	
 	_getIconSize: function() {
-		return Main.panel.actor.height - 10;
+		return Main.panel.actor.height;
 	},
 	
 	_updateStyle: function(panelAppearanceMerge) {
-		// Give our dash the GNOME theme's styling
 		if (panelAppearanceMerge) {
 			this._icons.actor.name = 'em-dash';
 			this._icons.actor.remove_style_class_name('em-dash-no-border');
 		}
 		else {
+			// Give our dash the GNOME theme's styling
 			this._icons.actor.name = 'dash';
 			this._icons.actor.add_style_class_name('em-dash-no-border');
 		}

@@ -40,7 +40,7 @@ const Entry = new Lang.Class({
 	Name: 'EmDash.Entry',
 
 	_init: function(app) {
-		this._app = app;
+		this.app = app;
 		this._matchers = [];
 		this._favorite = isFavoriteApp(app);
 		
@@ -60,7 +60,7 @@ const Entry = new Lang.Class({
 	 * Checks if we were created for the application.
 	 */
 	isFor: function(app) {
-		return this._app.id === app.id;
+		return this.app.id === app.id;
 	},
 
 	/*
@@ -78,7 +78,7 @@ const Entry = new Lang.Class({
 			if (windows.length === 0) {
 				return false;
 			}
-			for (let i in windows) {
+			for (let i = 0; i < windows.length; i++) {
 				let window = windows[i];
 				if (!this.isGrabbing(window)) {
 					return false;
@@ -94,7 +94,7 @@ const Entry = new Lang.Class({
 	 * Checks if we are grabbing a window.
 	 */
 	isGrabbing: function(window) {
-		for (let i in this._matchers) {
+		for (let i = 0; i < this._matchers.length; i++) {
 			let matcher = this._matchers[i];
 			if (matcher.matches(window)) {
 				return true;
@@ -107,7 +107,7 @@ const Entry = new Lang.Class({
 	 * Checks if we used to be favorite but no longer are.
 	 */
 	isPrunable: function() {
-		return this._favorite && !isFavoriteApp(this._app);
+		return this._favorite && !isFavoriteApp(this.app);
 	},
 
 	/*
@@ -117,8 +117,8 @@ const Entry = new Lang.Class({
 		let windows = [];
 		
 		// App windows
-		let appWindows = this._app.get_windows();
-		for (let i in appWindows) {
+		let appWindows = this.app.get_windows();
+		for (let i = 0; i < appWindows.length; i++) {
 			let window = appWindows[i];
 			if ((workspaceIndex !== undefined) &&
 				(window.get_workspace().index() != workspaceIndex)) {
@@ -137,7 +137,7 @@ const Entry = new Lang.Class({
 				}
 				let workspace = global.screen.get_workspace_by_index(theWorkspaceIndex);
 				let workspaceWindows = workspace.list_windows();
-				for (let i in workspaceWindows) {
+				for (let i = 0; i < workspaceWindows.length; i++) {
 					let window = workspaceWindows[i];
 					if (this.isGrabbing(window) && !Collections.arrayIncludes(windows, window)) {
 						windows.push(window);
@@ -154,14 +154,14 @@ const Entry = new Lang.Class({
 		if (this._favorite) {
 			s += '*';
 		}
-		s += this._app.id; // get_name()
+		s += this.app.id; // get_name()
 		if (this._matchers.length > 0) {
 			s += '{' + this._matchers.join(',') + '}';
 		}
 		let windows = this.getWindows(workspaceIndex);
 		if (windows.length > 0) {
 			let window_strings = [];
-			for (let i in windows) {
+			for (let i = 0; i < windows.length; i++) {
 				let window = windows[i];
 				window_strings.push(window.get_wm_class_instance());
 			}
@@ -183,15 +183,15 @@ const EntrySequence = new Lang.Class({
 	Name: 'EmDash.EntrySequence',
 
 	_init: function() {
-		this._entries = [];
+		this.entries = [];
 	},
 	
 	/*
 	 * Checks if we have an entry representing the application.
 	 */
 	isRepresenting: function(app) {
-		for (let i in this._entries) {
-			let entry = this._entries[i];
+		for (let i = 0; i < this.entries.length; i++) {
+			let entry = this.entries[i];
 			if (entry.isRepresenting(app)) {
 				return true;
 			}
@@ -205,7 +205,7 @@ const EntrySequence = new Lang.Class({
 	 */
 	add: function(app) {
 		if (!this.isRepresenting(app)) {
-			this._entries.push(new Entry(app));
+			this.entries.push(new Entry(app));
 			return true;
 		}
 		return false;
@@ -216,10 +216,10 @@ const EntrySequence = new Lang.Class({
 	 * grabbing it.
 	 */
 	remove: function(app) {
-		for (let i in this._entries) {
-			let entry = this._entries[i];
+		for (let i = 0; i < this.entries; i++) {
+			let entry = this.entries[i];
 			if (entry.isFor(app)) {
-				this._entries.splice(i, 1);
+				this.entries.splice(i, 1);
 				return true;
 			}
 		}
@@ -230,9 +230,9 @@ const EntrySequence = new Lang.Class({
 	 * Removes an entry.
 	 */
 	removeEntry: function(entry) {
-		for (let i in this._entries) {
-			if (this._entries[i] === entry) {
-				this._entries.splice(i, 1);
+		for (let i = 0; i < this.entries; i++) {
+			if (this.entries[i] === entry) {
+				this.entries.splice(i, 1);
 				return true;
 			}
 		}
@@ -244,14 +244,14 @@ const EntrySequence = new Lang.Class({
 	 */
 	prune: function() {
 		let prunables = [];
-		for (let i in this._entries) {
-			let entry = this._entries[i];
+		for (let i = 0; i < this.entries; i++) {
+			let entry = this.entries[i];
 			if (entry.isPrunable()) {
 				prunables.push(entry);
 			}
 		}
 		let changed = false;
-		for (let i in prunables) {
+		for (let i = 0; i < prunables.length; i++) {
 			if (this.removeEntry(prunables[i])) {
 				changed = true;
 			}
@@ -261,8 +261,8 @@ const EntrySequence = new Lang.Class({
 
 	toString: function(workspaceIndex) {
 		let entry_strings = [];
-		for (let i in this._entries) {
-			let entry = this._entries[i];
+		for (let i = 0; i < this.entries; i++) {
+			let entry = this.entries[i];
 			entry_strings.push(entry.toString(workspaceIndex));
 		}
 		return entry_strings.join(', ');
@@ -373,7 +373,7 @@ const EntryManager = new Lang.Class({
 		}
 		let changed = false;
 		let workspaceIndexes = getWorkspacesForApp(app);
-		for (let i in workspaceIndexes) {
+		for (let i = 0; i < workspaceIndexes.length; i++) {
 			let workspaceIndex = workspaceIndexes[i];
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
@@ -389,7 +389,7 @@ const EntryManager = new Lang.Class({
 	addFavorites: function(workspaceIndex) {
 		let changed = false;
 		let favorites = AppFavorites.getAppFavorites().getFavorites();
-		for (let i in favorites) {
+		for (let i = 0; i < favorites.length; i++) {
 			let app = favorites[i];
 			if (workspaceIndex === undefined) {
 				if (this.addToAll(app)) {
@@ -414,7 +414,7 @@ const EntryManager = new Lang.Class({
 		let changed = false;
 		let appSystem = Shell.AppSystem.get_default();
 		let running = appSystem.get_running(); // will be empty when the shell is restarted
-		for (let i in running) {
+		for (let i = 0; i < running.length; i++) {
 			let app = running[i];
 			if (workspaceIndex === undefined) {
 				if (this.add(app)) {
