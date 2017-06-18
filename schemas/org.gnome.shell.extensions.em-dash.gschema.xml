@@ -43,7 +43,7 @@
       <description>Whether to to stretch the dock to fill the monitor edge.</description>
     </key>
     <key name="dock-alignment" enum="org.gnome.shell.extensions.em-dash.alignment">
-      <default>'NEAR'</default>
+      <default>'MIDDLE'</default>
       <summary>Dock alignment</summary>
       <description>How to align icons in the dock.</description>
     </key>

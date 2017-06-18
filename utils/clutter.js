@@ -24,3 +24,21 @@ function getActorIndexOfChild(actor, child) {
 	}
 	return -1;
 }
+
+
+function getNaturalWidth(actor, height) {
+	if (height === undefined) {
+		height = -1;
+		let [min, natural] = actor.get_preferred_width(height);
+		return natural;
+	}
+}
+
+
+function getNaturalHeight(actor, width) {
+	if (width === undefined) {
+		width = -1;
+		let [min, natural] = actor.get_preferred_height(width);
+		return natural;
+	}
+}

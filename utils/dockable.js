@@ -25,6 +25,7 @@ const St = imports.gi.St;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
+const ClutterUtils = Me.imports.utils.clutter;
 const MutterUtils = Me.imports.utils.mutter;
 const Dash = Me.imports.dash;
 
@@ -39,7 +40,7 @@ const Dockable = new Lang.Class({
 
 	_init: function(child, side, align, stretch, toggle) {
 		log('Dockable._init');
-		
+
 		this.actor = new St.Bin({
 			name: 'em-dash-dockable',
 			child: child,
@@ -64,16 +65,14 @@ const Dockable = new Lang.Class({
 		this._pressureBarrier = null;
 		this._barrier = null;
 		this._workArea = {};
-		
-		// Sizeless at first to make sure a strut is not created when added to the chrome
-		this.actor.width = 0;
-		this.actor.height = 0;
 
 		this._signalManager = new Signals.SignalManager(this);
 		this._laterManager = new MutterUtils.LaterManager(this);
 
-		// Initialize later, to make sure the theme is fully applied
-		this._laterManager.later(this.initialize);
+		this.initialize();
+		// TODO: why do we need this mechanism?
+		// Initialize later, to make sure themes are applied
+		//this._laterManager.later(this.initialize);
 	},
 
 	destroy: function() {
@@ -93,28 +92,28 @@ const Dockable = new Lang.Class({
 			Main.panel._rightCorner.actor.show();
 		}
 	},
-	
+
 	setSide: function(side) {
 		if (this._side !== side) {
 			this._side = side;
-			this._reinitialize();
+			this.actor.set_size(0, 0); // will trigger 'workareas-changed' signal
 		}
 	},
-	
+
 	setAlign: function(align) {
 		if (this._align !== align) {
 			this._align = align;
 			this._refreshAlign();
 		}
 	},
-	
+
 	setStretch: function(stretch) {
 		if (this._stretch !== stretch) {
 			this._stretch = stretch;
 			this._refreshAlign();
 		}
 	},
-	
+
 	setToggle: function(toggle) {
 		if (this._toggle !== toggle) {
 			this._collapsed = this._toggle = toggle;
@@ -128,29 +127,18 @@ const Dockable = new Lang.Class({
 			}
 		}
 	},
-	
+
 	initialize: function() {
-		this._addToChrome();
-		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
-		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
-	},
-	
-	_initialized: function() {
-		return this.actor.get_parent() !== null;
-	},
-	
-	_getChild: function() {
-		return this.actor.get_first_child();
-	},
-	
-	_addToChrome: function() {
+		// Hide to make sure a strut is not created when added to the chrome
+		this.actor.hide();
+
 		Main.layoutManager.addChrome(this.actor, {
 			affectsStruts: !this._toggle,
 			trackFullscreen: true
 		});
 
 		if (Main.legacyTray && Main.legacyTray.actor) {
-			// Make sure we're in front of the legacy tray (if it exists)
+			// Make sure we're behind the legacy tray (if it exists)
 			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor,
 				Main.legacyTray.actor);
 		}
@@ -160,9 +148,18 @@ const Dockable = new Lang.Class({
 				Main.layoutManager.modalDialogGroup);
 		}
 
-		this._reinitialize();
+		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
+		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
 	},
-	
+
+	_initialized: function() {
+		return this.actor.get_parent() !== null;
+	},
+
+	_getChild: function() {
+		return this.actor.get_first_child();
+	},
+
 	_reinitialize: function() {
 		if (!this._initialized()) {
 			return;
@@ -185,7 +182,7 @@ const Dockable = new Lang.Class({
 				y2: bounds.y + workArea.height
 			};
 
-			if (this._side === Meta.Side.LEFT) { 
+			if (this._side === Meta.Side.LEFT) {
 				bounds.anchor = Clutter.Gravity.NORTH_WEST;
 				bounds.x = monitor.x;
 				barrier.x1 = barrier.x2 = bounds.x + this._collapsedSize;
@@ -222,7 +219,7 @@ const Dockable = new Lang.Class({
 				barrier.directions = Meta.BarrierDirection.NEGATIVE_Y;
 			}
 		}
-		
+
 		let child = this._getChild();
 		if (this._collapsed) {
 			child.hide();
@@ -236,7 +233,7 @@ const Dockable = new Lang.Class({
 		this._refreshAlign();
 		this._refreshRoundedCorners();
 		this._setBounds(bounds);
-		
+
 		// If our bounds have changed, the chrome layout tracker will recreate our strut, which will
 		// trigger a call to _onWorkAreasChanged, which in turn might call _reinitialize *again* for
 		// the updated work area. I could not find a way to avoid this situation. However, this
@@ -245,15 +242,14 @@ const Dockable = new Lang.Class({
 		// third time. That's a few unnecessarily repeated calculations due to the second call, but
 		// otherwise there is no other averse effect, and we avoid an endless loop.
 	},
-	
+
 	_setBounds: function(bounds) {
 		log('_setBounds: ' + bounds.x + ' ' + bounds.y + ' ' + bounds.width + ' ' + bounds.height);
-		let child = this._getChild();
 		if (bounds.width === -1) {
-			bounds.width = this.actor.get_preferred_width(bounds.height);
+			bounds.width = ClutterUtils.getNaturalWidth(this.actor, bounds.height);
 		}
-		if (bounds.height === -1) {
-			bounds.height = this.actor.get_preferred_height(bounds.width);
+		else if (bounds.height === -1) {
+			bounds.height = ClutterUtils.getNaturalHeight(this.actor, bounds.width);
 		}
 		this.actor.move_anchor_point_from_gravity(bounds.anchor);
 		this.actor.set_position(bounds.x, bounds.y);
@@ -262,8 +258,8 @@ const Dockable = new Lang.Class({
 
 	_refreshAlign: function() {
 		let child = this._getChild();
-		
-		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine. 
+
+		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine.
 
 		let vertical = (this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT);
 
@@ -303,7 +299,7 @@ const Dockable = new Lang.Class({
 			}
 		}
 	},
-	
+
 	_setPressureBarrier: function(barrier) {
 		log('_setPressureBarrier: ' + barrier.x1 + ' ' + barrier.y1 + ' ' +
 			barrier.x2 + ' ' + barrier.y2);
@@ -318,7 +314,7 @@ const Dockable = new Lang.Class({
 		this._signalManager.connect(this._pressureBarrier, 'trigger',
 			this._onPressureBarrierTriggered, true);
 	},
-	
+
 	_destroyPressureBarrier: function() {
 		if (this._barrier !== null) {
 			this._pressureBarrier.removeBarrier(this._barrier);
@@ -385,14 +381,14 @@ const Dockable = new Lang.Class({
 		this._workArea.height = workArea.height;
 		return true;
 	},
-	
+
 	_onPressureBarrierTriggered: function(pressureBarrier) {
 		log('pressure barrier trigger');
 		this._collapsed = false;
 		this._reinitialize();
 		this.actor.track_hover = true;
 	},
-	
+
 	_onHover: function(actor, hover) {
 		// We tried using the leave-event for this, but it proved problematic: it would be emitted
 		// even if we move into children of our actor. But hover tracking works for us!
@@ -403,7 +399,7 @@ const Dockable = new Lang.Class({
 			this.actor.track_hover = false;
 		}
 	},
-	
+
 	_onWorkAreasChanged: function(screen) {
 		if (this._hasWorkAreaChanged()) {
 			this._reinitialize();

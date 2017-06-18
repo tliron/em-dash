@@ -1,17 +1,46 @@
 
-/* Overrides the current theme */
 #dash.em-dash-no-border {
 	border-width: 0;
 	border-radius: 0 0 0 0;
 }
 
-#em-dash-icons-box.vertical {
-	spacing: 10px; /* special property for St.BoxLayout */
+#dash.panel {
+	border-width: 0;
+	border-radius: 0 0 0 0;
+}
+
+#dash.merge {
+	background-image: none;
+	background-color: transparent;
+}
+
+.app-well-app {
+	margin-bottom: 0;
+}
+
+.app-well-app-running-dot {
+	margin-bottom: 0;
+}
+
+#dash StBoxLayout.vertical {
+	spacing: 6px; /* special property for St.BoxLayout */
 }
 
 /* Copied from the default theme */
-#em-dash .placeholder {
+/*#em-dash .placeholder {
 	background-image: url("resource:///org/gnome/shell/theme/dash-placeholder.svg");
 	background-size: contain;
 	height: 24px;
+}*/
+
+
+/*
+.app-well-app:hover {
+	background-color: red;
 }
+
+.app-well-app:hover .overview-icon {
+	border-width: 0;
+	border-radius: 0 0 0 0;
+}
+*/

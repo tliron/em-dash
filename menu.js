@@ -36,17 +36,17 @@ const log = Logging.logger('menu');
 const IconMenu = new Lang.Class({
 	Name: 'EmDash.IconMenu',
 	Extends: AppDisplay.AppIconMenu,
-	
+
 	_init: function(source, simpleName, icons) {
 		log('IconMenu._init');
 		this.parent(source);
-		this._simpleName = simpleName; 
+		this._simpleName = simpleName;
 		this._appMenu = null;
 		this._mpris = null;
 		this._settings = icons.entryManager.settings;
 		this._signalManager = new Signals.SignalManager(this);
 	},
-	
+
 	/**
 	 * Override.
 	 */
@@ -59,13 +59,13 @@ const IconMenu = new Lang.Class({
 		this._signalManager.destroy();
 		this.parent();
 	},
-	
+
 	/**
 	 * Override.
 	 */
 	_redisplay: function() {
 		this.parent();
-		
+
 		// Application menu
 		if (this._settings.get_boolean('icons-app-menu')) {
 			let menuModel = this._source.app.menu; // Gio.DBusMenuModel
@@ -86,10 +86,10 @@ const IconMenu = new Lang.Class({
 			}
 		}
 	},
-	
+
 	_appendMediaControls: function() {
 		this._appendSeparator();
-		
+
 		// Standard icon names:
 		// https://specifications.freedesktop.org/icon-naming-spec/latest/ar01s04.html
 
@@ -105,14 +105,14 @@ const IconMenu = new Lang.Class({
 			this._appendImageMenuItem(_('Previous track'), 'media-skip-backward', this._onPrevious);
 		}
 	},
-	
+
 	_appendImageMenuItem: function(labelText, iconName, callback) {
 		let item = new PopupImageMenuItem(labelText, iconName);
 		this.addMenuItem(item);
 		this._signalManager.connect(item, 'activate', callback);
 		return item;
 	},
-	
+
 	_destroyMpris: function() {
 		if (this._mpris !== null) {
 			this._signalManager.disconnect(this._onMprisInitialized);
@@ -120,32 +120,32 @@ const IconMenu = new Lang.Class({
 			this._mpris = null;
 		}
 	},
-	
+
 	_onMprisInitialized: function(mpris) {
 		log('mpris-initialized');
 		this._appendMediaControls();
 	},
-	
+
 	_onPlay: function() {
 		log('play');
 		this._mpris.play();
 	},
-	
+
 	_onPause: function() {
 		log('pause');
 		this._mpris.pause();
 	},
-	
+
 	_onStop: function() {
 		log('stop');
 		this._mpris.stop();
 	},
-	
+
 	_onNext: function() {
 		log('next');
 		this._mpris.next();
 	},
-	
+
 	_onPrevious: function() {
 		log('previous');
 		this._mpris.previous();
@@ -158,7 +158,7 @@ const IconMenu = new Lang.Class({
  */
 const AppMenu = new Lang.Class({
 	Name: 'EmDash.AppMenu',
-	
+
 	_init: function(actionGroup, menuModel) {
 		this.item = new PopupSubMenuMenuItem(_('Application menu'));
 		this._actionGroup = actionGroup;;
@@ -167,14 +167,14 @@ const AppMenu = new Lang.Class({
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(this.item, 'open', this._onOpened, true);
 	},
-	
+
 	destroy: function() {
 		this._signalManager.destroy();
 		if (this._menuTracker != null) {
 			this._menuTracker.destroy();
 		}
 	},
-	
+
 	_onOpened: function(item) {
 		log('opene');
 		this._menuTracker = Shell.MenuTracker.new(this._actionGroup, this._menuModel, null,
@@ -185,10 +185,10 @@ const AppMenu = new Lang.Class({
 	_onInsertItem: function(menu, trackerItem, position) {
 		log('_onInsertItem: ' + position);
 		if (trackerItem.get_is_separator()) {
-			
+
 		}
 		else if (trackerItem.get_has_submenu()) {
-			
+
 		}
 		else {
 			let item = new PopupMenu.PopupMenuItem(stripMnemonics(trackerItem.label));
@@ -198,7 +198,7 @@ const AppMenu = new Lang.Class({
 			this.item.setSubmenuShown(true); // can only be shown when have at least one item
 		}
 	},
-	
+
 	_onRemoveItem: function(menu, position) {
 		log('_onRemoveItem: ' + position);
 		let items = menu._getMenuItems();
@@ -218,7 +218,7 @@ const AppMenu = new Lang.Class({
 const PopupSubMenuMenuItem = new Lang.Class({
 	Name: 'EmDash.PopupSubMenuMenuItem',
 	Extends: PopupMenu.PopupSubMenuMenuItem,
-	
+
 	_setOpenState: function(open) {
 		this.parent(open);
 		this.emit('open');
@@ -228,7 +228,7 @@ const PopupSubMenuMenuItem = new Lang.Class({
 
 /**
  * Popup menu item with an icon.
- * 
+ *
  * The original version puts the icon after the label, which looks weird. Our version flips the
  * order.
  *
@@ -249,7 +249,7 @@ const PopupImageMenuItem = new Lang.Class({
 
 
 /**
- * See: https://github.com/GNOME/gnome-shell/blob/js/ui/remoteMenu.js 
+ * See: https://github.com/GNOME/gnome-shell/blob/js/ui/remoteMenu.js
  */
 function stripMnemonics(label) {
 	// Remove all underscores that are not followed by another underscore

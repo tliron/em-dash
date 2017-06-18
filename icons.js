@@ -34,24 +34,24 @@ const log = Logging.logger('icons');
 
 /**
  * UI representation of a dash entry.
- * 
+ *
  * See: https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
  */
 const Icon = new Lang.Class({
 	Name: 'EmDash.Icon',
 	Extends: AppDisplay.AppIcon,
-	
+
 	_init: function(icons, app, entryIndex, height) {
 		log('Icon._init: ' + entryIndex);
+		this._icons = icons;
+		this._entryIndex = entryIndex;
+
 		this.parent(app, {
 			showLabel: false,
 			isDraggable: false // we will handle draggable ourselves
 		});
 		this.actor.height = height;
-		
-		this._icons = icons;
-		this._entryIndex = entryIndex;
-		
+
 		// Can we extract a simple name?
 		let id = app.id;
 		let suffix = '.desktop';
@@ -62,7 +62,7 @@ const Icon = new Lang.Class({
 			this._simpleName = null;
 		}
 
-		// Draggable
+		// Draggable?
 		if (global.settings.is_writable('favorite-apps') && Entries.isFavoriteApp(app)) {
 			this._draggable = new Draggable.Draggable(this.actor);
 		}
@@ -70,20 +70,30 @@ const Icon = new Lang.Class({
 			this._draggable = null;
 		}
 	},
-	
+
 	// Dragging us
 
 	handleDragBegin: function() {
-		// Hooked from EmDash.Draggable
+		// Hooked from EmDash.Draggable using our actor._delegate
 		log('handleDragBegin: ' + this.app.id);
 		this._removeMenuTimeout();
 		this.actor.hide();
 	},
-	
+
 	handleDragEnd: function(dropped) {
-		// Hooked from EmDash.Draggable
+		// Hooked from EmDash.Draggable using our actor._delegate
 		log('handleDragEnd: ' + this.app.id + ' ' + dropped);
 		this.actor.show();
+	},
+
+	/*
+	 * Override to make sure the drag actor is the same size as our icon.
+	 */
+	getDragActor: function() {
+		// Hooked from DND using our actor._delegate
+		let height = this.icon._iconBin.height;
+		log('getDragActor: ' + height);
+		return this.app.create_icon_texture(height);
 	},
 
 	// Dragging over us
@@ -94,7 +104,7 @@ const Icon = new Lang.Class({
 			log('handleDragOver: not an app');
 			return DND.DragMotionResult.NO_DROP;
 		}
-		
+
 		let vertical = this._icons.box.vertical;
 		let after = vertical ? y > this.actor.height / 2 : x > this.actor.width / 2;
 
@@ -119,14 +129,6 @@ const Icon = new Lang.Class({
 	},
 
 	/*
-	 * Override to make sure the drag actor is the same size as our icon.
-	 */
-	getDragActor: function() {
-		log('getDragActor: ' + this.icon._iconBin.height);
-		return this.app.create_icon_texture(this.icon._iconBin.height);
-	},
-	
-	/*
 	 * Override and copy original code, just use our menu class instead.
 	 */
 	popupMenu: function() {
@@ -136,7 +138,7 @@ const Icon = new Lang.Class({
 		if (this._draggable) {
 			this._draggable.fakeRelease();
 		}
-		
+
 		if (!this._menu) {
 			this._menu = new Menu.IconMenu(this, this._simpleName, this._icons);
 			this._menu.connect('activate-window', Lang.bind(this, (menu, window) => {
@@ -166,7 +168,7 @@ const Icon = new Lang.Class({
 
 		return false;
 	},
-	
+
 	/**
 	 * Override.
 	 */
@@ -177,26 +179,34 @@ const Icon = new Lang.Class({
 		}
 		this.parent();
 	},
-	
+
 	/**
-	 * Override to fit icon in us (instead of default, which is the other way around)
+	 * Override to fit icon in us (instead of the default behavior, which is the other way around)
 	 */
 	_createIcon: function(iconSize) {
-		log('_createIcon: ' + iconSize);
-		let dotVisible = this._dot.visible;
-		this._dot.show();
-		let margin = this._dot.height;
-		if (!dotVisible) {
-			this._dot.hide();
-		}
-		if (this.actor.label_actor) {
-			let labelVisible = this.actor.label_actor.visible;
-			margin += this.actor.label_actor.height;
-			if (!labelVisible) {
-				this.actor.label_actor.hide();
+		function margins(a) {
+			let visible = a.visible;
+			a.show();
+			let themeNode = a.get_theme_node();
+			let r = a.margin_bottom + a.margin_top +
+				themeNode.get_vertical_padding() +
+				themeNode.get_border_width(St.Side.TOP) +
+				themeNode.get_border_width(St.Side.BOTTOM) +
+				themeNode.get_outline_width(St.Side.TOP) +
+				themeNode.get_outline_width(St.Side.BOTTOM);
+			if (!visible) {
+				a.hide();
 			}
+			return r;
 		}
-		return this.parent(this.actor.height - margin);
+
+		iconSize = this.actor.height -
+			margins(this.actor) -
+			margins(this.icon.actor) -
+			margins(this._dot);
+
+		log('_createIcon: ' + iconSize);
+		return this.parent(iconSize);
 	}
 });
 
@@ -206,10 +216,10 @@ const Icon = new Lang.Class({
  */
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
-	
+
 	_init: function(entryManager, vertical, iconHeight) {
 		this.entryManager = entryManager;
-		
+
 		this._iconHeight = iconHeight;
 
 		// Box
@@ -220,16 +230,16 @@ const Icons = new Lang.Class({
 		if (vertical) {
 			this.box.add_style_class_name('vertical');
 		}
-		
+
 		// Actor
 		this.actor = new St.Bin({
-			name: 'em-dash-icons',
+			name: 'dash', // will use GNOME theme
 			child: this.box
 		});
 
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
-		
+
 		this.refresh();
 	},
 
@@ -237,12 +247,12 @@ const Icons = new Lang.Class({
 		this._signalManager.destroy();
 		this.actor.destroy();
 	},
-	
+
 	getIconAt: function(index) {
 		let actor = this.box.get_child_at_index(index);
 		return actor !== null ? actor._delegate : null;
 	},
-	
+
 	setVertical: function(vertical) {
 		if (this.box.vertical !== vertical) {
 			this.box.vertical = vertical;
@@ -254,7 +264,7 @@ const Icons = new Lang.Class({
 			}
 		}
 	},
-	
+
 	setSize: function(iconSize) {
 		if (this._iconHeight !== iconSize) {
 			this._iconHeight = iconSize;
@@ -269,7 +279,7 @@ const Icons = new Lang.Class({
 		let entrySequence = this.entryManager.getEntrySequence(workspaceIndex);
 		this._refresh(entrySequence);
 	},
-	
+
 	_refresh: function(entrySequence) {
 		this.box.remove_all_children();
 
@@ -279,7 +289,7 @@ const Icons = new Lang.Class({
 			this.box.add_child(appIcon.actor);
 		}
 	},
-	
+
 	_onEntriesChanged: function(entryManager) {
 		log('entries-changed');
 		this.refresh();
@@ -292,14 +302,14 @@ const Icons = new Lang.Class({
  */
 const Placeholder = new Lang.Class({
 	Name: 'EmDash.Placeholder',
-	
+
 	_init: function(actor, after) {
 		this._icon = actor._delegate;
 		this._after = after;
 		log('Placeholder._init: ' + this._icon.app.id + ' ' + after);
-		
+
 		this.actor = new St.Widget({
-			name: 'em-dash-drop-hovering-placeholder',
+			name: 'em-dash-placeholder',
 			width: actor.width,
 			height: actor.height,
 			style_class: 'placeholder' // GNOME theme styling
@@ -325,13 +335,13 @@ const Placeholder = new Lang.Class({
 		};
 		DND.addDragMonitor(this._dragMonitor);
 	},
-	
+
 	destroy: function() {
 		log('Placeholder.destroy');
 		DND.removeDragMonitor(this._dragMonitor);
 		this.actor.destroy();
 	},
-	
+
 	isFor: function(actor, after) {
 		return (this._icon.actor === actor) && (this._after === after);
 	},
@@ -393,7 +403,7 @@ function endDropHovering() {
 
 
 /*
- * Utils 
+ * Utils
  */
 
 function isFavoriteApp(app) {

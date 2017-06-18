@@ -31,7 +31,7 @@ const LaterManager = new Lang.Class({
 
 	/**
 	 * Later type options:
-	 * 
+	 *
 	 * * Meta.LaterType.RESIZE: call in a resize processing phase that is done before GTK+
 	 *   repainting (including window borders) is done.
 	 * * Meta.LaterType.CALC_SHOWING: used by Mutter to compute which windows should be mapped.
@@ -52,7 +52,7 @@ const LaterManager = new Lang.Class({
 		}
 		return false;
 	},
-	
+
 	cancel: function(callback) {
 		for (let i  = 0; i < this._laters.length; i++) {
 			let later = this._laters[i];
@@ -64,7 +64,7 @@ const LaterManager = new Lang.Class({
 		}
 		return false;
 	},
-	
+
 	destroy: function() {
 		// Forgetting to cancel these can result in crashes if the user enables and disables the
 		// extension very quickly...
@@ -88,7 +88,7 @@ const Later = new Lang.Class({
 		this.type = type;
 		this.id = 0;
 	},
-	
+
 	initialize: function() {
 		let callback = Lang.bind(this.self, this.callback);
 		this.id = Meta.later_add(this.type, () => {
@@ -98,7 +98,7 @@ const Later = new Lang.Class({
 		});
 		return this.id != 0;
 	},
-	
+
 	cancel: function() {
 		if (this.id != 0) {
 			Meta.later_remove(this.id);

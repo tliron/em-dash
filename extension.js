@@ -33,7 +33,7 @@ function init() {
 
 function enable() {
     settings = Convenience.getSettings();
-    
+
     Me.LOGGING_ENABLED = settings.get_boolean('debug');
     Me.LOGGING_IMPLEMENTATION = global.log;
 
@@ -42,22 +42,22 @@ function enable() {
 	dashManager = new Dash.DashManager(settings, {
 		PANEL_NEAR: PanelDash.PanelDash,
 		PANEL_MIDDLE: PanelDash.PanelDash,
-		EDGE_NEAR: DockableDash.DockableDash, 
+		EDGE_NEAR: DockableDash.DockableDash,
 		EDGE_FAR: DockableDash.DockableDash,
 		EDGE_BOTTOM: DockableDash.DockableDash
 	});
-	
+
 	log('enabled');
 }
 
 
 function disable() {
 	log('disabling...');
-	
+
 	dashManager.destroy();
 	dashManager = null;
 	settings.run_dispose();
 	settings = null;
-	
+
 	log('disabled');
 }

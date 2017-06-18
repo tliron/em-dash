@@ -30,14 +30,15 @@ const log = Logging.logger('panelDash');
 const PanelDash = new Lang.Class({
 	Name: 'EmDash.PanelDash',
 	Extends: Dash.Dash,
-    
+
 	_init: function(settings, entryManager, location) {
 		log('PanelDash._init');
-		
+
 		this._panelOriginalHeight = Main.panel.actor.height;
 		this._updatePanelHeight(settings);
-    	
+
     	this.parent(settings, entryManager, false, this._getIconSize());
+		this._icons.actor.add_style_class_name('panel');
 
 		this._signalManager.connectSetting(settings, 'panel-appearance-merge', 'boolean',
 			this._onPanelAppearanceMergeSettingChanged);
@@ -50,12 +51,12 @@ const PanelDash = new Lang.Class({
 
     	this.setLocation(location);
 	},
-	
+
 	destroy: function() {
 		this.parent();
 		Main.panel.actor.height = this._panelOriginalHeight;
 	},
-	
+
 	setLocation: function(location) {
 		// Note: in RTL, the _leftBox actually appears on the right :)
 		let actor = this._icons.actor;
@@ -78,23 +79,20 @@ const PanelDash = new Lang.Class({
 			break;
 		}
 	},
-	
+
 	_getIconSize: function() {
 		return Main.panel.actor.height;
 	},
-	
+
 	_updateStyle: function(panelAppearanceMerge) {
 		if (panelAppearanceMerge) {
-			this._icons.actor.name = 'em-dash';
-			this._icons.actor.remove_style_class_name('em-dash-no-border');
+			this._icons.actor.add_style_class_name('merge');
 		}
 		else {
-			// Give our dash the GNOME theme's styling
-			this._icons.actor.name = 'dash';
-			this._icons.actor.add_style_class_name('em-dash-no-border');
+			this._icons.actor.remove_style_class_name('merge');
 		}
 	},
-	
+
 	_updatePanelHeight: function(settings) {
 		if (settings === undefined) {
 			settings = this._settings;
@@ -106,22 +104,22 @@ const PanelDash = new Lang.Class({
 			Main.panel.actor.height = this._panelOriginalHeight;
 		}
 	},
-	
+
 	_onPanelAppearanceMergeSettingChanged: function(settings, panelAppearanceMerge) {
 		log('panel-appearance-merge setting changed: ' + panelAppearanceMerge);
 		this._updateStyle(panelAppearanceMerge);
 	},
-	
+
 	_onPanelCustomHeightSettingChanged: function(settings, customHeight) {
 		log('panel-custom-height setting changed: ' + customHeight);
 		this._updatePanelHeight();
 	},
-	
+
 	_onPanelHeightSettingChanged: function(settings, height) {
 		log('panel-height setting changed: ' + height);
 		this._updatePanelHeight();
 	},
-	
+
 	_onPanelHeightChanged: function(actor, height) {
 		log('panel height changed: ' + height);
 		this._icons.setSize(this._getIconSize());

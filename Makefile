@@ -9,7 +9,7 @@ INSTALLNAME = $(UUID)
 
 BASE_MODULES = extension.js stylesheet.css metadata.json COPYING README.md
 EXTRA_MODULES = convenience.js dash.js dockable.js dockableDash.js entries.js icons.js panelDash.js prefs.js utils.js prefs.ui
-EXTRA_IMAGES = 
+EXTRA_IMAGES =
 TOLOCALIZE = menu.js
 
 
@@ -112,4 +112,4 @@ register-schema:
 unregister-schema:
 	sudo rm -f "$(SCHEMAS)/org.gnome.shell.extensions.$(SCHEMA)."*.xml
 	sudo glib-compile-schemas "$(SCHEMAS)"
-	
+

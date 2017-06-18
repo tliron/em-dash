@@ -11,9 +11,9 @@
  *
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * This file contains code from:
- * 
+ *
  * https://github.com/JasonLG1979/gnome-shell-extensions-mediaplayer/blob/master/src/dbus.js
  */
 
@@ -32,10 +32,10 @@ const log = Logging.logger('mpris');
  */
 const MPRIS = new Lang.Class({
 	Name: 'EmDash.MPRIS',
-	
+
 	_init: function(name) {
 		log('MPRIS._init');
-		
+
 		this.canPause = null;
 		this.canGoNext = null;
 		this.canGoPrevious = null;
@@ -52,18 +52,18 @@ const MPRIS = new Lang.Class({
 		// While we can create proxies without an owner, they won't work :)
 		getOwner(this._busName, Lang.bind(this, this._onGetOwner));
 	},
-	
+
 	destroy: function() {
 		log('MPRIS.destroy');
 		// There is no way to disconnect the existing DBus remote calls, so we'll just make sure not
 		// to do anything if answers arrive after we've been destroyed
 		this._destroyed = true;
 	},
-	
+
 	play: function() {
 		this._mediaPlayerPlayer.PlayRemote();
 	},
-	
+
 	pause: function() {
 		this._mediaPlayerPlayer.PauseRemote();
 	},
@@ -107,7 +107,7 @@ const MPRIS = new Lang.Class({
 //		createProxy(MediaPlayerTracklistWrapper, this._busName, interfacePath,
 //			'mediaPlayerTracklist', onProxyCreated);
 	},
-	
+
 	_onProxyCreated: function(name, proxy) {
 		if (this._destroyed) {
 			log('_onProxyCreated: destroyed!');
@@ -116,12 +116,12 @@ const MPRIS = new Lang.Class({
 
 		log('_onProxyCreated: ' + name);
 		this['_' + name] = proxy;
-		
+
 		if (this._mediaPlayerPlayer !== null) {
 			this.canPause = this._mediaPlayerPlayer.CanPause;
 			this.canGoNext = this._mediaPlayerPlayer.CanGoNext;
 			this.canGoPrevious = this._mediaPlayerPlayer.CanGoPrevious;
-			
+
 			this.emit('initialize', this);
 		}
 	}

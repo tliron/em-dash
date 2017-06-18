@@ -28,13 +28,13 @@ const log = Logging.logger('entries');
 
 /*
  * Represents a single dash entry.
- * 
+ *
  * An entry can be based on an installed application or be "window-backed," which means there is no
  * known installed application for it. Window-backed entries are not very user-friendly, and so we
  * allow any entry to be configured to "grab" such window-backed entries.
- * 
+ *
  * An entry is associated with a list of windows. Only favorite entries are allowed to stay in the
- * dash with no windows. 
+ * dash with no windows.
  */
 const Entry = new Lang.Class({
 	Name: 'EmDash.Entry',
@@ -43,7 +43,7 @@ const Entry = new Lang.Class({
 		this.app = app;
 		this._matchers = [];
 		this._favorite = isFavoriteApp(app);
-		
+
 		// HACK
 		if (app.id === 'riot-web.desktop') {
 			this._matchers.push(new Matcher('Riot'));
@@ -55,7 +55,7 @@ const Entry = new Lang.Class({
 			this._matchers.push(new Matcher('Gnome-control-center'));
 		}
 	},
-	
+
 	/*
 	 * Checks if we were created for the application.
 	 */
@@ -86,10 +86,10 @@ const Entry = new Lang.Class({
 			}
 			return true;
 		}
-		
+
 		return false;
 	},
-	
+
 	/*
 	 * Checks if we are grabbing a window.
 	 */
@@ -115,7 +115,7 @@ const Entry = new Lang.Class({
 	 */
 	getWindows: function(workspaceIndex) {
 		let windows = [];
-		
+
 		// App windows
 		let appWindows = this.app.get_windows();
 		for (let i = 0; i < appWindows.length; i++) {
@@ -126,7 +126,7 @@ const Entry = new Lang.Class({
 			}
 			windows.push(window);
 		}
-		
+
 		// Grabbed windows
 		if (this._matchers.length > 0) {
 			let n_workspaces = global.screen.n_workspaces; // GNOME 3.24 introduces screen.workspaces
@@ -145,10 +145,10 @@ const Entry = new Lang.Class({
 				}
 			}
 		}
-		
+
 		return windows;
 	},
-	
+
 	toString: function(workspaceIndex) {
 		let s = '';
 		if (this._favorite) {
@@ -174,9 +174,9 @@ const Entry = new Lang.Class({
 
 /*
  * Manages a sequence of dash entries for a workspace.
- * 
+ *
  * Favorite entries will appear first, in order, and on all workspaces.
- * 
+ *
  * Other entries will appear after the favorites, and only if they have a window on the workspace.
  */
 const EntrySequence = new Lang.Class({
@@ -185,7 +185,7 @@ const EntrySequence = new Lang.Class({
 	_init: function() {
 		this.entries = [];
 	},
-	
+
 	/*
 	 * Checks if we have an entry representing the application.
 	 */
@@ -198,8 +198,8 @@ const EntrySequence = new Lang.Class({
 		}
 		return false;
 	},
-	
-	
+
+
 	/*
 	 * Add an entry for the application if there is no entry already representing it.
 	 */
@@ -225,7 +225,7 @@ const EntrySequence = new Lang.Class({
 		}
 		return false;
 	},
-	
+
 	/*
 	 * Removes an entry.
 	 */
@@ -238,9 +238,9 @@ const EntrySequence = new Lang.Class({
 		}
 		return false;
 	},
-	
+
 	/*
-	 * Removes entries that are no longer favorites. 
+	 * Removes entries that are no longer favorites.
 	 */
 	prune: function() {
 		let prunables = [];
@@ -272,26 +272,26 @@ const EntrySequence = new Lang.Class({
 
 /**
  * Manages dash entry sequences.
- * 
+ *
  * Can be configured to use a separate entry sequence for each workspace, or single entry sequence
  * for all of them.
- * 
+ *
  * Entries will be added and removed in response to applications being opened or closed, as well as
  * changes to the list of favorite applications.
- * 
+ *
  * Internally relies on the GNOME Shell AppSystem, but with enhancements to support per-workspace
  * tracking and window grabbing.
  */
 const EntryManager = new Lang.Class({
 	Name: 'EmDash.EntryManager',
-	
+
 	SINGLE_WORKSPACE_INDEX: -1,
 
 	_init: function(settings) {
 		log('EntryManager._init');
-		
+
 		this.settings = settings;
-		
+
 		this.single = false;
 
 		//this._refreshId = Main.initializeDeferredWork(this, Lang.bind(this, this.refresh));
@@ -300,7 +300,7 @@ const EntryManager = new Lang.Class({
 		this.reset();
 		this.addFavorites();
 		this.addRunning();
-		
+
 		let appSystem = Shell.AppSystem.get_default();
 		let appFavorites = AppFavorites.getAppFavorites();
 		this._signalManager = new SignalsUtils.SignalManager(this);
@@ -319,7 +319,7 @@ const EntryManager = new Lang.Class({
 	reset: function() {
 		this._entrySequences = {};
 	},
-	
+
 	getEntrySequence: function(workspaceIndex) {
 		if (this.single) {
 			workspaceIndex = this.SINGLE_WORKSPACE_INDEX;
@@ -332,11 +332,11 @@ const EntryManager = new Lang.Class({
 		}
 		return entries;
 	},
-	
+
 	removeEntrySequence: function(workspaceIndex) {
 		delete this._entrySequences[workspaceIndex];
 	},
-	
+
 	/*
 	 * Adds an entry for the application to a specific workspace if there is no entry already
 	 * representing it.
@@ -344,7 +344,7 @@ const EntryManager = new Lang.Class({
 	addTo: function(workspaceIndex, app) {
 		return this.getEntrySequence(workspaceIndex).add(app);
 	},
-	
+
 	/*
 	 * Adds an entry for the application to all workspaces if there is no entry already representing
 	 * it.
@@ -362,10 +362,10 @@ const EntryManager = new Lang.Class({
 		}
 		return changed;
 	},
-	
+
 	/*
 	 * Adds an entry for the application to the workspaces for which it has windows if there is no
-	 * entry already representing it. 
+	 * entry already representing it.
 	 */
 	add: function(app) {
 		if (this.single) {
@@ -381,7 +381,7 @@ const EntryManager = new Lang.Class({
 		}
 		return changed;
 	},
-	
+
 	/*
 	 * Adds entries for the favorite applications to all workspaces, or to just one, if there are no
 	 * entries already representing them.
@@ -404,7 +404,7 @@ const EntryManager = new Lang.Class({
 		}
 		return changed;
 	},
-	
+
 	/*
 	 * Adds entries for the running applications to the workspaces for which they have windows, or
 	 * to just one workspace if they have windows there, if there are no entries already
@@ -431,7 +431,7 @@ const EntryManager = new Lang.Class({
 		}
 		return changed;
 	},
-	
+
 	/*
 	 * Removes entries created for the application from all workspaces. Note that it will not remove
 	 * entries that are grabbing it.
@@ -446,7 +446,7 @@ const EntryManager = new Lang.Class({
 		}
 		return changed;
 	},
-	
+
 	/*
 	 * Removes entries that are no longer favorites.
 	 */
@@ -516,18 +516,17 @@ const EntryManager = new Lang.Class({
 		log('favorites-changed');
 		this.refresh();
 	},
-	
+
 	_onWorkspaceAdded: function(screen, workspaceIndex) {
 		log('workspace-added: ' + workspaceIndex);
 		// Nothing to do: new workspaces are created on demand
 	},
-	
+
 	_onWorkspaceRemoved: function(screen, workspaceIndex) {
 		log('workspace-removed: ' + workspaceIndex);
 		this.removeEntrySequence(workspaceIndex);
 	}
 });
-
 
 Signals.addSignalMethods(EntryManager.prototype);
 
@@ -559,7 +558,7 @@ const Matcher = new Lang.Class({
 		}
 		return false;
 	},
-	
+
 	toString: function() {
 		if (this._wmClassInstance === null) {
 			return this._wmClass;
@@ -570,7 +569,7 @@ const Matcher = new Lang.Class({
 
 
 /*
- * Utils 
+ * Utils
  */
 
 function getWorkspacesForApp(app) {
@@ -583,7 +582,7 @@ function getWorkspacesForApp(app) {
 			workspaceIndexes.push(workspaceIndex);
 		}
 	}
-	
+
 	return workspaceIndexes;
 }
 

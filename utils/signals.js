@@ -18,6 +18,11 @@ const Lang = imports.lang;
 
 /**
  * Manages signal connections.
+ *
+ * Supports single connections (called only one time).
+ *
+ * You can get individual connections, block them temporarily, or disconnect and then reconnect
+ * them.
  */
 const SignalManager = new Lang.Class({
 	Name: 'EmDash.SignalManager',
@@ -26,7 +31,24 @@ const SignalManager = new Lang.Class({
 		this._self = self;
 		this._connections = [];
 	},
-	
+
+	destroy: function() {
+		while (this._connections.length > 0) {
+			let connection = this._connections.pop();
+			connection.disconnect(false);
+		}
+	},
+
+	get: function(callback) {
+		for (let i = 0; i < this._connections.length; i++) {
+			let connection = this._connections[i];
+			if (connection.callback === callback) {
+				return connection;
+			}
+		}
+		return null;
+	},
+
 	connect: function(site, name, callback, single) {
 		return this._connect(site, name, callback, single);
 	},
@@ -44,23 +66,28 @@ const SignalManager = new Lang.Class({
 	},
 
 	disconnect: function(callback) {
-		for (let i = 0; i < this._connections.length; i++) {
-			let connection = this._connections[i];
-			if (connection.callback === callback) {
-				connection.disconnect();
-				return connection;
-			}
+		let connection = this.get(callback);
+		if (connection !== null) {
+			connection.disconnect();
+			return connection;
 		}
 		return null;
 	},
 
-	destroy: function() {
-		while (this._connections.length > 0) {
-			let connection = this._connections.pop();
-			connection.disconnect(false);
+	block: function() {
+		for (let i = 0; i < this._connections.length; i++) {
+			let connection = this._connections[i];
+			connection.block = true;
 		}
 	},
-	
+
+	unblock: function() {
+		for (let i = 0; i < this._connections.length; i++) {
+			let connection = this._connections[i];
+			connection.block = false;
+		}
+	},
+
 	_connect: function(site, name, callback, single, mode) {
 		mode = mode || null;
 		single = single || false;
@@ -87,22 +114,26 @@ const SignalConnection = new Lang.Class({
 		this.single = single;
 		this.mode = mode || null;
 		this.id = 0;
+		this.blocked = false;
+		this.blockedReturn = null;
 	},
-	
-	connect: function() {
-		let callback = Lang.bind(this.manager._self, this.callback);
-		
-		if (this.single) {
-			let connection = this;
-			let originalCallback = callback;
-			callback = () => {
-				connection.disconnect();
-				return originalCallback.apply(arguments);
-			}
+
+	call: function() {
+		if (this.blocked) {
+			return this.blockedReturn;
 		}
-		
+		let r = this.callback.apply(this.manager._self, arguments);
+		if (this.single) {
+			this.disconnect();
+		}
+		return r;
+	},
+
+	connect: function() {
+		let callback = Lang.bind(this, this.call);
+
 		let settingPrefix = 'setting.';
-		
+
 		if (this.mode === 'after') {
 			this.id = this.site.connect_after(this.name, callback);
 		}
@@ -125,7 +156,7 @@ const SignalConnection = new Lang.Class({
 		else {
 			this.id = this.site.connect(this.name, callback);
 		}
-		
+
 		if (this.id != 0) {
 			this.manager._connections.push(this);
 			return true;

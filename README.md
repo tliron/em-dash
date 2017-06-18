@@ -13,8 +13,8 @@ It provides the following optional extra features for the dash:
 * Configure to show windows in **all of the workspaces** (like the built-in dash) or only in the
   **current workspace**.
 
-For the dash icons:  
-  
+For the dash icons:
+
 * Show dots for **how many** windows are open (the built-in dash only shows a line if *any* are
   open).
 * Configure the behavior of **left-click** and **middle-click** on the dash icons: raise window,
@@ -106,14 +106,14 @@ reference material:
      [part of GNOME Shell written in C](https://developer.gnome.org/shell/stable/).
   * `imports.gi.Clutter` is [Clutter](https://developer.gnome.org/clutter/stable/), the UI
     library for the shell. It's a powerful foundation built on top of OpenGL.
-  * `imports.gi.St` is [St](https://developer.gnome.org/st/stable/), a small widget toolkit built
-    for Clutter, which supports CSS-based theming (this is what a "GNOME Shell theme" is for). Note
-    that St is nowhere as rich as GTK+ is. You have very few widgets to work with.
+  * `imports.gi.St` is [St](https://developer.gnome.org/st/stable/), a CSS-styled widget toolkit
+    built for Clutter (this is what a "GNOME Shell theme" is for). Note that in terms of variety of
+    widgets, St is currently nowhere as rich as GTK+ is.
   * `imports.gi.Meta` is actually [Mutter](https://developer.gnome.org/meta/stable/), an
     abstraction above the compositing window manager, such as Metacity.
   * [GSettings](https://developer.gnome.org/gio/stable/GSettings.html) are part of
     `imports.gi.Gio`. You'll also see some documentation there for the XML format for the
-    `/schemas/` files. The `type` fields use the
+    `/schemas/` files. The `type` fields use GLib's
     [GVariant format](https://developer.gnome.org/glib/stable/gvariant-format-strings.html).
 * The preferences page is quite different from all the above, as it's actually a GTK+ widget. The
   [Glade designer](https://glade.gnome.org/) can be used to edit the `prefs.ui` file used by the

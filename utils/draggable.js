@@ -24,15 +24,15 @@ const log = Logging.logger('draggable');
 
 
 /**
- * Makes it a easier to use the Shell's DND by managing the signals and calling delegate functions.
+ * Makes it a easier to use the Shell's DND by managing the signals and calling delegated functions.
  */
 const Draggable = new Lang.Class({
 	Name: 'EmDash.Draggable',
-	
+
 	_init: function(actor) {
-		log('Draggable._init');
+		log('_init');
 		this.actor = actor;
-		
+
 		this._draggable = DND.makeDraggable(actor);
 
 		this._signalManager = new Signals.SignalManager(this);
@@ -42,11 +42,10 @@ const Draggable = new Lang.Class({
 	},
 
 	destroy: function() {
-		log('Draggable.destroy');
+		log('destroy');
 		this._signalManager.destroy();
-		DND.removeDragMonitor(this._dragMonitor);
 	},
-	
+
 	fakeRelease: function() {
 		this._draggable.fakeRelease();
 	},
@@ -58,12 +57,13 @@ const Draggable = new Lang.Class({
 	},
 
 	_onDragCancelled: function(draggable, time) {
-		log('drag-cancelled: ' + time);
 		// Unnecessary, because _onDragEnded will be called anyway with dropped=false
+		if (this.actor._delegate && this.actor._delegate.handleDragCancelled) {
+			this.actor._delegate.handleDragCancelled();
+		}
 	},
 
 	_onDragEnded: function(draggable, time, dropped) {
-		DND.removeDragMonitor(this._dragMonitor);
 		if (this.actor._delegate && this.actor._delegate.handleDragEnd) {
 			this.actor._delegate.handleDragEnd(dropped);
 		}
