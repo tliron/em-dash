@@ -1,28 +1,66 @@
 
-#dash.em-dash-no-border {
-	border-width: 0;
-	border-radius: 0 0 0 0;
-}
+/* The panel is a very cramped place for the dash, so we'll squash some stuff that takes too much
+   vertical space. This is especially true in Hi-DPI, where all elements become beefer, but the
+   panel is often still quite small. */
 
 #dash.panel {
-	border-width: 0;
-	border-radius: 0 0 0 0;
-}
-
-#dash.merge {
-	background-image: none;
-	background-color: transparent;
-}
-
-.app-well-app {
+	padding-top: 1px;
+	padding-bottom: 1px;
+	margin-top: 0;
 	margin-bottom: 0;
 }
 
+#dash.panel .overview-icon {
+	/*padding: 0 6px;*/
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+#dash.panel .app-well-app-running-dot {
+	/*height: 1px;*/
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+/* Just remove the border */
+
+#dash.no-border {
+	border-width: 0;
+	border-radius: 0 0 0 0;
+	outline-width: 0;
+	outline-offset: 0;
+}
+
+/* Allow the dash to blend better into its surroundings */
+
+#dash.merge {
+	border-width: 0;
+	border-radius: 0 0 0 0;
+	outline-width: 0;
+	outline-offset: 0;
+	background-image: none;
+	background-color: inherit;
+}
+
+
+
+/*
+.app-well-app {
+	background-color: rgba(0, 255, 0, 0.5);
+}
+*/
+
+/*
 .app-well-app-running-dot {
 	margin-bottom: 0;
 }
+*/
 
-#dash StBoxLayout.vertical {
+#dash > StBoxLayout.vertical {
 	spacing: 6px; /* special property for St.BoxLayout */
 }
 

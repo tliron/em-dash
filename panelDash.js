@@ -37,8 +37,7 @@ const PanelDash = new Lang.Class({
 		this._panelOriginalHeight = Main.panel.actor.height;
 		this._updatePanelHeight(settings);
 
-    	this.parent(settings, entryManager, false, this._getIconSize());
-		this._icons.actor.add_style_class_name('panel');
+    	this.parent(settings, entryManager, 'panel', false, Main.panel.actor.height);
 
 		this._signalManager.connectSetting(settings, 'panel-appearance-merge', 'boolean',
 			this._onPanelAppearanceMergeSettingChanged);
@@ -80,10 +79,6 @@ const PanelDash = new Lang.Class({
 		}
 	},
 
-	_getIconSize: function() {
-		return Main.panel.actor.height;
-	},
-
 	_updateStyle: function(panelAppearanceMerge) {
 		if (panelAppearanceMerge) {
 			this._icons.actor.add_style_class_name('merge');
@@ -122,6 +117,6 @@ const PanelDash = new Lang.Class({
 
 	_onPanelHeightChanged: function(actor, height) {
 		log('panel height changed: ' + height);
-		this._icons.setSize(this._getIconSize());
+		this._icons.setSize(height);
 	}
 });

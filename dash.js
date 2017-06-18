@@ -21,6 +21,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
 const ClutterUtils = Me.imports.utils.clutter;
+const MutterUtils = Me.imports.utils.mutter;
 const Entries = Me.imports.entries;
 const Icons = Me.imports.icons;
 
@@ -37,17 +38,19 @@ const DashManager = new Lang.Class({
     _init: function(settings, _dashClasses) {
     	log('DashManager._init');
 
+    	this.dash = null;
+
     	this._settings = settings;
     	this._dashClasses = _dashClasses;
     	this._entryManager = new Entries.EntryManager(settings);
+    	this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
 
-    	this.dash = null;
-
-		this._appMenuParent = null;
+		this.removeBuiltInDash();
 
     	// Remember original location of app menu
 		let appMenu = Main.panel.statusArea.appMenu.container;
 		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
+		this._appMenuParent = null;
 		if (this._appMenuIndex !== -1) {
 			this._appMenuParent = Main.panel._leftBox;
 		}
@@ -59,22 +62,42 @@ const DashManager = new Lang.Class({
 		}
 
 		this._signalManager = new Signals.SignalManager(this);
-		this._signalManager.connectSetting(this._settings, 'dash-location', 'string',
-			this._onDashLocationChanged);
-		this._signalManager.connectSetting(this._settings, 'icons-app-menu', 'boolean',
-			this._onIconsAppMenuSettingChanged);
 
-		this._settings.emit('changed::dash-location', 'dash-location');
-	},
+		// TODO: why do we need this mechanism?
+		// Initialize later, to make sure themes are applied
+		this._laterManager = new MutterUtils.LaterManager(this);
+		this._laterManager.later(this.initialize);
+    },
 
 	destroy: function() {
     	log('DashManager.destroy');
 		this._signalManager.destroy();
+		this._laterManager.destroy();
 		if (this.dash !== null) {
 			this.dash.destroy();
 		}
 		this._entryManager.destroy();
+		this.restoreBuiltInDash();
 		this.restoreAppMenu();
+	},
+
+	initialize: function() {
+		this._signalManager.connectSetting(this._settings, 'dash-location', 'string',
+			this._onDashLocationChanged);
+		this._signalManager.connectSetting(this._settings, 'icons-app-menu', 'boolean',
+			this._onIconsAppMenuSettingChanged);
+	},
+
+	removeBuiltInDash: function() {
+    	if (this._overlayDashWasVisible) {
+    		Main.overview._controls.dash.actor.hide();
+    	}
+	},
+
+	restoreBuiltInDash: function() {
+    	if (this._overlayDashWasVisible) {
+    		Main.overview._controls.dash.actor.show();
+    	}
 	},
 
 	removeAppMenu: function() {
@@ -128,18 +151,12 @@ const DashManager = new Lang.Class({
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
 
-    _init: function(settings, entryManager, vertical, iconHeight) {
+    _init: function(settings, entryManager, styleClass, vertical, iconHeight) {
 		this._settings = settings;
     	this._entryManager = entryManager;
 
-    	// Hide overlay dash
-    	this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
-    	if (this._overlayDashWasVisible) {
-    		Main.overview._controls.dash.actor.hide();
-    	}
-
     	// Icons
-    	this._icons = new Icons.Icons(entryManager, vertical, iconHeight);
+    	this._icons = new Icons.Icons(entryManager, styleClass, vertical, iconHeight);
 
 		let windowTracker = Shell.WindowTracker.get_default();
 		this._signalManager = new Signals.SignalManager(this);
@@ -150,16 +167,13 @@ const Dash = new Lang.Class({
 	destroy: function() {
 		this._signalManager.destroy();
 		this._icons.destroy();
-    	if (this._overlayDashWasVisible) {
-    		Main.overview._controls.dash.actor.show();
-    	}
 	},
 
 	setLocation: function(location) {
 	},
 
 	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
-		log('workspace-switched from ' + oldWorkspaceIndex + ' to ' + newWorkspaceIndex +
+		log('workspace-switched signal from ' + oldWorkspaceIndex + ' to ' + newWorkspaceIndex +
 			' (' + direction + ')');
 		if (!this._entryManager.single) {
 			this._icons.refresh(newWorkspaceIndex);
@@ -168,10 +182,10 @@ const Dash = new Lang.Class({
 
 	_onFocusChanged: function(windowTracker, app) {
 		if (app === null) {
-			log('focus-app: none');
+			log('focus-app signal: none');
 		}
 		else {
-			log('focus-app: ' + app.id + ' ' + app.get_name());
+			log('focus-app signal: ' + app.id + ' ' + app.get_name());
 		}
 	}
 });

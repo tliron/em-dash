@@ -123,12 +123,10 @@ reference material:
 TODO
 ----
 
-* Icons too big in Hi-DPI
-* Sometimes when switching position the widget size is wrong (minimal)
 * Scrollable if there are too many icons
-* Sometimes in always visible the struts don't seem to work
 * In touch-to-show, make sure it is shown in overview! Also on all monitors!
 * Allow dragging to after all other favorites
 * Window previews/lists on hover
 * Animations
 * Dragging on empty dash
+* Panel merge mode doesn't show highlights

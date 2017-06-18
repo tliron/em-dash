@@ -106,7 +106,7 @@ const Entry = new Lang.Class({
 	/*
 	 * Checks if we used to be favorite but no longer are.
 	 */
-	isPrunable: function() {
+	get isPrunable() {
 		return this._favorite && !isFavoriteApp(this.app);
 	},
 
@@ -246,7 +246,7 @@ const EntrySequence = new Lang.Class({
 		let prunables = [];
 		for (let i = 0; i < this.entries; i++) {
 			let entry = this.entries[i];
-			if (entry.isPrunable()) {
+			if (entry.isPrunable) {
 				prunables.push(entry);
 			}
 		}
@@ -485,7 +485,7 @@ const EntryManager = new Lang.Class({
 	},
 
 	_onInstalledChanged: function(appSystem) {
-		log('installed-changed');
+		log('installed-changed signal');
 		this.refresh();
 	},
 
@@ -493,17 +493,17 @@ const EntryManager = new Lang.Class({
 		let id = app.id;
 		let state = app.state;
 		if (state == Shell.AppState.STARTING) {
-			log('app-state-changed: ' + id + ' starting');
+			log('app-state-changed signal: ' + id + ' starting');
 		}
 		else if (state == Shell.AppState.RUNNING) {
 			// Note: running events will be sent for each open app when the shell is restarted
-			log('app-state-changed: ' + id + ' running');
+			log('app-state-changed signal: ' + id + ' running');
 			if (this.add(app)) {
 				this.emit('changed');
 			}
 		}
 		else if (state == Shell.AppState.STOPPED) {
-			log('app-state-changed: ' + id + ' stopped');
+			log('app-state-changed signal: ' + id + ' stopped');
 			if (!isFavoriteApp(app)) { // favorites stay
 				if (this.remove(app)) {
 					this.emit('changed');
@@ -513,17 +513,17 @@ const EntryManager = new Lang.Class({
 	},
 
 	_onFavoritesChanged: function(favorites) {
-		log('favorites-changed');
+		log('favorites changed signal');
 		this.refresh();
 	},
 
 	_onWorkspaceAdded: function(screen, workspaceIndex) {
-		log('workspace-added: ' + workspaceIndex);
+		log('workspace-added signal: ' + workspaceIndex);
 		// Nothing to do: new workspaces are created on demand
 	},
 
 	_onWorkspaceRemoved: function(screen, workspaceIndex) {
-		log('workspace-removed: ' + workspaceIndex);
+		log('workspace-removed signal: ' + workspaceIndex);
 		this.removeEntrySequence(workspaceIndex);
 	}
 });

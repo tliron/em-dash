@@ -14,7 +14,6 @@
  */
 
 const Lang = imports.lang;
-const GLib = imports.gi.GLib;
 const Meta = imports.gi.Meta;
 
 
@@ -36,7 +35,8 @@ const LaterManager = new Lang.Class({
 	 *   repainting (including window borders) is done.
 	 * * Meta.LaterType.CALC_SHOWING: used by Mutter to compute which windows should be mapped.
 	 * * Meta.LaterType.CHECK_FULLSCREEN: used by Mutter to see if there's a fullscreen window.
-	 * * Meta.LaterType.SYNC_STACK: used by Mutter to send its idea of the stacking order to the server.
+	 * * Meta.LaterType.SYNC_STACK: used by Mutter to send its idea of the stacking order to the
+	 *   server.
 	 * * Meta.LaterType.BEFORE_REDRAW: call before the stage is redrawn. (the default.)
 	 * * Meta.LaterType.IDLE: call at a very low priority (can be blocked by running animations or
 	 *   redrawing applications)
@@ -89,13 +89,12 @@ const Later = new Lang.Class({
 		this.id = 0;
 	},
 
+	call: function() {
+		this.callback.apply(this.self);
+	},
+
 	initialize: function() {
-		let callback = Lang.bind(this.self, this.callback);
-		this.id = Meta.later_add(this.type, () => {
-			callback();
-			// I could not find documentation for return values, but GNOME Shell code returns this
-			return GLib.SOURCE_REMOVE;
-		});
+		this.id = Meta.later_add(this.type, Lang.bind(this, this.call));
 		return this.id != 0;
 	},
 

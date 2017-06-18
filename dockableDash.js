@@ -41,13 +41,14 @@ const DockableDash = new Lang.Class({
 		let stretch = settings.get_boolean('dock-stretch');
 		let toggle = settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 
-		this.parent(settings, entryManager,
-			(side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT), 48);
+		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
+		this.parent(settings, entryManager, null, vertical, this._iconSize);
 
 		this._updateStyle(side);
 
 		this._dockable = new Dockable.Dockable(this._icons.actor, side, align, stretch, toggle);
 
+		let themeContext = St.ThemeContext.get_for_stage(global.stage);
 		this._signalManager.connect(this._icons.actor, 'style-changed', this._onStyleChanged);
 		this._signalManager.connectSetting(settings, 'dock-visibility', 'string',
 			this._onDockVisibilitySettingChanged);
@@ -57,6 +58,8 @@ const DockableDash = new Lang.Class({
 			this._onDockStretchSettingChanged);
 		this._signalManager.connectSetting(settings, 'dock-borders', 'boolean',
 			this._onDockBordersSettingChanged);
+		this._signalManager.connectProperty(themeContext, 'scale-factor',
+			this._onScaleFactorChanged);
 	},
 
     destroy: function() {
@@ -70,6 +73,11 @@ const DockableDash = new Lang.Class({
 		this._icons.setVertical((side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
 		this._dockable.setSide(side);
 		this._updateStyle(side);
+	},
+
+	get _iconSize() {
+		let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+		return 64 * scaleFactor;
 	},
 
 	_updateStyle: function(side) {
@@ -103,15 +111,15 @@ const DockableDash = new Lang.Class({
 		}
 
 		if (!this._settings.get_boolean('dock-borders')) {
-			actor.add_style_class_name('em-dash-no-border');
+			actor.add_style_class_name('no-border');
 		}
 		else {
-			actor.remove_style_class_name('em-dash-no-border');
+			actor.remove_style_class_name('no-border');
 		}
 	},
 
 	_onStyleChanged: function(actor) {
-		log('_onStyleChanged');
+		log('style-changed signal');
 
 		// Block the signal while changing the style
 		let connection = this._signalManager.get(this._onStyleChanged);
@@ -162,6 +170,12 @@ const DockableDash = new Lang.Class({
 		log('dock-borders setting changed: ' + dockBorders);
 		let location = this._settings.get_string('dash-location');
 		this._updateStyle(getMutterSideForLocation(location));
+	},
+
+	_onScaleFactorChanged: function(themeContext, scaleFactor) {
+		// Doesn't seem to be called
+		log('theme context scale-factor changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ' + scaleFactor);
+		this._icons.setSize(this._iconSize);
 	}
 });
 

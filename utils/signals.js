@@ -28,7 +28,7 @@ const SignalManager = new Lang.Class({
 	Name: 'EmDash.SignalManager',
 
 	_init: function(self) {
-		this._self = self;
+		this.self = self;
 		this._connections = [];
 	},
 
@@ -122,7 +122,7 @@ const SignalConnection = new Lang.Class({
 		if (this.blocked) {
 			return this.blockedReturn;
 		}
-		let r = this.callback.apply(this.manager._self, arguments);
+		let r = this.callback.apply(this.manager.self, arguments);
 		if (this.single) {
 			this.disconnect();
 		}

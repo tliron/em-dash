@@ -21,6 +21,10 @@ const DND = imports.ui.dnd;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
+
+const Dash = imports.ui.dash;
+
+
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
@@ -50,7 +54,20 @@ const Icon = new Lang.Class({
 			showLabel: false,
 			isDraggable: false // we will handle draggable ourselves
 		});
-		this.actor.height = height;
+		//this.actor.height = height;
+		//this.actor.style_class = 'app-well-app2'; // app-well-app
+//		this._iconContainer.layout_manager = new Clutter.BoxLayout({
+//			vertical: true
+//		});
+		//this.icon._spacing = 0;
+		//this._iconContainer.set_child_above_sibling(this.icon.actor, this._dot);
+		//this.actor.add_style_class_name('panel-button');
+//		this.actor.scale_x = 0.5;
+//		this.actor.scale_y = 0.5;
+//		this.icon.actor.scale_x = 0.5;
+//		this.icon.actor.scale_y = 0.5;
+//		this._dot.scale_x = 0.5;
+//		this._dot.scale_y = 0.5;
 
 		// Can we extract a simple name?
 		let id = app.id;
@@ -91,9 +108,9 @@ const Icon = new Lang.Class({
 	 */
 	getDragActor: function() {
 		// Hooked from DND using our actor._delegate
-		let height = this.icon._iconBin.height;
-		log('getDragActor: ' + height);
-		return this.app.create_icon_texture(height);
+		let size = this.icon.icon.icon_size;
+		log('getDragActor: ' + size);
+		return this.app.create_icon_texture(size);
 	},
 
 	// Dragging over us
@@ -184,26 +201,41 @@ const Icon = new Lang.Class({
 	 * Override to fit icon in us (instead of the default behavior, which is the other way around)
 	 */
 	_createIcon: function(iconSize) {
-		function margins(a) {
+		let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+
+		function margins(a, withHeight) {
 			let visible = a.visible;
 			a.show();
 			let themeNode = a.get_theme_node();
-			let r = a.margin_bottom + a.margin_top +
-				themeNode.get_vertical_padding() +
-				themeNode.get_border_width(St.Side.TOP) +
-				themeNode.get_border_width(St.Side.BOTTOM) +
-				themeNode.get_outline_width(St.Side.TOP) +
-				themeNode.get_outline_width(St.Side.BOTTOM);
+			let r = /*a.margin_bottom + a.margin_top +*/
+				withHeight ? a.height : 0 +
+				themeNode.get_vertical_padding();
+//				themeNode.get_border_width(St.Side.TOP) +
+//				themeNode.get_border_width(St.Side.BOTTOM) +
+//				themeNode.get_outline_width(St.Side.TOP) +
+//				themeNode.get_outline_width(St.Side.BOTTOM);
 			if (!visible) {
 				a.hide();
 			}
+			log('>>>>>> ' + r + ' ' + a);
+			//log(themeNode.get_background_color().red);
 			return r;
 		}
 
-		iconSize = this.actor.height -
-			margins(this.actor) -
-			margins(this.icon.actor) -
-			margins(this._dot);
+//		let box = this.actor.get_parent();
+//		let actorHeight = box.vertical ? this.actor.height : box.height;
+//		log('%%% ' + box.get_parent().name + '-' + box.get_parent().style_class);
+		//actorHeight /= scaleFactor;
+		//iconSize = actorHeight / scaleFactor;
+//		let dash = this.actor.get_parent().get_parent();
+//		iconSize = this.actor.height -
+//			margins(dash) -
+//			margins(this.actor) -
+//			margins(this.icon.actor) -
+//			margins(this._dot, true);
+//		iconSize /= scaleFactor;
+
+		iconSize = (this.actor.height * 0.5) / scaleFactor;
 
 		log('_createIcon: ' + iconSize);
 		return this.parent(iconSize);
@@ -217,30 +249,32 @@ const Icon = new Lang.Class({
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 
-	_init: function(entryManager, vertical, iconHeight) {
+	_init: function(entryManager, styleClass, vertical, iconSize) {
 		this.entryManager = entryManager;
 
-		this._iconHeight = iconHeight;
+		this._iconSize = null;
 
 		// Box
 		this.box = new St.BoxLayout({
-			name: 'em-dash-icons-box',
-			vertical: vertical,
+			name: 'em-dash-icons-box'
 		});
-		if (vertical) {
-			this.box.add_style_class_name('vertical');
-		}
 
 		// Actor
 		this.actor = new St.Bin({
 			name: 'dash', // will use GNOME theme
+			style_class: styleClass,
 			child: this.box
 		});
 
+		let themeContext = St.ThemeContext.get_for_stage(global.stage);
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
+		this._signalManager.connect(themeContext, 'changed', this._onThemeContextChanged);
+		this._signalManager.connectProperty(themeContext, 'scale-factor',
+			this._onScaleFactorChanged);
 
-		this.refresh();
+		this.setVertical(vertical);
+		this.setSize(iconSize);
 	},
 
 	destroy: function() {
@@ -266,8 +300,8 @@ const Icons = new Lang.Class({
 	},
 
 	setSize: function(iconSize) {
-		if (this._iconHeight !== iconSize) {
-			this._iconHeight = iconSize;
+		if (this._iconSize !== iconSize) {
+			this._iconSize = iconSize;
 			this.refresh();
 		}
 	},
@@ -285,13 +319,33 @@ const Icons = new Lang.Class({
 
 		for (let i = 0; i < entrySequence.entries.length; i++) {
 			let entry = entrySequence.entries[i];
-			let appIcon = new Icon(this, entry.app, i, this._iconHeight);
-			this.box.add_child(appIcon.actor);
+			let icon = new Icon(this, entry.app, i, this._iconSize);
+			icon.actor.height = this._iconSize;
+			this.box.add_child(icon.actor);
+
+//			icon._Container = new Dash.DashItemContainer();
+//			icon._Container.setChild(icon.actor);
+//			icon.actor.label_actor = null;
+//			icon._Container.setLabelText(entry.app.get_name());
+//			//_hookUpLabel
+//			icon._Container.show();
+//			this.box.add_child(icon._Container);
 		}
 	},
 
 	_onEntriesChanged: function(entryManager) {
-		log('entries-changed');
+		log('entries changed signal');
+		this.refresh();
+	},
+
+	_onThemeContextChanged: function(themeContext) {
+		log('theme context changed signal');
+		this.refresh();
+	},
+
+	_onScaleFactorChanged: function(themeContext, scaleFactor) {
+		// Doesn't seem to be called
+		log('theme context scale-factor changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ' + scaleFactor);
 		this.refresh();
 	}
 });

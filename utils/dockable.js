@@ -26,7 +26,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
 const ClutterUtils = Me.imports.utils.clutter;
-const MutterUtils = Me.imports.utils.mutter;
 const Dash = Me.imports.dash;
 
 const log = Logging.logger('dockable');
@@ -41,18 +40,7 @@ const Dockable = new Lang.Class({
 	_init: function(child, side, align, stretch, toggle) {
 		log('Dockable._init');
 
-		this.actor = new St.Bin({
-			name: 'em-dash-dockable',
-			child: child,
-			x_fill: true,
-			y_fill: true,
-			reactive: true // for tracking hover
-		});
-
 		this._align = align;
-
-		//this.actor.set_clip_to_allocation(true);
-
 		this._side = side;
 		this._stretch = stretch;
 		this._toggle = toggle;
@@ -66,25 +54,47 @@ const Dockable = new Lang.Class({
 		this._barrier = null;
 		this._workArea = {};
 
-		this._signalManager = new Signals.SignalManager(this);
-		this._laterManager = new MutterUtils.LaterManager(this);
+		this.actor = new St.Bin({
+			name: 'em-dash-dockable',
+			child: child,
+			x_fill: true,
+			y_fill: true,
+			reactive: true // for tracking hover
+		});
+		//this.actor.set_clip_to_allocation(true);
 
-		this.initialize();
-		// TODO: why do we need this mechanism?
-		// Initialize later, to make sure themes are applied
-		//this._laterManager.later(this.initialize);
+		// Hide to make sure a strut is not created when added to the chrome
+		this.actor.hide();
+
+		Main.layoutManager.addChrome(this.actor, {
+			affectsStruts: !this._toggle,
+			trackFullscreen: true
+		});
+
+		if (Main.legacyTray && Main.legacyTray.actor) {
+			// Make sure we're behind the legacy tray (if it exists)
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor,
+				Main.legacyTray.actor);
+		}
+		else {
+			// At least make sure we're behind the modal dialog group
+			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor,
+				Main.layoutManager.modalDialogGroup);
+		}
+
+		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
+		// Emitted only if track_hover is true:
+		this._signalManager.connectProperty(this.actor, 'hover', this._onHover);
 	},
 
 	destroy: function() {
 		log('Dockable.destroy');
-		this._laterManager.destroy();
 		this._signalManager.destroy();
 		this._destroyPressureBarrier();
 		// Note: *cannot* destroy a Bin without children
 		this.actor.remove_all_children();
-		if (this._initialized()) {
-			Main.layoutManager.removeChrome(this.actor);
-		}
+		Main.layoutManager.removeChrome(this.actor);
 		if (this._leftCornerWasVisible) {
 			Main.panel._leftCorner.actor.show();
 		}
@@ -117,54 +127,20 @@ const Dockable = new Lang.Class({
 	setToggle: function(toggle) {
 		if (this._toggle !== toggle) {
 			this._collapsed = this._toggle = toggle;
-			if (this._initialized()) {
-				Main.layoutManager._untrackActor(this.actor);
-				Main.layoutManager._trackActor(this.actor, {
-					affectsStruts: !this._toggle,
-					trackFullscreen: true
-				});
-				this._reinitialize();
-			}
+			Main.layoutManager._untrackActor(this.actor);
+			Main.layoutManager._trackActor(this.actor, {
+				affectsStruts: !this._toggle,
+				trackFullscreen: true
+			});
+			this._reinitialize();
 		}
 	},
 
-	initialize: function() {
-		// Hide to make sure a strut is not created when added to the chrome
-		this.actor.hide();
-
-		Main.layoutManager.addChrome(this.actor, {
-			affectsStruts: !this._toggle,
-			trackFullscreen: true
-		});
-
-		if (Main.legacyTray && Main.legacyTray.actor) {
-			// Make sure we're behind the legacy tray (if it exists)
-			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor,
-				Main.legacyTray.actor);
-		}
-		else {
-			// At least make sure we're behind the modal dialog group
-			Main.layoutManager.uiGroup.set_child_below_sibling(this.actor,
-				Main.layoutManager.modalDialogGroup);
-		}
-
-		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
-		this._signalManager.connectProperty(this.actor, 'hover', this._onHover); // emitted only if track_hover is true
-	},
-
-	_initialized: function() {
-		return this.actor.get_parent() !== null;
-	},
-
-	_getChild: function() {
+	get _child() {
 		return this.actor.get_first_child();
 	},
 
 	_reinitialize: function() {
-		if (!this._initialized()) {
-			return;
-		}
-
 		log('_reinitialize');
 
 		let bounds = {}, barrier = {};
@@ -220,7 +196,7 @@ const Dockable = new Lang.Class({
 			}
 		}
 
-		let child = this._getChild();
+		let child = this._child;
 		if (this._collapsed) {
 			child.hide();
 			this._setPressureBarrier(barrier);
@@ -257,7 +233,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_refreshAlign: function() {
-		let child = this._getChild();
+		let child = this._child;
 
 		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine.
 
@@ -383,7 +359,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_onPressureBarrierTriggered: function(pressureBarrier) {
-		log('pressure barrier trigger');
+		log('pressure barrier trigger signal');
 		this._collapsed = false;
 		this._reinitialize();
 		this.actor.track_hover = true;
@@ -392,7 +368,7 @@ const Dockable = new Lang.Class({
 	_onHover: function(actor, hover) {
 		// We tried using the leave-event for this, but it proved problematic: it would be emitted
 		// even if we move into children of our actor. But hover tracking works for us!
-		log('hover: ' + hover);
+		log('hover signal: ' + hover);
 		if (!hover) {
 			this._collapsed = true;
 			this._reinitialize();
