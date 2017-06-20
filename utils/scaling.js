@@ -142,6 +142,11 @@ const ScalingManager = new Lang.Class({
 
 	_onMutterScalingFactorSettingChanged: function(settings, mutterScalingFactor) {
 		log('mutter "scaling-factor" setting changed signal: ' + mutterScalingFactor);
+		if (mutterScalingFactor === 0) {
+			// WARNING: setting the GdkScalingFactor to 0 will crash your system and make it
+			// impossible to start GNOME Shell...
+			return;
+		}
 		// We shall force a scale change for GNOME Settings Daemon
 		if (getGdkScalingFactor(this._xSettings.get_value('overrides')) !== mutterScalingFactor) {
 			setGdkScalingFactor(this._xSettings, mutterScalingFactor);
