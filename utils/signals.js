@@ -62,7 +62,7 @@ const SignalManager = new Lang.Class({
 	},
 
 	connectSetting: function(site, name, type, callback, single) {
-		return this._connect(site, name, callback, single, 'setting.' + type);
+		return this._connect(site, name, callback, single, `setting.${type}`);
 	},
 
 	disconnect: function(callback) {
@@ -130,31 +130,27 @@ const SignalConnection = new Lang.Class({
 	},
 
 	connect: function() {
-		let callback = Lang.bind(this, this.call);
-
-		let settingPrefix = 'setting.';
-
 		if (this.mode === 'after') {
-			this.id = this.site.connect_after(this.name, callback);
+			this.id = this.site.connect_after(this.name, Lang.bind(this, this.call));
 		}
 		else if (this.mode === 'property') {
-			this.id = this.site.connect('notify::' + this.name, (site, paramSpec) => {
+			this.id = this.site.connect(`notify::${this.name}`, (site, paramSpec) => {
 				let value = site[paramSpec.name];
-				callback(site, value);
+				this.call(site, value);
 			});
 		}
-		else if ((this.mode !== null) && this.mode.startsWith(settingPrefix)) {
-			let signalName = 'changed::' + this.name;
-			let type = this.mode.substring(settingPrefix.length);
-			let getterName = 'get_' + type;
+		else if ((this.mode !== null) && this.mode.startsWith('setting.')) {
+			let signalName = `changed::${this.name}`;
+			let type = this.mode.substring('setting.'.length);
+			let getterName = `get_${type}`;
 			this.id = this.site.connect(signalName, (settings, name) => {
 				let value = settings[getterName](name);
-				callback(settings, value);
+				this.call(settings, value);
 			});
 			this.site.emit(signalName, this.name);
 		}
 		else {
-			this.id = this.site.connect(this.name, callback);
+			this.id = this.site.connect(this.name, Lang.bind(this, this.call));
 		}
 
 		if (this.id != 0) {
@@ -164,13 +160,10 @@ const SignalConnection = new Lang.Class({
 		return false;
 	},
 
-	disconnect: function(remove) {
+	disconnect: function(remove = true) {
 		if (this.id != 0) {
 			this.site.disconnect(this.id);
 			this.id = 0;
-		}
-		if (remove === undefined) {
-			remove = true;
 		}
 		if (remove) {
 			for (let i = 0; i < this.manager._connections.length; i++) {

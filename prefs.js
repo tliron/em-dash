@@ -172,9 +172,9 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onConnectBuilderSignal: function(builder, object, signal, handler) {
-		log('connect builder signal: ' + handler);
+		log(`connect builder signal: ${handler}`);
 		// "handler" is what we called the signal in Glade
-		this._signalManager.connect(object, signal, this['_on' + handler]);
+		this._signalManager.connect(object, signal, this[`_on${handler}`]);
 	},
 
 	_onWidgetDestroyed: function(widget) {
@@ -184,7 +184,7 @@ const PrefsWidget = new Lang.Class({
 	// Location radio buttons
 
 	_onDashLocationSettingChanged: function(settings, dashLocation) {
-		log('"dash-location" setting changed signal: ' + dashLocation);
+		log(`"dash-location" setting changed signal: ${dashLocation}`);
 		switch (dashLocation) {
 		case 'PANEL_NEAR':
 			this._builder.get_object('location_panel_near').active = true;
@@ -265,7 +265,7 @@ const PrefsWidget = new Lang.Class({
 	// Monitor combo box
 
 	_onDashLocationMonitorSettingChanged: function(settings, dashLocationMonitor) {
-		log('"dash-location-monitor" setting changed signal: ' + dashLocationMonitor);
+		log(`"dash-location-monitor" setting changed signal: ${dashLocationMonitor}`);
 		let combo = this._builder.get_object('location_monitor');
 		let id = String(dashLocationMonitor);
 		combo.active_id = id;
@@ -279,14 +279,14 @@ const PrefsWidget = new Lang.Class({
 
 	_onLocationMonitorChanged: function(combo) {
 		let locationMonitor = combo.active_id;
-		log('"location_monitor" combo box "changed" signal: ' + locationMonitor);
+		log(`"location_monitor" combo box "changed" signal: ${locationMonitor}`);
 		this._settings.set_uint('dash-location-monitor', parseInt(locationMonitor));
 	},
 
 	// Custom height radio buttons
 
 	_onPanelCustomHeightSettingChanged: function(settings, panelCustomHeight) {
-		log('"panel-custom-height" setting changed signal: ' + panelCustomHeight);
+		log(`"panel-custom-height" setting changed signal: ${panelCustomHeight}`);
 		if (panelCustomHeight) {
 			this._builder.get_object('panel_custom_height').active = true;
 			this._builder.get_object('panel_height').sensitive = true;
@@ -314,20 +314,20 @@ const PrefsWidget = new Lang.Class({
 	// Height scale
 
 	_onPanelHeightSettingChanged: function(settings, panelHeight) {
-		log('"panel-height" setting changed signal: ' + panelHeight);
+		log(`"panel-height" setting changed signal: ${panelHeight}`);
 		this._builder.get_object('panel_height').set_value(panelHeight);
 	},
 
 	_onPanelHeightValueChanged: function(scale) {
 		let value = scale.get_value();
-		log('"panel_height" scale value changed signal: ' + value);
+		log(`"panel_height" scale value changed signal: ${value}`);
 		this._settings.set_uint('panel-height', value);
 	},
 
 	// Visibility radio buttons
 
 	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
-		log('"dock-visibility" setting changed signal: ' + dockVisibility);
+		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
 		switch (dockVisibility) {
 		case 'ALWAYS':
 			this._builder.get_object('visibility_always_visible').active = true;
@@ -355,7 +355,7 @@ const PrefsWidget = new Lang.Class({
 	// Alignment radio buttons
 
 	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
-		log('"dock-alignment" setting changed signal: ' + dockAlignment);
+		log(`"dock-alignment" setting changed signal: ${dockAlignment}`);
 		switch (dockAlignment) {
 		case 'NEAR':
 			this._builder.get_object('alignment_near').active = true;
@@ -393,7 +393,7 @@ const PrefsWidget = new Lang.Class({
 	// Dash per workspace radio buttons
 
 	_onDashPerWorkspaceSettingChanged: function(settings, dashPerWorkspace) {
-		log('"dash-per-workspace" setting changed signal: ' + dashPerWorkspace);
+		log(`"dash-per-workspace" setting changed signal: ${dashPerWorkspace}`);
 		if (dashPerWorkspace) {
 			this._builder.get_object('windows_dash_per_workspace').active = true;
 		}
@@ -419,47 +419,49 @@ const PrefsWidget = new Lang.Class({
 	// Left-click combo box
 
 	_onIconsLeftClickSettingChanged: function(settings, iconsLeftClick) {
-		log('"icons-left-click" setting changed signal: ' + iconsLeftClick);
+		log(`"icons-left-click" setting changed signal: ${iconsLeftClick}`);
 		this._builder.get_object('windows_left_click').active_id = iconsLeftClick;
 	},
 
 	_onWindowsLeftClickChanged: function(combo) {
 		let leftClick = combo.active_id;
-		log('"windows_left_click" combo box "changed" signal: ' + leftClick);
+		log(`"windows_left_click" combo box "changed" signal: ${leftClick}`);
 		this._settings.set_string('icons-left-click', leftClick);
 	},
 
 	// Middle-click combo box
 
 	_onIconsMiddleClickSettingChanged: function(settings, iconsMiddleClick) {
-		log('"icons-middle-click" setting changed signal: ' + iconsMiddleClick);
+		log(`"icons-middle-click" setting changed signal: ${iconsMiddleClick}`);
 		this._builder.get_object('windows_middle_click').active_id = iconsMiddleClick;
 	},
 
 	_onWindowsMiddleClickChanged: function(combo) {
 		let middleClick = combo.active_id;
-		log('"windows_middle_click" combo box "changed" signal: ' + middleClick);
+		log(`"windows_middle_click" combo box "changed" signal: ${middleClick}`);
 		this._settings.set_string('icons-middle-click', middleClick);
 	},
 
 	// Hover combo box
 
 	_onIconsHoverSettingChanged: function(settings, iconsHover) {
-		log('"icons-hover" setting changed signal: ' + iconsHover);
+		log(`"icons-hover" setting changed signal: ${iconsHover}`);
 		this._builder.get_object('windows_hover').active_id = iconsHover;
 	},
 
 	_onWindowsHoverChanged: function(combo) {
 		let hover = combo.active_id;
-		log('"windows_hover" combo box "changed" signal: ' + hover);
+		log(`"windows_hover" combo box "changed" signal: ${hover}`);
 		this._settings.set_string('icons-hover', hover);
 	}
 });
 
 
+/**
+ * Annoyingly, in prefs.js the global.log function will not work. Instead we will redefine it here
+ * while keeping the same format as in GNOME Shell's environment.js.
+ */
 function _log(message) {
-	// Annoyingly, in prefs.js the global.log function will not work. Instead we will redefine it
-	// here borrowing from the source in GNOME Shell's environment.js.
 	GLib.log_structured(Me.metadata.name, GLib.LogLevelFlags.LEVEL_MESSAGE, {
 		MESSAGE: message,
 		GNOME_SHELL_EXTENSION_UUID: Me.uuid,

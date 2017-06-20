@@ -20,7 +20,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
 const ClutterUtils = Me.imports.utils.clutter;
-const MutterUtils = Me.imports.utils.mutter;
 const Scaling = Me.imports.utils.scaling;
 const Entries = Me.imports.entries;
 const Icons = Me.imports.icons;
@@ -64,16 +63,13 @@ const DashManager = new Lang.Class({
 
 		this._signalManager = new Signals.SignalManager(this);
 
-		// TODO: isn't there a more specific signal we can connect to?
-		// Initialize later, to make sure themes are applied
-		this._laterManager = new MutterUtils.LaterManager(this);
-		this._laterManager.later(this.initialize);
+		// Initialize only when we have scaling
+		this._signalManager.connect(this.scalingManager, 'initialized', this.initialize, true);
     },
 
 	destroy: function() {
     	log('destroy');
 		this._signalManager.destroy();
-		this._laterManager.destroy();
 		if (this.dash !== null) {
 			this.dash.destroy();
 		}
@@ -84,6 +80,7 @@ const DashManager = new Lang.Class({
 	},
 
 	initialize: function() {
+		log('initialize');
 		this._signalManager.connectSetting(this.settings, 'dash-location', 'string',
 			this._onDashLocationChanged);
 		this._signalManager.connectSetting(this.settings, 'icons-app-menu', 'boolean',
@@ -121,7 +118,7 @@ const DashManager = new Lang.Class({
 	},
 
 	_onDashLocationChanged: function(settings, dashLocation) {
-		log('"dash-location" setting changed signal: ' + dashLocation);
+		log(`"dash-location" setting changed signal: ${dashLocation}`);
 		let DashClass = this._dashClasses[dashLocation];
 		if (this.dash !== null) {
 			if (this.dash instanceof DashClass) {
@@ -136,7 +133,7 @@ const DashManager = new Lang.Class({
 	},
 
 	_onIconsAppMenuSettingChanged: function(settings, iconsAppMenu) {
-		log('"icons-app-menu" setting changed signal: ' + iconsAppMenu);
+		log(`"icons-app-menu" setting changed signal: ${iconsAppMenu}`);
 		if (iconsAppMenu) {
 			this.removeAppMenu();
 		}
@@ -148,15 +145,15 @@ const DashManager = new Lang.Class({
 
 
 /**
- * Base class for dash implementations, such as Panel and Dock.
+ * Base class for dash implementations, such as PanelDash and DockableDash.
  */
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
 
-    _init: function(dashManager, styleClass, vertical, iconHeight) {
+    _init: function(dashManager, styleClass, vertical, iconSize, quantize) {
 		this._dashManager = dashManager;
     	this._icons = new Icons.Icons(dashManager.entryManager, dashManager.scalingManager,
-    		styleClass, vertical, iconHeight);
+    		styleClass, vertical, iconSize, quantize);
 		this._signalManager = new Signals.SignalManager(this);
     },
 

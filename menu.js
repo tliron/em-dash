@@ -25,7 +25,7 @@ const MPRIS = Me.imports.utils.mpris;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const N_ = (e) => { return e };
+const N_ = e => e;
 
 const log = Logging.logger('menu');
 
@@ -183,7 +183,7 @@ const AppMenu = new Lang.Class({
 	},
 
 	_onInsertItem: function(menu, trackerItem, position) {
-		log('_onInsertItem: ' + position);
+		log(`_onInsertItem: ${position}`);
 		if (trackerItem.get_is_separator()) {
 
 		}
@@ -200,7 +200,7 @@ const AppMenu = new Lang.Class({
 	},
 
 	_onRemoveItem: function(menu, position) {
-		log('_onRemoveItem: ' + position);
+		log(`_onRemoveItem: ${position}`);
 		let items = menu._getMenuItems();
 		items[position].destroy();
 	},

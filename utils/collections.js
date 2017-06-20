@@ -15,7 +15,7 @@
 
 
 function arrayIncludes(arr, value) {
-	// ECMA 6 introduces Array.prototype.includes
+	// ECMA 6 should have Array.prototype.includes...
 	for (let i = 0; i < arr.length; i++) {
 		if (arr[i] === value) {
 			return true;

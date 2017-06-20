@@ -16,6 +16,7 @@
 const Lang = imports.lang;
 const Signals = imports.signals;
 const Clutter = imports.gi.Clutter;
+const Meta = imports.gi.Meta;
 const St = imports.gi.St;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -23,8 +24,12 @@ const GLib = imports.gi.GLib;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const SignalsUtils = Me.imports.utils.signals;
+const MutterUtils = Me.imports.utils.mutter;
 
 const log = Logging.logger('scaling');
+
+
+const iconLogicalSizes = [16, 22, 24, 32, 48, 64];
 
 
 /**
@@ -39,8 +44,9 @@ const log = Logging.logger('scaling');
  * "org.gnome.settings-daemon.plugins.xsettings/overrides". This is exactly what GNOME Tweak sets
  * when you change "window scaling".
  *
- * This setting is used directly by GTK+. But how do we get from here to GNOME Shell? It's a bit
- * of a mess...
+ * This setting is used directly by GTK+, so it's a good setting to change to affect scaling for
+ * desktop applications, as well as window decorations. But what about GNOME Shell? It's a bit of a
+ * mess...
  *
  * Clutter
  * -------
@@ -52,8 +58,8 @@ const log = Logging.logger('scaling');
  *   Clutter.Settings.get_default().window_scaling_factor
  *
  * Since Mutter and St both use Clutter, it might seem as though we could just use this feature.
- * However, it doesn't, because this would just "zoom in" and double the size of pixels, making
- * fonts, icons, and other decorations look bad. So, in GNOME Shell this is always 1.
+ * However, we don't, because this would just "zoom in" and double the size of pixels, making fonts,
+ * icons, and other decorations look bad. So, in GNOME Shell this is always 1.
  *
  * Mutter
  * ------
@@ -72,8 +78,8 @@ const log = Logging.logger('scaling');
  *
  * GNOME indeed uses a monitor manager, so all the above applies.
  *
- * Note that if there is no monitor manager, then "ui_scaling_factor" is taken from XSETTINGS's
- * "Gdk/WindowScalingFactor".
+ * Note that if there is *no* monitor manager, then "ui_scaling_factor" is taken from XSETTINGS's
+ * "Gdk/WindowScalingFactor". But this doesn't happen in GNOME.
  *
  * St
  * --
@@ -85,12 +91,15 @@ const log = Logging.logger('scaling');
  *
  * Unfortunately, Mutter itself will not update that setting after it's initialized, meaning that
  * you will have to restart GNOME Shell for everything to work properly. We are introducing a hack
- * here to apply the setting that GNOME Tweak uses in order to avoid restarting.
+ * here to apply the setting that GNOME Tweak uses in order to avoid having to restart.
  *
- * Everything in St explicitly multiplies pixel sizes by this value. This includes all CSS
- * properties and icon sizes. That might sound great ... except that often in your code you expect
- * pixel lengths to be pixel lengths. For this reason, you need to take into account that some St
- * widgets might be bigger than expected.
+ * Everything in St explicitly multiplies pixel sizes by this value. That might sound great, except
+ * that often in your code you will work directly with Clutter APIs, for which you will have to
+ * apply St scaling yourself. This includes icon sizes.
+ *
+ * The recommendation is, wherever you can, to mostly with "logical" sizes, which are universal for
+ * whatever scaling factor (like pixel sizes in CSS). Only when "dropping" to Clutter do you have
+ * to convert to "physical" sizes.
  */
 const ScalingManager = new Lang.Class({
 	Name: 'EmDash.ScalingManager',
@@ -98,7 +107,7 @@ const ScalingManager = new Lang.Class({
 	_init: function() {
 		log('_init');
 
-		this.factor = getScaleFactor();
+		this._factor = null;
 
 		this._interfaceSettings = new Gio.Settings({
     		schema_id: 'org.gnome.desktop.interface'
@@ -107,10 +116,12 @@ const ScalingManager = new Lang.Class({
     		schema_id: 'org.gnome.settings-daemon.plugins.xsettings'
     	});
 
+		this._laterManager = new MutterUtils.LaterManager(this);
+
 		let themeContext = St.ThemeContext.get_for_stage(global.stage);
 		this._signalManager = new SignalsUtils.SignalManager(this);
 		this._signalManager.connectProperty(themeContext, 'scale-factor',
-			this._onStScaleFactorChanged);
+			this._onStThemeContextScaleFactorChanged);
 		this._signalManager.connectSetting(this._interfaceSettings, 'scaling-factor', 'uint',
 			this._onMutterScalingFactorSettingChanged);
 		this._signalManager.connectSetting(this._xSettings, 'overrides', 'value',
@@ -119,57 +130,95 @@ const ScalingManager = new Lang.Class({
 
 	destroy: function() {
 		log('destroy');
+		this._laterManager.destroy();
 		this._signalManager.destroy();
 		this._interfaceSettings.run_dispose();
 		this._xSettings.run_dispose();
 	},
 
-	_refresh() {
-		let factor = getScaleFactor();
-		if (factor !== this.factor) {
-			log('_refresh: ' + this.factor + ' to ' + factor);
-			this.factor = factor;
-			this.emit('changed', factor);
+	toPhysical: function(logicalSize) {
+		return logicalSize * this._factor;
+	},
+
+	toLogical: function(physicalSize) {
+		return physicalSize / this._factor;
+	},
+
+	getQuantizedIconSize: function(physicalSize) {
+		for (let i = 1; i < iconLogicalSizes.length; i++) {
+			let nextPhysicalSize = this.toPhysical(iconLogicalSizes[i]);
+			if (nextPhysicalSize > physicalSize) {
+				return this.toPhysical(iconLogicalSizes[i - 1]);
+			}
+		}
+		return this.toPhysical(iconLogicalSizes[iconLogicalSizes.length - 1]);
+	},
+
+	get stFactor() {
+		return getStScaleFactor();
+	},
+
+	set stFactor(factor) {
+		// We need to give time for other signal listeners to update the theme context first
+		this._laterManager.later(() => {
+			setStScaleFactor(factor);
+		}, Meta.LaterType.RESIZE);
+	},
+
+	get mutterFactor() {
+		return this._interfaceSettings.get_uint('scaling-factor');
+	},
+
+	set mutterFactor(factor) {
+		this._interfaceSettings.set_uint('scaling-factor', factor);
+	},
+
+	get gdkFactor() {
+		let overrides = this._xSettings.get_value('overrides');
+		return getGdkWindowScalingFactor(overrides);
+	},
+
+	set gdkFactor(factor) {
+		if (this.gdkFactor !== factor) {
+			setGdkWindowScalingFactor(this._xSettings, factor);
 		}
 	},
 
-	_onStScaleFactorChanged: function(themeContext, scaleFactor) {
+	_onStThemeContextScaleFactorChanged: function(themeContext, scaleFactor) {
 		// Note: this is called whenever the theme context is changed, even if scale-factor
-		// itself has not changed...
-		log('theme context "scale-factor" property changed signal: ' + scaleFactor);
-		this._refresh();
+		// itself has *not* changed
+		log(`St theme context "scale-factor" property changed signal: ${scaleFactor}`);
+		if (scaleFactor !== this._factor) {
+			if (this._factor === null) {
+				this._factor = scaleFactor;
+				this.emit('initialized');
+			}
+			else {
+				this._factor = scaleFactor;
+				this.emit('changed', scaleFactor);
+			}
+		}
 	},
 
 	_onMutterScalingFactorSettingChanged: function(settings, mutterScalingFactor) {
-		log('mutter "scaling-factor" setting changed signal: ' + mutterScalingFactor);
+		log(`Mutter "scaling-factor" setting changed signal: ${mutterScalingFactor}`);
 		if (mutterScalingFactor === 0) {
-			// WARNING: setting the GdkScalingFactor to 0 will crash your system and make it
-			// impossible to start GNOME Shell...
+			// WARNING: setting St scaling to 0 will crash GNOME Shell. Worse, if you set the
+			// Gdk/WindowScalingFactor override to 0 you won't be able to start it again...
 			return;
 		}
-		// We shall force a scale change for GNOME Settings Daemon
-		if (getGdkScalingFactor(this._xSettings.get_value('overrides')) !== mutterScalingFactor) {
-			setGdkScalingFactor(this._xSettings, mutterScalingFactor);
-		}
-		// We shall force a scale change for St
-		if (St.ThemeContext.get_for_stage(global.stage).scale_factor !== mutterScalingFactor) {
-			St.ThemeContext.get_for_stage(global.stage).scale_factor = mutterScalingFactor;
-		}
+		// Propagate
+		this.gdkFactor = mutterScalingFactor;
+		this.stFactor = mutterScalingFactor;
 	},
 
 	_onXOverridesSettingChanged: function(settings, overrides) {
-		let gdkScalingFactor = getGdkScalingFactor(overrides);
-		log('GNOME Settings Daemon overrides "Gdk/WindowScalingFactor" setting changed signal: '
-			+ gdkScalingFactor);
-		if (gdkScalingFactor !== null) {
-			// We shall force a scale change for Mutter
-			if (this._interfaceSettings.get_uint('scaling-factor') !== gdkScalingFactor) {
-				this._interfaceSettings.set_uint('scaling-factor', gdkScalingFactor);
-			}
-			// We shall force a scale change for St
-			if (St.ThemeContext.get_for_stage(global.stage).scale_factor !== gdkScalingFactor) {
-				St.ThemeContext.get_for_stage(global.stage).scale_factor = gdkScalingFactor;
-			}
+		let gdkWindowScalingFactor = getGdkWindowScalingFactor(overrides);
+		log(`GNOME Settings Daemon overrides "Gdk/WindowScalingFactor" setting changed signal: ${gdkWindowScalingFactor}`);
+		if (gdkWindowScalingFactor !== null) {
+			// Propagate
+			this.mutterFactor = gdkWindowScalingFactor;
+			this.stFactor = gdkWindowScalingFactor;
 		}
 	}
 });
@@ -181,12 +230,17 @@ Signals.addSignalMethods(ScalingManager.prototype);
  * Utils
  */
 
-function getScaleFactor() {
+function getStScaleFactor() {
 	return St.ThemeContext.get_for_stage(global.stage).scale_factor;
 }
 
 
-function getGdkScalingFactor(overrides) {
+function setStScaleFactor(scaleFactor) {
+	St.ThemeContext.get_for_stage(global.stage).scale_factor = scaleFactor;
+}
+
+
+function getGdkWindowScalingFactor(overrides) {
 	if (overrides !== null) {
 		let gdkWindowScalingFactor = overrides.lookup_value('Gdk/WindowScalingFactor',
 			new GLib.VariantType('i'));
@@ -198,17 +252,17 @@ function getGdkScalingFactor(overrides) {
 }
 
 
-function setGdkScalingFactor(settings, gdkScalingFactor) {
-	gdkScalingFactor = new GLib.Variant('i', gdkScalingFactor);
+function setGdkWindowScalingFactor(settings, factor) {
 	let overrides = settings.get_value('overrides');
+	factor = new GLib.Variant('i', factor);
 	if (overrides === null) {
 		overrides = new GLib.Variant('a{sv}', {
-			'Gdk/WindowScalingFactor': gdkScalingFactor
+			'Gdk/WindowScalingFactor': factor
 		});
 	}
 	else {
 		overrides = new GLib.VariantDict(overrides);
-		overrides.insert_value('Gdk/WindowScalingFactor', gdkScalingFactor);
+		overrides.insert_value('Gdk/WindowScalingFactor', factor);
 		overrides = overrides.end();
 	}
 	settings.set_value('overrides', overrides);

@@ -40,7 +40,7 @@ const MPRIS = new Lang.Class({
 		this.canGoNext = null;
 		this.canGoPrevious = null;
 
-		this._busName = 'org.mpris.MediaPlayer2.' + name;
+		this._busName = `org.mpris.MediaPlayer2.${name}`;
 		this._destroyed = false;
 		this._ownerName = null;
 		this._properties = null;
@@ -91,7 +91,7 @@ const MPRIS = new Lang.Class({
 			return;
 		}
 		this._ownerName = owner[0];
-		log('_onGetOwner: ' + this._ownerName);
+		log(`_onGetOwner: ${this._ownerName}`);
 
 		// Create proxies
 		let onProxyCreated = Lang.bind(this, this._onProxyCreated);
@@ -114,8 +114,8 @@ const MPRIS = new Lang.Class({
 			return;
 		}
 
-		log('_onProxyCreated: ' + name);
-		this['_' + name] = proxy;
+		log(`_onProxyCreated: ${name}`);
+		this[`_${name}`] = proxy;
 
 		if (this._mediaPlayerPlayer !== null) {
 			this.canPause = this._mediaPlayerPlayer.CanPause;
@@ -262,7 +262,7 @@ const MediaPlayerTracklistWrapper = Gio.DBusProxy.makeProxyWrapper(
 
 
 function createProxy(wrapperClass, objectPath, interfacePath, name, callback) {
-	log('createProxy: ' + name);
+	log(`createProxy: ${name}`);
 	new wrapperClass(Gio.DBus.session, objectPath, interfacePath, (proxy) => {
 		callback(name, proxy);
 	});

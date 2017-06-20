@@ -26,19 +26,13 @@ function getActorIndexOfChild(actor, child) {
 }
 
 
-function getNaturalWidth(actor, height) {
-	if (height === undefined) {
-		height = -1;
-		let [, natural] = actor.get_preferred_width(height);
-		return natural;
-	}
+function getNaturalWidth(actor, height = -1) {
+	let [, natural] = actor.get_preferred_width(height);
+	return natural;
 }
 
 
-function getNaturalHeight(actor, width) {
-	if (width === undefined) {
-		width = -1;
-		let [, natural] = actor.get_preferred_height(width);
-		return natural;
-	}
+function getNaturalHeight(actor, width = -1) {
+	let [, natural] = actor.get_preferred_height(width);
+	return natural;
 }

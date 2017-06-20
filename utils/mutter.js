@@ -17,7 +17,7 @@ const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 
 
-/*
+/**
  * Manages deferred callbacks.
  */
 const LaterManager = new Lang.Class({
@@ -46,10 +46,7 @@ const LaterManager = new Lang.Class({
 	 * * Meta.LaterType.IDLE: call at a very low priority (can be blocked by running animations or
 	 *   redrawing applications)
 	 */
-	later: function(callback, type) {
-		if (type === undefined) {
-			type = Meta.LaterType.BEFORE_REDRAW;
-		}
+	later: function(callback, type = Meta.LaterType.BEFORE_REDRAW) {
 		let later = new Later(this._self, callback, type);
 		if (later.initialize()) {
 			this._laters.push(later);

@@ -42,7 +42,7 @@ const DockableDash = new Lang.Class({
 		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 
 		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
-		this.parent(dashManager, null, vertical, 64);
+		this.parent(dashManager, null, vertical, 64, true);
 
 		this._updateStyle(side);
 
@@ -57,6 +57,7 @@ const DockableDash = new Lang.Class({
 			this._onDockStretchSettingChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-borders', 'boolean',
 			this._onDockBordersSettingChanged);
+		this._signalManager.connect(dashManager.scalingManager, 'changed', this._onScalingChanged);
 	},
 
     destroy: function() {
@@ -134,7 +135,7 @@ const DockableDash = new Lang.Class({
 				topLeft = themeNode.get_border_radius(St.Corner.TOPRIGHT);
 				topRight = themeNode.get_border_radius(St.Corner.BOTTOMRIGHT);
 			}
-			actor.style = 'border-radius: %dpx %dpx 0 0;'.format(topLeft, topRight);
+			actor.style = `border-radius: ${topLeft}px ${topRight}px 0 0;`;
 			// Note: St CSS doesn't seem to support "border-top-left-radius", etc.
 		}
 
@@ -142,26 +143,31 @@ const DockableDash = new Lang.Class({
 	},
 
 	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
-		log('"dock-visibility" setting changed signal: ' + dockVisibility);
+		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
 		let toggle = dockVisibility === 'TOUCH_TO_SHOW';
 		this._dockable.setToggle(toggle);
 	},
 
 	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
-		log('"dock-alignment" setting changed signal: ' + dockAlignment);
+		log(`"dock-alignment" setting changed signal: ${dockAlignment}`);
 		let align = getStAlignForAlignment(dockAlignment);
 		this._dockable.setAlign(align);
 	},
 
 	_onDockStretchSettingChanged: function(setting, dockStretch) {
-		log('"dock-stretch" setting changed signal: ' + dockStretch);
+		log(`"dock-stretch" setting changed signal: ${dockStretch}`);
 		this._dockable.setStretch(dockStretch);
 	},
 
 	_onDockBordersSettingChanged: function(setting, dockBorders) {
-		log('"dock-borders" setting changed signal: ' + dockBorders);
+		log(`"dock-borders" setting changed signal: ${dockBorders}`);
 		let location = this._dashManager.settings.get_string('dash-location');
 		this._updateStyle(getMutterSideForLocation(location));
+	},
+
+	_onScalingChanged: function(scaling, factor) {
+		log(`scaling "changed" signal: ${factor}`);
+		this._icons.refresh();
 	}
 });
 

@@ -22,16 +22,12 @@ const Shell = imports.gi.Shell;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
-
-//const Dash = imports.ui.dash;
-
-
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
+const Scaling = Me.imports.utils.draggable;
 const ClutterUtils = Me.imports.utils.clutter;
 const Draggable = Me.imports.utils.draggable;
-const Scaling = Me.imports.utils.scaling;
 const Menu = Me.imports.menu;
 const Entries = Me.imports.entries;
 
@@ -47,10 +43,11 @@ const Icon = new Lang.Class({
 	Name: 'EmDash.Icon',
 	Extends: AppDisplay.AppIcon,
 
-	_init: function(icons, app, entryIndex, height) {
-		log('_init: ' + entryIndex);
+	_init: function(icons, app, entryIndex) {
+		log(`_init: ${entryIndex}`);
 		this._icons = icons;
 		this._entryIndex = entryIndex;
+		this._fixedIconSize = null;
 
 		this.parent(app, {
 			showLabel: false,
@@ -73,9 +70,8 @@ const Icon = new Lang.Class({
 
 		// Can we extract a simple name?
 		let id = app.id;
-		let suffix = '.desktop';
-		if (id.endsWith(suffix)) {
-			this._simpleName = id.substring(0, id.length - suffix.length);
+		if (id.endsWith('.desktop')) {
+			this._simpleName = id.substring(0, id.length - '.desktop'.length);
 		}
 		else {
 			this._simpleName = null;
@@ -94,14 +90,14 @@ const Icon = new Lang.Class({
 
 	handleDragBegin: function() {
 		// Hooked from EmDash.Draggable using our actor._delegate
-		log('handleDragBegin hook: ' + this.app.id);
+		log(`handleDragBegin hook: ${this.app.id}`);
 		this._removeMenuTimeout();
 		this.actor.hide();
 	},
 
 	handleDragEnd: function(dropped) {
 		// Hooked from EmDash.Draggable using our actor._delegate
-		log('handleDragEnd hook: ' + this.app.id + ' ' + dropped);
+		log(`handleDragEnd hook: ${this.app.id} ${dropped}`);
 		this.actor.show();
 	},
 
@@ -111,7 +107,7 @@ const Icon = new Lang.Class({
 	getDragActor: function() {
 		// Hooked from DND using our actor._delegate
 		let size = this.icon.icon.icon_size;
-		log('getDragActor hook: ' + size);
+		log(`getDragActor hook: ${size}`);
 		return this.app.create_icon_texture(size);
 	},
 
@@ -142,12 +138,12 @@ const Icon = new Lang.Class({
 			return DND.DragMotionResult.NO_DROP;
 		}
 
-		log('handleDragOver hook: ' + this.app.id + ' ' + Math.round(x) + ' ' + Math.round(y));
+		log(`handleDragOver hook: ${this.app.id} ${Math.round(x)} ${Math.round(y)}`);
 		startDropHovering(this.actor, after);
 		return DND.DragMotionResult.MOVE_DROP;
 	},
 
-	/*
+	/**
 	 * Override and copy original code, just use our menu class instead.
 	 */
 	popupMenu: function() {
@@ -160,18 +156,18 @@ const Icon = new Lang.Class({
 
 		if (!this._menu) {
 			this._menu = new Menu.IconMenu(this, this._simpleName, this._icons);
-			this._menu.connect('activate-window', Lang.bind(this, (menu, window) => {
+			this._menu.connect('activate-window', (menu, window) => {
 				this.activateWindow(window);
-			}));
-			this._menu.connect('open-state-changed', Lang.bind(this, (menu, isPoppedUp) => {
+			});
+			this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
 				if (!isPoppedUp) {
 					this._onMenuPoppedDown();
 				}
-			}));
-			let id = Main.overview.connect('hiding', Lang.bind(this, () => {
+			});
+			let id = Main.overview.connect('hiding', () => {
 				this._menu.close();
-			}));
-			this.actor.connect('destroy', function() {
+			});
+			this.actor.connect('destroy', () => {
 				Main.overview.disconnect(id);
 			});
 
@@ -200,45 +196,13 @@ const Icon = new Lang.Class({
 	},
 
 	/**
-	 * Override to fit icon in us (instead of the default behavior, which is the other way around)
+	 * Override to use fixed icon size
 	 */
 	_createIcon: function(iconSize) {
-		let scaleFactor = Scaling.getScaleFactor();;
-		iconSize = (this.actor.height * 0.5 / scaleFactor);
-		log('createIcon hook: ' + iconSize);
-		return this.parent(iconSize);
-
-		function margins(a, withHeight) {
-			let visible = a.visible;
-			a.show();
-			let themeNode = a.get_theme_node();
-			let r = /*a.margin_bottom + a.margin_top +*/
-				withHeight ? a.height : 0 +
-				themeNode.get_vertical_padding();
-//				themeNode.get_border_width(St.Side.TOP) +
-//				themeNode.get_border_width(St.Side.BOTTOM) +
-//				themeNode.get_outline_width(St.Side.TOP) +
-//				themeNode.get_outline_width(St.Side.BOTTOM);
-			if (!visible) {
-				a.hide();
-			}
-			log('>>>>>> ' + r + ' ' + a);
-			//log(themeNode.get_background_color().red);
-			return r;
+		if (this._fixedIconSize !== null) {
+			iconSize = this._fixedIconSize;
 		}
-
-//		let box = this.actor.get_parent();
-//		let actorHeight = box.vertical ? this.actor.height : box.height;
-//		log('%%% ' + box.get_parent().name + '-' + box.get_parent().style_class);
-		//actorHeight /= scaleFactor;
-		//iconSize = actorHeight / scaleFactor;
-//		let dash = this.actor.get_parent().get_parent();
-//		iconSize = this.actor.height -
-//			margins(dash) -
-//			margins(this.actor) -
-//			margins(this.icon.actor) -
-//			margins(this._dot, true);
-//		iconSize /= scaleFactor;
+		return this.parent(iconSize);
 	}
 });
 
@@ -249,10 +213,11 @@ const Icon = new Lang.Class({
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 
-	_init: function(entryManager, scalingManager, styleClass, vertical, iconSize) {
+	_init: function(entryManager, scalingManager, styleClass, vertical, iconSize, quantize) {
 		this.entryManager = entryManager;
+		this.quantize = quantize;
 
-		this._originalIconSize = iconSize;
+		this._scalingManager = scalingManager;
 		this._iconSize = null;
 
 		// Box
@@ -271,7 +236,6 @@ const Icons = new Lang.Class({
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
 		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
-		this._signalManager.connect(scalingManager, 'changed', this._onScalingChanged);
 		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusChanged);
 
 		this.setVertical(vertical);
@@ -316,14 +280,22 @@ const Icons = new Lang.Class({
 	},
 
 	_refresh: function(entrySequence) {
-		this.box.remove_all_children();
+		let physicalActorSize = this._scalingManager.toPhysical(this._iconSize);
+		let physicalIconSize = physicalActorSize * 0.75;
+		if (this.quantize) {
+			physicalIconSize = this._scalingManager.getQuantizedIconSize(physicalIconSize);
+		}
 
+		this.box.remove_all_children();
+		log(`_refresh: ${physicalActorSize} ${physicalIconSize}`);
 		for (let i = 0; i < entrySequence.entries.length; i++) {
 			let entry = entrySequence.entries[i];
-			let icon = new Icon(this, entry.app, i, this._iconSize);
-			icon.actor.height = this._iconSize;
+			let icon = new Icon(this, entry.app, i);
+			icon.actor.height = physicalActorSize
+			icon._fixedIconSize = this._scalingManager.toLogical(physicalIconSize);
 			this.box.add_child(icon.actor);
 
+//			let Dash = imports.ui.dash;
 //			icon._Container = new Dash.DashItemContainer();
 //			icon._Container.setChild(icon.actor);
 //			icon.actor.label_actor = null;
@@ -340,16 +312,10 @@ const Icons = new Lang.Class({
 	},
 
 	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
-		log('screen "workspace-switched" signal: from ' +
-			oldWorkspaceIndex + ' to ' + newWorkspaceIndex + ' (' + direction + ')');
+		log(`screen "workspace-switched" signal: from ${oldWorkspaceIndex} to ${newWorkspaceIndex} (${direction})`);
 		if (!this.entryManager.single) {
 			this.refresh(newWorkspaceIndex);
 		}
-	},
-
-	_onScalingChanged: function(scaling, factor) {
-		log('scaling "changed" signal: ' + factor);
-		this.refresh();
 	},
 
 	_onFocusChanged: function(windowTracker, app) {
@@ -357,8 +323,7 @@ const Icons = new Lang.Class({
 			log('window tracker "focus-app" property changed signal: none');
 		}
 		else {
-			log('window tracker "focus-app" property changed signal: ' +
-				app.id + ' ' + app.get_name());
+			log(`window tracker "focus-app" property changed signal: ${app.id} ${app.get_name()}`);
 		}
 	}
 });
@@ -373,7 +338,7 @@ const Placeholder = new Lang.Class({
 	_init: function(actor, after) {
 		this._icon = actor._delegate;
 		this._after = after;
-		log('Placeholder._init: ' + this._icon.app.id + ' ' + after);
+		log(`Placeholder._init: ${this._icon.app.id} ${after}`);
 
 		this.actor = new St.Widget({
 			name: 'em-dash-placeholder',
@@ -420,14 +385,13 @@ const Placeholder = new Lang.Class({
 		let appId = source.app.id;
 		if (source._entryIndex === undefined) {
 			// Dragged from elsewhere (likely overview)
-			log('acceptDrop hook: ' + appId + ' from elsewhere to ' + this._entryIndex);
+			log(`acceptDrop hook: ${appId} from elsewhere to ${this._entryIndex}`);
 			let favorites = AppFavorites.getAppFavorites();
 			favorites.addFavoriteAtPos(appId, this._entryIndex);
 		}
 		else {
 			// Moved within the dash
-			log('acceptDrop hook: ' + appId +
-				' from ' + source._entryIndex + ' to ' + this._entryIndex);
+			log(`acceptDrop hook: ${appId} from ${source._entryIndex} to ${this._entryIndex}`);
 			moveFavoriteToPos(appId, source._entryIndex, this._entryIndex);
 		}
 		return true;

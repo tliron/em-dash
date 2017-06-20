@@ -25,7 +25,6 @@ const St = imports.gi.St;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
-const ClutterUtils = Me.imports.utils.clutter;
 const Dash = Me.imports.dash;
 
 const log = Logging.logger('dockable');
@@ -220,13 +219,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_setBounds: function(bounds) {
-		log('_setBounds: ' + bounds.x + ' ' + bounds.y + ' ' + bounds.width + ' ' + bounds.height);
-		if (bounds.width === -1) {
-			bounds.width = ClutterUtils.getNaturalWidth(this.actor, bounds.height);
-		}
-		else if (bounds.height === -1) {
-			bounds.height = ClutterUtils.getNaturalHeight(this.actor, bounds.width);
-		}
+		log(`_setBounds: ${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}`);
 		this.actor.move_anchor_point_from_gravity(bounds.anchor);
 		this.actor.set_position(bounds.x, bounds.y);
 		this.actor.set_size(bounds.width, bounds.height);
@@ -277,8 +270,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_setPressureBarrier: function(barrier) {
-		log('_setPressureBarrier: ' + barrier.x1 + ' ' + barrier.y1 + ' ' +
-			barrier.x2 + ' ' + barrier.y2);
+		log(`_setPressureBarrier: ${barrier.x1} ${barrier.y1} ${barrier.x2} ${barrier.y2}`);
 		this._destroyPressureBarrier();
 		barrier.display = global.display;
 		this._barrier = new Meta.Barrier(barrier);
@@ -345,12 +337,10 @@ const Dockable = new Lang.Class({
 			(workArea.width === this._workArea.width) &&
 			(workArea.height === this._workArea.height)) {
 			// No change
-			log('work area not changed: ' + workArea.x + ' ' + workArea.y + ' ' +
-				workArea.width + ' ' + workArea.height);
+			log(`work area not changed: ${workArea.x} ${workArea.y} ${workArea.width} ${workArea.height}`);
 			return false;
 		}
-		log('work area changed: ' + workArea.x + ' ' + workArea.y + ' ' +
-			workArea.width + ' ' + workArea.height);
+		log(`work area changed: ${workArea.x} ${workArea.y} ${workArea.width} ${workArea.height}`);
 		this._workArea.x = workArea.x;
 		this._workArea.y = workArea.y;
 		this._workArea.width = workArea.width;
@@ -368,7 +358,7 @@ const Dockable = new Lang.Class({
 	_onHover: function(actor, hover) {
 		// We tried using the leave-event for this, but it proved problematic: it would be emitted
 		// even if we move into children of our actor. But hover tracking works for us!
-		log('"hover" property changed signal: ' + hover);
+		log(`"hover" property changed signal: ${hover}`);
 		if (!hover) {
 			this._collapsed = true;
 			this._reinitialize();

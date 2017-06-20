@@ -20,7 +20,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 function logger(name) {
 	return (message) => {
 		if (Me.LOGGING_ENABLED && Me.LOGGING_IMPLEMENTATION) {
-			Me.LOGGING_IMPLEMENTATION('[EmDash] {' + name + '} ' + message);
+			Me.LOGGING_IMPLEMENTATION(`[EmDash] {${name}} ${message}`);
 		}
 	};
 }

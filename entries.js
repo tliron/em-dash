@@ -26,7 +26,7 @@ const Collections = Me.imports.utils.collections;
 const log = Logging.logger('entries');
 
 
-/*
+/**
  * Represents a single dash entry.
  *
  * An entry can be based on an installed application or be "window-backed," which means there is no
@@ -56,14 +56,14 @@ const Entry = new Lang.Class({
 		}
 	},
 
-	/*
+	/**
 	 * Checks if we were created for the application.
 	 */
 	isFor: function(app) {
 		return this.app.id === app.id;
 	},
 
-	/*
+	/**
 	 * Checks if we represent the application, either because we were created for it or we grab
 	 * all its windows.
 	 */
@@ -90,7 +90,7 @@ const Entry = new Lang.Class({
 		return false;
 	},
 
-	/*
+	/**
 	 * Checks if we are grabbing a window.
 	 */
 	isGrabbing: function(window) {
@@ -103,14 +103,14 @@ const Entry = new Lang.Class({
 		return false;
 	},
 
-	/*
+	/**
 	 * Checks if we used to be favorite but no longer are.
 	 */
 	get isPrunable() {
 		return this._favorite && !isFavoriteApp(this.app);
 	},
 
-	/*
+	/**
 	 * Associated windows, including those we grab, for all workspaces or for a specific workspace.
 	 */
 	getWindows: function(workspaceIndex) {
@@ -172,7 +172,7 @@ const Entry = new Lang.Class({
 });
 
 
-/*
+/**
  * Manages a sequence of dash entries for a workspace.
  *
  * Favorite entries will appear first, in order, and on all workspaces.
@@ -186,7 +186,7 @@ const EntrySequence = new Lang.Class({
 		this.entries = [];
 	},
 
-	/*
+	/**
 	 * Checks if we have an entry representing the application.
 	 */
 	isRepresenting: function(app) {
@@ -200,7 +200,7 @@ const EntrySequence = new Lang.Class({
 	},
 
 
-	/*
+	/**
 	 * Add an entry for the application if there is no entry already representing it.
 	 */
 	add: function(app) {
@@ -211,7 +211,7 @@ const EntrySequence = new Lang.Class({
 		return false;
 	},
 
-	/*
+	/**
 	 * Adds entries for the favorite applications if there are no entries already representing
 	 * them.
 	 */
@@ -227,7 +227,7 @@ const EntrySequence = new Lang.Class({
 		return changed;
 	},
 
-	/*
+	/**
 	 * Adds entries for the running applications in one or all workspaces if there are no entries
 	 * already representing them.
 	 */
@@ -253,7 +253,7 @@ const EntrySequence = new Lang.Class({
 		return changed;
 	},
 
-	/*
+	/**
 	 * Removes the entry created for the application. Note that it will not remove entries that are
 	 * grabbing it.
 	 */
@@ -268,7 +268,7 @@ const EntrySequence = new Lang.Class({
 		return false;
 	},
 
-	/*
+	/**
 	 * Removes an entry.
 	 */
 	removeEntry: function(entry) {
@@ -281,7 +281,7 @@ const EntrySequence = new Lang.Class({
 		return false;
 	},
 
-	/*
+	/**
 	 * Removes entries that are no longer favorites.
 	 */
 	prune: function() {
@@ -378,7 +378,7 @@ const EntryManager = new Lang.Class({
 		delete this._entrySequences[workspaceIndex];
 	},
 
-	/*
+	/**
 	 * Adds an entry for the application to a specific workspace if there is no entry already
 	 * representing it.
 	 */
@@ -386,7 +386,7 @@ const EntryManager = new Lang.Class({
 		return this.getEntrySequence(workspaceIndex).add(app);
 	},
 
-	/*
+	/**
 	 * Adds an entry for the application to all workspaces if there is no entry already representing
 	 * it.
 	 */
@@ -404,7 +404,7 @@ const EntryManager = new Lang.Class({
 		return changed;
 	},
 
-	/*
+	/**
 	 * Adds an entry for the application to the workspaces for which it has windows if there is no
 	 * entry already representing it.
 	 */
@@ -423,29 +423,29 @@ const EntryManager = new Lang.Class({
 		return changed;
 	},
 
-	/*
+	/**
 	 * Removes entries created for the application from all workspaces. Note that it will not remove
 	 * entries that are grabbing it.
 	 */
 	remove: function(app) {
 		let changed = false;
 		for (let workspaceIndex in this._entrySequences) {
-			let entries = this._entrySequences[workspaceIndex];
-			if (entries.remove(app)) {
+			let entrySequence = this._entrySequences[workspaceIndex];
+			if (entrySequence.remove(app)) {
 				changed = true;
 			}
 		}
 		return changed;
 	},
 
-	/*
+	/**
 	 * Removes entries that are no longer favorites.
 	 */
 	prune: function() {
 		let changed = false;
 		for (let workspaceIndex in this._entrySequences) {
-			let entries = this._entrySequences[workspaceIndex];
-			if (entries.prune()) {
+			let entrySequence = this._entrySequences[workspaceIndex];
+			if (entrySequence.prune()) {
 				changed = true;
 			}
 		}
@@ -459,21 +459,21 @@ const EntryManager = new Lang.Class({
 
 	log: function() {
 		if (this.single) {
-			let entries = this._entrySequences[this.SINGLE_WORKSPACE_INDEX];
-			if (entries !== undefined) {
-				log('single: ' + entries.toString());
+			let entrySequence = this._entrySequences[this.SINGLE_WORKSPACE_INDEX];
+			if (entrySequence !== undefined) {
+				log(`single: ${entrySequence}`);
 			}
 		}
 		else {
 			for (let workspaceIndex in this._entrySequences) {
-				let entries = this._entrySequences[workspaceIndex];
-				log('workspace ' + workspaceIndex + ': ' + entries.toString(workspaceIndex));
+				let entrySequence = this._entrySequences[workspaceIndex];
+				log(`workspace ${workspaceIndex}: ${entrySequence.toString(workspaceIndex)}`);
 			}
 		}
 	},
 
 	_onDashPerWorkspaceSettingChanged: function(settings, dashPerWorkspace) {
-		log('"dash-per-workspace" setting changed signal: ' + dashPerWorkspace);
+		log(`"dash-per-workspace" setting changed signal: ${dashPerWorkspace}`);
 		let single = !dashPerWorkspace;
 		if (this.single !== single) {
 			this.single = single;
@@ -490,17 +490,17 @@ const EntryManager = new Lang.Class({
 		let id = app.id;
 		let state = app.state;
 		if (state == Shell.AppState.STARTING) {
-			log('app system "app-state-changed" signal: ' + id + ' starting');
+			log(`app system "app-state-changed" signal: ${id} starting`);
 		}
 		else if (state == Shell.AppState.RUNNING) {
 			// Note: running events will be sent for each open app when the shell is restarted
-			log('app system "app-state-changed" signal: ' + id + ' running');
+			log(`app system "app-state-changed" signal: ${id} running`);
 			if (this.add(app)) {
 				this.emit('changed');
 			}
 		}
 		else if (state == Shell.AppState.STOPPED) {
-			log('app system "app-state-changed" signal: ' + id + ' stopped');
+			log(`app system "app-state-changed" signal: ${id} stopped`);
 			if (!isFavoriteApp(app)) { // favorites stay
 				if (this.remove(app)) {
 					this.emit('changed');
@@ -515,12 +515,12 @@ const EntryManager = new Lang.Class({
 	},
 
 	_onWorkspaceAdded: function(screen, workspaceIndex) {
-		log('screen "workspace-added" signal: ' + workspaceIndex);
+		log(`screen "workspace-added" signal: ${workspaceIndex}`);
 		// Nothing to do: new workspaces are created on demand
 	},
 
 	_onWorkspaceRemoved: function(screen, workspaceIndex) {
-		log('screen "workspace-removed" signal: ' + workspaceIndex);
+		log(`screen "workspace-removed" signal: ${workspaceIndex}`);
 		this.removeEntrySequence(workspaceIndex);
 	}
 });
@@ -528,7 +528,7 @@ const EntryManager = new Lang.Class({
 Signals.addSignalMethods(EntryManager.prototype);
 
 
-/*
+/**
  * Can match a window by its WM_CLASS and optionally its WM_CLASS_INSTANCE.
  */
 const Matcher = new Lang.Class({
@@ -539,7 +539,7 @@ const Matcher = new Lang.Class({
 		this._wmClassInstance = wmClassInstance || null;
 	},
 
-	/*
+	/**
 	 * Checks if we match a window.
 	 */
 	matches: function(window) {
@@ -560,7 +560,7 @@ const Matcher = new Lang.Class({
 		if (this._wmClassInstance === null) {
 			return this._wmClass;
 		}
-		return this._wmClass + ':' + this._wmClassInstance;
+		return `this._wmClass: ${this._wmClassInstance}`;
 	}
 });
 

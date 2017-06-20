@@ -784,7 +784,7 @@
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkCheckButton" id="icons_higlight_focused">
-                        <property name="label" translatable="yes">Highlight focused application</property>
+                        <property name="label" translatable="yes">Highlight icon with focused window</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -854,8 +854,8 @@
                     <property name="orientation">vertical</property>
                     <property name="spacing">6</property>
                     <child>
-                      <object class="GtkCheckButton" id="icons_move_application_menu">
-                        <property name="label" translatable="yes">Move panel application menu to icon menu</property>
+                      <object class="GtkCheckButton" id="icons_show_media_controls">
+                        <property name="label" translatable="yes">Show media controls when available</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -870,8 +870,8 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkCheckButton" id="icons_show_media_controls">
-                        <property name="label" translatable="yes">Show media controls when available</property>
+                      <object class="GtkCheckButton" id="icons_move_application_menu">
+                        <property name="label" translatable="yes">Move panel application menu into icon menu</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
