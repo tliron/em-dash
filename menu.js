@@ -38,7 +38,7 @@ const IconMenu = new Lang.Class({
 	Extends: AppDisplay.AppIconMenu,
 
 	_init: function(source, simpleName, icons) {
-		log('IconMenu._init');
+		log('_init');
 		this.parent(source);
 		this._simpleName = simpleName;
 		this._appMenu = null;
@@ -51,7 +51,7 @@ const IconMenu = new Lang.Class({
 	 * Override.
 	 */
 	destroy: function() {
-		log('IconMenu.destroy');
+		log('destroy');
 		if (this._appMenu !== null) {
 			this._appMenu.destroy();
 		}
@@ -122,7 +122,7 @@ const IconMenu = new Lang.Class({
 	},
 
 	_onMprisInitialized: function(mpris) {
-		log('mpris-initialized');
+		log('mpris "initialize" signal');
 		this._appendMediaControls();
 	},
 
@@ -176,7 +176,7 @@ const AppMenu = new Lang.Class({
 	},
 
 	_onOpened: function(item) {
-		log('opene');
+		log('item "open" signal');
 		this._menuTracker = Shell.MenuTracker.new(this._actionGroup, this._menuModel, null,
 			this._onInsertItem.bind(this, this),
 			this._onRemoveItem.bind(this, this));
@@ -206,7 +206,7 @@ const AppMenu = new Lang.Class({
 	},
 
 	_onItemActivated: function(item) {
-		log('activate');
+		log('item "activate" signal');
 		item._trackerItem.activated();
 	}
 });

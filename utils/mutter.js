@@ -33,11 +33,16 @@ const LaterManager = new Lang.Class({
 	 *
 	 * * Meta.LaterType.RESIZE: call in a resize processing phase that is done before GTK+
 	 *   repainting (including window borders) is done.
+	 *
 	 * * Meta.LaterType.CALC_SHOWING: used by Mutter to compute which windows should be mapped.
+	 *
 	 * * Meta.LaterType.CHECK_FULLSCREEN: used by Mutter to see if there's a fullscreen window.
+	 *
 	 * * Meta.LaterType.SYNC_STACK: used by Mutter to send its idea of the stacking order to the
 	 *   server.
+	 *
 	 * * Meta.LaterType.BEFORE_REDRAW: call before the stage is redrawn. (the default.)
+	 *
 	 * * Meta.LaterType.IDLE: call at a very low priority (can be blocked by running animations or
 	 *   redrawing applications)
 	 */

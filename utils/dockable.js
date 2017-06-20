@@ -38,7 +38,7 @@ const Dockable = new Lang.Class({
 	Name: 'EmDash.Dockable',
 
 	_init: function(child, side, align, stretch, toggle) {
-		log('Dockable._init');
+		log('_init');
 
 		this._align = align;
 		this._side = side;
@@ -89,7 +89,7 @@ const Dockable = new Lang.Class({
 	},
 
 	destroy: function() {
-		log('Dockable.destroy');
+		log('destroy');
 		this._signalManager.destroy();
 		this._destroyPressureBarrier();
 		// Note: *cannot* destroy a Bin without children
@@ -359,7 +359,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_onPressureBarrierTriggered: function(pressureBarrier) {
-		log('pressure barrier trigger signal');
+		log('pressure barrier "trigger" signal');
 		this._collapsed = false;
 		this._reinitialize();
 		this.actor.track_hover = true;
@@ -368,7 +368,7 @@ const Dockable = new Lang.Class({
 	_onHover: function(actor, hover) {
 		// We tried using the leave-event for this, but it proved problematic: it would be emitted
 		// even if we move into children of our actor. But hover tracking works for us!
-		log('hover signal: ' + hover);
+		log('"hover" property changed signal: ' + hover);
 		if (!hover) {
 			this._collapsed = true;
 			this._reinitialize();
@@ -377,6 +377,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_onWorkAreasChanged: function(screen) {
+		log('screen "workareas-changed" signal');
 		if (this._hasWorkAreaChanged()) {
 			this._reinitialize();
 		}

@@ -14,8 +14,13 @@
     </key>
     <key name="dash-location-monitor" type="u">
       <default>0</default>
-      <summary>Location monitor</summary>
+      <summary>Monitor</summary>
       <description>On which monitor the dock is located.</description>
+    </key>
+    <key name="dash-per-workspace" type="b">
+      <default>false</default>
+      <summary>Dash per workspace</summary>
+      <description>Whether to show only windows of the current workspace.</description>
     </key>
     <key name="panel-appearance-merge" type="b">
       <default>true</default>

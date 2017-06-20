@@ -129,7 +129,7 @@ const Entry = new Lang.Class({
 
 		// Grabbed windows
 		if (this._matchers.length > 0) {
-			let n_workspaces = global.screen.n_workspaces; // GNOME 3.24 introduces screen.workspaces
+			let n_workspaces = global.screen.n_workspaces;
 			for (let theWorkspaceIndex = 0; theWorkspaceIndex < n_workspaces; theWorkspaceIndex++) {
 				if ((workspaceIndex !== undefined) &&
 					(theWorkspaceIndex != workspaceIndex)) {
@@ -212,11 +212,53 @@ const EntrySequence = new Lang.Class({
 	},
 
 	/*
+	 * Adds entries for the favorite applications if there are no entries already representing
+	 * them.
+	 */
+	addFavorites: function() {
+		let changed = false;
+		let favorites = AppFavorites.getAppFavorites().getFavorites();
+		for (let i = 0; i < favorites.length; i++) {
+			let app = favorites[i];
+			if (this.add(app)) {
+				changed = true;
+			}
+		}
+		return changed;
+	},
+
+	/*
+	 * Adds entries for the running applications in one or all workspaces if there are no entries
+	 * already representing them.
+	 */
+	addRunning: function(workspaceIndex) {
+		let changed = false;
+		let appSystem = Shell.AppSystem.get_default();
+		let running = appSystem.get_running(); // will be empty when the shell is restarted
+		for (let i = 0; i < running.length; i++) {
+			let app = running[i];
+			if (workspaceIndex === undefined) {
+				if (this.add(app)) {
+					changed = true;
+				}
+			}
+			else {
+				if (isAppOnWorkspace(app, workspaceIndex)) {
+					if (this.add(app)) {
+						changed = true;
+					}
+				}
+			}
+		}
+		return changed;
+	},
+
+	/*
 	 * Removes the entry created for the application. Note that it will not remove entries that are
 	 * grabbing it.
 	 */
 	remove: function(app) {
-		for (let i = 0; i < this.entries; i++) {
+		for (let i = 0; i < this.entries.length; i++) {
 			let entry = this.entries[i];
 			if (entry.isFor(app)) {
 				this.entries.splice(i, 1);
@@ -230,7 +272,7 @@ const EntrySequence = new Lang.Class({
 	 * Removes an entry.
 	 */
 	removeEntry: function(entry) {
-		for (let i = 0; i < this.entries; i++) {
+		for (let i = 0; i < this.entries.length; i++) {
 			if (this.entries[i] === entry) {
 				this.entries.splice(i, 1);
 				return true;
@@ -244,7 +286,7 @@ const EntrySequence = new Lang.Class({
 	 */
 	prune: function() {
 		let prunables = [];
-		for (let i = 0; i < this.entries; i++) {
+		for (let i = 0; i < this.entries.length; i++) {
 			let entry = this.entries[i];
 			if (entry.isPrunable) {
 				prunables.push(entry);
@@ -261,7 +303,7 @@ const EntrySequence = new Lang.Class({
 
 	toString: function(workspaceIndex) {
 		let entry_strings = [];
-		for (let i = 0; i < this.entries; i++) {
+		for (let i = 0; i < this.entries.length; i++) {
 			let entry = this.entries[i];
 			entry_strings.push(entry.toString(workspaceIndex));
 		}
@@ -291,19 +333,13 @@ const EntryManager = new Lang.Class({
 		log('EntryManager._init');
 
 		this.settings = settings;
-
-		this.single = false;
-
-		//this._refreshId = Main.initializeDeferredWork(this, Lang.bind(this, this.refresh));
-		//Main.queueDeferredWork(this.refreshId);
-
-		this.reset();
-		this.addFavorites();
-		this.addRunning();
+		this.single = null;
 
 		let appSystem = Shell.AppSystem.get_default();
 		let appFavorites = AppFavorites.getAppFavorites();
 		this._signalManager = new SignalsUtils.SignalManager(this);
+		this._signalManager.connectSetting(settings, 'dash-per-workspace', 'boolean',
+			this._onDashPerWorkspaceSettingChanged); // triggers a refresh immediately
 		this._signalManager.connect(appSystem, 'installed-changed', this._onInstalledChanged);
 		this._signalManager.connect(appSystem, 'app-state-changed', this._onStateChanged);
 		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);
@@ -324,13 +360,18 @@ const EntryManager = new Lang.Class({
 		if (this.single) {
 			workspaceIndex = this.SINGLE_WORKSPACE_INDEX;
 		}
-		let entries = this._entrySequences[workspaceIndex];
-		if (entries === undefined) {
-			entries = this._entrySequences[workspaceIndex] = new EntrySequence();
-			this.addFavorites(workspaceIndex);
-			this.addRunning(workspaceIndex);
+		let entrySequence = this._entrySequences[workspaceIndex];
+		if (entrySequence === undefined) {
+			entrySequence = this._entrySequences[workspaceIndex] = new EntrySequence();
+			entrySequence.addFavorites();
+			if (workspaceIndex === this.SINGLE_WORKSPACE_INDEX) {
+				entrySequence.addRunning();
+			}
+			else {
+				entrySequence.addRunning(workspaceIndex);
+			}
 		}
-		return entries;
+		return entrySequence;
 	},
 
 	removeEntrySequence: function(workspaceIndex) {
@@ -354,7 +395,7 @@ const EntryManager = new Lang.Class({
 			return this.addTo(this.SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
-		let n_workspaces = global.screen.n_workspaces; // GNOME 3.24 introduces screen.workspaces
+		let n_workspaces = global.screen.n_workspaces;
 		for (let workspaceIndex = 0; workspaceIndex < n_workspaces; workspaceIndex++) {
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
@@ -377,56 +418,6 @@ const EntryManager = new Lang.Class({
 			let workspaceIndex = workspaceIndexes[i];
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
-			}
-		}
-		return changed;
-	},
-
-	/*
-	 * Adds entries for the favorite applications to all workspaces, or to just one, if there are no
-	 * entries already representing them.
-	 */
-	addFavorites: function(workspaceIndex) {
-		let changed = false;
-		let favorites = AppFavorites.getAppFavorites().getFavorites();
-		for (let i = 0; i < favorites.length; i++) {
-			let app = favorites[i];
-			if (workspaceIndex === undefined) {
-				if (this.addToAll(app)) {
-					changed = true;
-				}
-			}
-			else {
-				if (this.addTo(workspaceIndex, app)) {
-					changed = true;
-				}
-			}
-		}
-		return changed;
-	},
-
-	/*
-	 * Adds entries for the running applications to the workspaces for which they have windows, or
-	 * to just one workspace if they have windows there, if there are no entries already
-	 * representing them.
-	 */
-	addRunning: function(workspaceIndex) {
-		let changed = false;
-		let appSystem = Shell.AppSystem.get_default();
-		let running = appSystem.get_running(); // will be empty when the shell is restarted
-		for (let i = 0; i < running.length; i++) {
-			let app = running[i];
-			if (workspaceIndex === undefined) {
-				if (this.add(app)) {
-					changed = true;
-				}
-			}
-			else {
-				if (isAppOnWorkspace(app, workspaceIndex)) {
-					if (this.addTo(workspaceIndex, app)) {
-						changed = true;
-					}
-				}
 			}
 		}
 		return changed;
@@ -463,9 +454,6 @@ const EntryManager = new Lang.Class({
 
 	refresh: function() {
 		this.reset();
-		this.addFavorites();
-		this.addRunning();
-		this.log();
 		this.emit('changed');
 	},
 
@@ -484,8 +472,17 @@ const EntryManager = new Lang.Class({
 		}
 	},
 
+	_onDashPerWorkspaceSettingChanged: function(settings, dashPerWorkspace) {
+		log('"dash-per-workspace" setting changed signal: ' + dashPerWorkspace);
+		let single = !dashPerWorkspace;
+		if (this.single !== single) {
+			this.single = single;
+			this.refresh();
+		}
+	},
+
 	_onInstalledChanged: function(appSystem) {
-		log('installed-changed signal');
+		log('app system "installed-changed" signal');
 		this.refresh();
 	},
 
@@ -493,17 +490,17 @@ const EntryManager = new Lang.Class({
 		let id = app.id;
 		let state = app.state;
 		if (state == Shell.AppState.STARTING) {
-			log('app-state-changed signal: ' + id + ' starting');
+			log('app system "app-state-changed" signal: ' + id + ' starting');
 		}
 		else if (state == Shell.AppState.RUNNING) {
 			// Note: running events will be sent for each open app when the shell is restarted
-			log('app-state-changed signal: ' + id + ' running');
+			log('app system "app-state-changed" signal: ' + id + ' running');
 			if (this.add(app)) {
 				this.emit('changed');
 			}
 		}
 		else if (state == Shell.AppState.STOPPED) {
-			log('app-state-changed signal: ' + id + ' stopped');
+			log('app system "app-state-changed" signal: ' + id + ' stopped');
 			if (!isFavoriteApp(app)) { // favorites stay
 				if (this.remove(app)) {
 					this.emit('changed');
@@ -513,17 +510,17 @@ const EntryManager = new Lang.Class({
 	},
 
 	_onFavoritesChanged: function(favorites) {
-		log('favorites changed signal');
+		log('favorites "changed" signal');
 		this.refresh();
 	},
 
 	_onWorkspaceAdded: function(screen, workspaceIndex) {
-		log('workspace-added signal: ' + workspaceIndex);
+		log('screen "workspace-added" signal: ' + workspaceIndex);
 		// Nothing to do: new workspaces are created on demand
 	},
 
 	_onWorkspaceRemoved: function(screen, workspaceIndex) {
-		log('workspace-removed signal: ' + workspaceIndex);
+		log('screen "workspace-removed" signal: ' + workspaceIndex);
 		this.removeEntrySequence(workspaceIndex);
 	}
 });
@@ -575,7 +572,7 @@ const Matcher = new Lang.Class({
 function getWorkspacesForApp(app) {
 	let workspaceIndexes = [];
 
-	let n_workspaces = global.screen.n_workspaces; // GNOME 3.24 introduces screen.workspaces
+	let n_workspaces = global.screen.n_workspaces;
 	for (let workspaceIndex = 0; workspaceIndex < n_workspaces; workspaceIndex++) {
 		let workspace = global.screen.get_workspace_by_index(workspaceIndex);
 		if (app.is_on_workspace(workspace)) {

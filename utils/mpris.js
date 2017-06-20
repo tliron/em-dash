@@ -34,7 +34,7 @@ const MPRIS = new Lang.Class({
 	Name: 'EmDash.MPRIS',
 
 	_init: function(name) {
-		log('MPRIS._init');
+		log('_init');
 
 		this.canPause = null;
 		this.canGoNext = null;
@@ -54,7 +54,7 @@ const MPRIS = new Lang.Class({
 	},
 
 	destroy: function() {
-		log('MPRIS.destroy');
+		log('destroy');
 		// There is no way to disconnect the existing DBus remote calls, so we'll just make sure not
 		// to do anything if answers arrive after we've been destroyed
 		this._destroyed = true;

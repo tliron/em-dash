@@ -31,19 +31,19 @@ const PanelDash = new Lang.Class({
 	Name: 'EmDash.PanelDash',
 	Extends: Dash.Dash,
 
-	_init: function(settings, entryManager, location) {
-		log('PanelDash._init');
+	_init: function(dashManager, location) {
+		log('_init');
 
 		this._panelOriginalHeight = Main.panel.actor.height;
-		this._updatePanelHeight(settings);
+		this._updatePanelHeight(dashManager.settings);
 
-    	this.parent(settings, entryManager, 'panel', false, Main.panel.actor.height);
+    	this.parent(dashManager, 'panel', false, Main.panel.actor.height);
 
-		this._signalManager.connectSetting(settings, 'panel-appearance-merge', 'boolean',
+		this._signalManager.connectSetting(dashManager.settings, 'panel-appearance-merge', 'boolean',
 			this._onPanelAppearanceMergeSettingChanged);
-		this._signalManager.connectSetting(settings, 'panel-custom-height', 'boolean',
+		this._signalManager.connectSetting(dashManager.settings, 'panel-custom-height', 'boolean',
 			this._onPanelCustomHeightSettingChanged);
-		this._signalManager.connectSetting(settings, 'panel-height', 'uint',
+		this._signalManager.connectSetting(dashManager.settings, 'panel-height', 'uint',
 			this._onPanelHeightSettingChanged);
 		this._signalManager.connectProperty(Main.panel.actor, 'height',
 			this._onPanelHeightChanged);
@@ -52,6 +52,7 @@ const PanelDash = new Lang.Class({
 	},
 
 	destroy: function() {
+		log('destroy');
 		this.parent();
 		Main.panel.actor.height = this._panelOriginalHeight;
 	},
@@ -89,34 +90,42 @@ const PanelDash = new Lang.Class({
 	},
 
 	_updatePanelHeight: function(settings) {
-		if (settings === undefined) {
-			settings = this._settings;
-		}
+		let newHeight;
 		if (settings.get_boolean('panel-custom-height')) {
-			Main.panel.actor.height = settings.get_uint('panel-height');
+			newHeight = settings.get_uint('panel-height');
 		}
 		else {
-			Main.panel.actor.height = this._panelOriginalHeight;
+			newHeight = this._panelOriginalHeight;
 		}
+		Main.panel.actor.height = newHeight;
 	},
 
 	_onPanelAppearanceMergeSettingChanged: function(settings, panelAppearanceMerge) {
-		log('panel-appearance-merge setting changed: ' + panelAppearanceMerge);
+		log('"panel-appearance-merge" setting changed signal: ' + panelAppearanceMerge);
 		this._updateStyle(panelAppearanceMerge);
 	},
 
 	_onPanelCustomHeightSettingChanged: function(settings, customHeight) {
-		log('panel-custom-height setting changed: ' + customHeight);
-		this._updatePanelHeight();
+		log('"panel-custom-height" setting changed signal: ' + customHeight);
+		this._updatePanelHeight(settings);
 	},
 
 	_onPanelHeightSettingChanged: function(settings, height) {
-		log('panel-height setting changed: ' + height);
-		this._updatePanelHeight();
+		log('"panel-height" setting changed signal: ' + height);
+		this._updatePanelHeight(settings);
 	},
 
 	_onPanelHeightChanged: function(actor, height) {
-		log('panel height changed: ' + height);
+		log('panel "height" property changed signal: ' + height);
+		if (this._dashManager.settings.get_boolean('panel-custom-height')) {
+			height = this._dashManager.settings.get_uint('panel-height');
+		}
+		else {
+			this._panelOriginalHeight = height;
+		}
 		this._icons.setSize(height);
+		// TODO: if panel tries to automatically change height due to scaling changes while
+		// our icons are in it, it will take them into consideration... how do we remove them
+		// first?
 	}
 });

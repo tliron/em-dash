@@ -18,11 +18,12 @@ const Main = imports.ui.main;
 const AppDisplay = imports.ui.appDisplay;
 const AppFavorites = imports.ui.appFavorites;
 const DND = imports.ui.dnd;
+const Shell = imports.gi.Shell;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 
-const Dash = imports.ui.dash;
+//const Dash = imports.ui.dash;
 
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -30,6 +31,7 @@ const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
 const ClutterUtils = Me.imports.utils.clutter;
 const Draggable = Me.imports.utils.draggable;
+const Scaling = Me.imports.utils.scaling;
 const Menu = Me.imports.menu;
 const Entries = Me.imports.entries;
 
@@ -46,7 +48,7 @@ const Icon = new Lang.Class({
 	Extends: AppDisplay.AppIcon,
 
 	_init: function(icons, app, entryIndex, height) {
-		log('Icon._init: ' + entryIndex);
+		log('_init: ' + entryIndex);
 		this._icons = icons;
 		this._entryIndex = entryIndex;
 
@@ -92,14 +94,14 @@ const Icon = new Lang.Class({
 
 	handleDragBegin: function() {
 		// Hooked from EmDash.Draggable using our actor._delegate
-		log('handleDragBegin: ' + this.app.id);
+		log('handleDragBegin hook: ' + this.app.id);
 		this._removeMenuTimeout();
 		this.actor.hide();
 	},
 
 	handleDragEnd: function(dropped) {
 		// Hooked from EmDash.Draggable using our actor._delegate
-		log('handleDragEnd: ' + this.app.id + ' ' + dropped);
+		log('handleDragEnd hook: ' + this.app.id + ' ' + dropped);
 		this.actor.show();
 	},
 
@@ -109,7 +111,7 @@ const Icon = new Lang.Class({
 	getDragActor: function() {
 		// Hooked from DND using our actor._delegate
 		let size = this.icon.icon.icon_size;
-		log('getDragActor: ' + size);
+		log('getDragActor hook: ' + size);
 		return this.app.create_icon_texture(size);
 	},
 
@@ -118,7 +120,7 @@ const Icon = new Lang.Class({
 	handleDragOver: function(source, actor, x, y, extra) {
 		// Hooked from DND using our actor._delegate
 		if (!(source instanceof AppDisplay.AppIcon)) {
-			log('handleDragOver: not an app');
+			log('handleDragOver hook: not an app');
 			return DND.DragMotionResult.NO_DROP;
 		}
 
@@ -140,7 +142,7 @@ const Icon = new Lang.Class({
 			return DND.DragMotionResult.NO_DROP;
 		}
 
-		log('handleDragOver: ' + this.app.id + ' ' + Math.round(x) + ' ' + Math.round(y));
+		log('handleDragOver hook: ' + this.app.id + ' ' + Math.round(x) + ' ' + Math.round(y));
 		startDropHovering(this.actor, after);
 		return DND.DragMotionResult.MOVE_DROP;
 	},
@@ -190,7 +192,7 @@ const Icon = new Lang.Class({
 	 * Override.
 	 */
 	_onDestroy: function() {
-		log('Icon._onDestroy');
+		log('_onDestroy');
 		if (this._draggable !== null) {
 			this._draggable.destroy();
 		}
@@ -201,7 +203,10 @@ const Icon = new Lang.Class({
 	 * Override to fit icon in us (instead of the default behavior, which is the other way around)
 	 */
 	_createIcon: function(iconSize) {
-		let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+		let scaleFactor = Scaling.getScaleFactor();;
+		iconSize = (this.actor.height * 0.5 / scaleFactor);
+		log('createIcon hook: ' + iconSize);
+		return this.parent(iconSize);
 
 		function margins(a, withHeight) {
 			let visible = a.visible;
@@ -234,11 +239,6 @@ const Icon = new Lang.Class({
 //			margins(this.icon.actor) -
 //			margins(this._dot, true);
 //		iconSize /= scaleFactor;
-
-		iconSize = (this.actor.height * 0.5) / scaleFactor;
-
-		log('_createIcon: ' + iconSize);
-		return this.parent(iconSize);
 	}
 });
 
@@ -249,9 +249,10 @@ const Icon = new Lang.Class({
 const Icons = new Lang.Class({
 	Name: 'EmDash.Icons',
 
-	_init: function(entryManager, styleClass, vertical, iconSize) {
+	_init: function(entryManager, scalingManager, styleClass, vertical, iconSize) {
 		this.entryManager = entryManager;
 
+		this._originalIconSize = iconSize;
 		this._iconSize = null;
 
 		// Box
@@ -266,12 +267,12 @@ const Icons = new Lang.Class({
 			child: this.box
 		});
 
-		let themeContext = St.ThemeContext.get_for_stage(global.stage);
+		let windowTracker = Shell.WindowTracker.get_default();
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
-		this._signalManager.connect(themeContext, 'changed', this._onThemeContextChanged);
-		this._signalManager.connectProperty(themeContext, 'scale-factor',
-			this._onScaleFactorChanged);
+		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
+		this._signalManager.connect(scalingManager, 'changed', this._onScalingChanged);
+		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusChanged);
 
 		this.setVertical(vertical);
 		this.setSize(iconSize);
@@ -334,19 +335,31 @@ const Icons = new Lang.Class({
 	},
 
 	_onEntriesChanged: function(entryManager) {
-		log('entries changed signal');
+		log('entries "changed" signal');
 		this.refresh();
 	},
 
-	_onThemeContextChanged: function(themeContext) {
-		log('theme context changed signal');
+	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
+		log('screen "workspace-switched" signal: from ' +
+			oldWorkspaceIndex + ' to ' + newWorkspaceIndex + ' (' + direction + ')');
+		if (!this.entryManager.single) {
+			this.refresh(newWorkspaceIndex);
+		}
+	},
+
+	_onScalingChanged: function(scaling, factor) {
+		log('scaling "changed" signal: ' + factor);
 		this.refresh();
 	},
 
-	_onScaleFactorChanged: function(themeContext, scaleFactor) {
-		// Doesn't seem to be called
-		log('theme context scale-factor changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ' + scaleFactor);
-		this.refresh();
+	_onFocusChanged: function(windowTracker, app) {
+		if (app === null) {
+			log('window tracker "focus-app" property changed signal: none');
+		}
+		else {
+			log('window tracker "focus-app" property changed signal: ' +
+				app.id + ' ' + app.get_name());
+		}
 	}
 });
 
@@ -407,13 +420,14 @@ const Placeholder = new Lang.Class({
 		let appId = source.app.id;
 		if (source._entryIndex === undefined) {
 			// Dragged from elsewhere (likely overview)
-			log('acceptDrop: ' + appId + ' from elsewhere to ' + this._entryIndex);
+			log('acceptDrop hook: ' + appId + ' from elsewhere to ' + this._entryIndex);
 			let favorites = AppFavorites.getAppFavorites();
 			favorites.addFavoriteAtPos(appId, this._entryIndex);
 		}
 		else {
 			// Moved within the dash
-			log('acceptDrop: ' + appId + ' from ' + source._entryIndex + ' to ' + this._entryIndex);
+			log('acceptDrop hook: ' + appId +
+				' from ' + source._entryIndex + ' to ' + this._entryIndex);
 			moveFavoriteToPos(appId, source._entryIndex, this._entryIndex);
 		}
 		return true;
@@ -430,7 +444,7 @@ const Placeholder = new Lang.Class({
 	},
 
 	_onDragDrop: function(dropEvent) {
-		log('_onDragDrop');
+		log('dragDrop monitor hook');
 		endDropHovering();
 		return DND.DragDropResult.CONTINUE;
 	}
@@ -467,8 +481,8 @@ function isFavoriteApp(app) {
 
 
 /**
- * The built-in favorites.moveFavoriteToPos is broken. It does does not decrement new position if
- * necessary, nor does it verify that there is no change.
+ * The built-in favorites.moveFavoriteToPos is broken. It does does not decrement the new position
+ * when necessary, nor does it verify that no change is needed.
  */
 function moveFavoriteToPos(appId, fromPos, toPos) {
 	if (fromPos < toPos) {

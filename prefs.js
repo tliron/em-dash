@@ -48,7 +48,7 @@ const PrefsWidget = new Lang.Class({
 		Me.LOGGING_ENABLED = this._settings.get_boolean('debug');
 		Me.LOGGING_IMPLEMENTATION = _log;
 
-		log('PrefsWidget._init')
+		log('_init')
 
 		// The UI was designed using Glade
 		this._builder = new Gtk.Builder();
@@ -102,7 +102,7 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	destroy: function() {
-		log('PrefsWidget.destroy');
+		log('destroy');
 		this._signalManager.destroy();
 		// this._settings.run_dispose(); TODO: this causes errors
 	},
@@ -144,7 +144,7 @@ const PrefsWidget = new Lang.Class({
 			Gio.SettingsBindFlags.DEFAULT);
 
 		this._settings.bind('icons-wheel-scroll',
-			this._builder.get_object('icons_wheel_scroll'),
+			this._builder.get_object('windows_wheel_scroll'),
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
@@ -161,6 +161,8 @@ const PrefsWidget = new Lang.Class({
 			this._onDockVisibilitySettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dock-alignment', 'string',
 			this._onDockAlignmentSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dash-per-workspace', 'boolean',
+			this._onDashPerWorkspaceSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'icons-left-click', 'string',
 			this._onIconsLeftClickSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'icons-middle-click', 'string',
@@ -182,7 +184,7 @@ const PrefsWidget = new Lang.Class({
 	// Location radio buttons
 
 	_onDashLocationSettingChanged: function(settings, dashLocation) {
-		log('dash-location setting changed: ' + dashLocation);
+		log('"dash-location" setting changed signal: ' + dashLocation);
 		switch (dashLocation) {
 		case 'PANEL_NEAR':
 			this._builder.get_object('location_panel_near').active = true;
@@ -226,35 +228,35 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onLocationPanelNearToggled: function(button) {
-		log('location_panel_start radio button toggled');
+		log('"location_panel_start" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dash-location', 'PANEL_NEAR');
 		}
 	},
 
 	_onLocationPanelMiddleToggled: function(button) {
-		log('location_panel_middle radio button toggled');
+		log('"location_panel_middle" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dash-location', 'PANEL_MIDDLE');
 		}
 	},
 
 	_onLocationEdgeNearToggled: function(button) {
-		log('location_edge_start radio button toggled');
+		log('"location_edge_start" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dash-location', 'EDGE_NEAR');
 		}
 	},
 
 	_onLocationEdgeFarToggled: function(button) {
-		log('location_edge_end radio button toggled');
+		log('"location_edge_end" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dash-location', 'EDGE_FAR');
 		}
 	},
 
 	_onLocationEdgeBottomToggled: function(button) {
-		log('location_edge_bottom radio button toggled');
+		log('"location_edge_bottom" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dash-location', 'EDGE_BOTTOM');
 		}
@@ -263,7 +265,7 @@ const PrefsWidget = new Lang.Class({
 	// Monitor combo box
 
 	_onDashLocationMonitorSettingChanged: function(settings, dashLocationMonitor) {
-		log('dash-location-monitor setting changed: ' + dashLocationMonitor);
+		log('"dash-location-monitor" setting changed signal: ' + dashLocationMonitor);
 		let combo = this._builder.get_object('location_monitor');
 		let id = String(dashLocationMonitor);
 		combo.active_id = id;
@@ -277,14 +279,14 @@ const PrefsWidget = new Lang.Class({
 
 	_onLocationMonitorChanged: function(combo) {
 		let locationMonitor = combo.active_id;
-		log('location_monitor combo box changed: ' + locationMonitor);
+		log('"location_monitor" combo box "changed" signal: ' + locationMonitor);
 		this._settings.set_uint('dash-location-monitor', parseInt(locationMonitor));
 	},
 
 	// Custom height radio buttons
 
 	_onPanelCustomHeightSettingChanged: function(settings, panelCustomHeight) {
-		log('panel-custom-height setting changed: ' + panelCustomHeight);
+		log('"panel-custom-height" setting changed signal: ' + panelCustomHeight);
 		if (panelCustomHeight) {
 			this._builder.get_object('panel_custom_height').active = true;
 			this._builder.get_object('panel_height').sensitive = true;
@@ -296,14 +298,14 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onPanelDefaultHeightToggled: function(button) {
-		log('panel_default_height radio button toggled');
+		log('"panel_default_height" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_boolean('panel-custom-height', false);
 		}
 	},
 
 	_onPanelCustomHeightToggled: function(button) {
-		log('panel_custom_height radio button toggled');
+		log('"panel_custom_height" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_boolean('panel-custom-height', true);
 		}
@@ -312,20 +314,20 @@ const PrefsWidget = new Lang.Class({
 	// Height scale
 
 	_onPanelHeightSettingChanged: function(settings, panelHeight) {
-		log('panel-height setting changed: ' + panelHeight);
+		log('"panel-height" setting changed signal: ' + panelHeight);
 		this._builder.get_object('panel_height').set_value(panelHeight);
 	},
 
 	_onPanelHeightValueChanged: function(scale) {
 		let value = scale.get_value();
-		log('panel_height scale value changed: ' + value);
+		log('"panel_height" scale value changed signal: ' + value);
 		this._settings.set_uint('panel-height', value);
 	},
 
 	// Visibility radio buttons
 
 	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
-		log('dock-visibility setting changed: ' + dockVisibility);
+		log('"dock-visibility" setting changed signal: ' + dockVisibility);
 		switch (dockVisibility) {
 		case 'ALWAYS':
 			this._builder.get_object('visibility_always_visible').active = true;
@@ -337,14 +339,14 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onVisibilityAlwaysVisibleToggled: function(button) {
-		log('visibility_always_visible radio button toggled');
+		log('"visibility_always_visible" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dock-visibility', 'ALWAYS');
 		}
 	},
 
 	_onVisibilityTouchToShowToggled: function(button) {
-		log('visibility_touch_to_show radio button toggled');
+		log('"visibility_touch_to_show" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dock-visibility', 'TOUCH_TO_SHOW');
 		}
@@ -353,7 +355,7 @@ const PrefsWidget = new Lang.Class({
 	// Alignment radio buttons
 
 	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
-		log('dock-alignment setting changed: ' + dockAlignment);
+		log('"dock-alignment" setting changed signal: ' + dockAlignment);
 		switch (dockAlignment) {
 		case 'NEAR':
 			this._builder.get_object('alignment_near').active = true;
@@ -368,62 +370,88 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onAlignmentNearToggled: function(button) {
-		log('alignment_near radio button toggled');
+		log('"alignment_near" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dock-alignment', 'NEAR');
 		}
 	},
 
 	_onAlignmentMiddleToggled: function(button) {
-		log('alignment_middle radio button toggled');
+		log('"alignment_middle" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dock-alignment', 'MIDDLE');
 		}
 	},
 
 	_onAlignmentFarToggled: function(button) {
-		log('alignment_far radio button toggled');
+		log('"alignment_far" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dock-alignment', 'FAR');
+		}
+	},
+
+	// Dash per workspace radio buttons
+
+	_onDashPerWorkspaceSettingChanged: function(settings, dashPerWorkspace) {
+		log('"dash-per-workspace" setting changed signal: ' + dashPerWorkspace);
+		if (dashPerWorkspace) {
+			this._builder.get_object('windows_dash_per_workspace').active = true;
+		}
+		else {
+			this._builder.get_object('windows_single_dash').active = true;
+		}
+	},
+
+	_onSingleDashToggled: function(button) {
+		log('windows_single_dash radio button "toggled" signal');
+		if (button.active) {
+			this._settings.set_boolean('dash-per-workspace', false);
+		}
+	},
+
+	_onDashPerWorkspaceToggled: function(button) {
+		log('"windows_dash_per_workspace" radio button "toggled" signal');
+		if (button.active) {
+			this._settings.set_boolean('dash-per-workspace', true);
 		}
 	},
 
 	// Left-click combo box
 
 	_onIconsLeftClickSettingChanged: function(settings, iconsLeftClick) {
-		log('icons-left-click setting changed: ' + iconsLeftClick);
-		this._builder.get_object('icons_left_click').active_id = iconsLeftClick;
+		log('"icons-left-click" setting changed signal: ' + iconsLeftClick);
+		this._builder.get_object('windows_left_click').active_id = iconsLeftClick;
 	},
 
-	_onIconsLeftClickChanged: function(combo) {
+	_onWindowsLeftClickChanged: function(combo) {
 		let leftClick = combo.active_id;
-		log('icons_left_click combo box changed: ' + leftClick);
+		log('"windows_left_click" combo box "changed" signal: ' + leftClick);
 		this._settings.set_string('icons-left-click', leftClick);
 	},
 
 	// Middle-click combo box
 
 	_onIconsMiddleClickSettingChanged: function(settings, iconsMiddleClick) {
-		log('icons-middle-click setting changed: ' + iconsMiddleClick);
-		this._builder.get_object('icons_middle_click').active_id = iconsMiddleClick;
+		log('"icons-middle-click" setting changed signal: ' + iconsMiddleClick);
+		this._builder.get_object('windows_middle_click').active_id = iconsMiddleClick;
 	},
 
-	_onIconsMiddleClickChanged: function(combo) {
+	_onWindowsMiddleClickChanged: function(combo) {
 		let middleClick = combo.active_id;
-		log('icons_middle_click combo box changed: ' + middleClick);
+		log('"windows_middle_click" combo box "changed" signal: ' + middleClick);
 		this._settings.set_string('icons-middle-click', middleClick);
 	},
 
 	// Hover combo box
 
 	_onIconsHoverSettingChanged: function(settings, iconsHover) {
-		log('icons-hover setting changed: ' + iconsHover);
-		this._builder.get_object('icons_hover').active_id = iconsHover;
+		log('"icons-hover" setting changed signal: ' + iconsHover);
+		this._builder.get_object('windows_hover').active_id = iconsHover;
 	},
 
-	_onIconsHoverChanged: function(combo) {
+	_onWindowsHoverChanged: function(combo) {
 		let hover = combo.active_id;
-		log('icons_hover combo box changed: ' + hover);
+		log('"windows_hover" combo box "changed" signal: ' + hover);
 		this._settings.set_string('icons-hover', hover);
 	}
 });

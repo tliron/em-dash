@@ -15,13 +15,13 @@
 
 const Lang = imports.lang;
 const Main = imports.ui.main;
-const Shell = imports.gi.Shell;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
 const ClutterUtils = Me.imports.utils.clutter;
 const MutterUtils = Me.imports.utils.mutter;
+const Scaling = Me.imports.utils.scaling;
 const Entries = Me.imports.entries;
 const Icons = Me.imports.icons;
 
@@ -35,14 +35,15 @@ const log = Logging.logger('dash');
 const DashManager = new Lang.Class({
     Name: 'EmDash.DashManager',
 
-    _init: function(settings, _dashClasses) {
-    	log('DashManager._init');
+    _init: function(settings, dashClasses) {
+    	log('_init');
 
     	this.dash = null;
+    	this.settings = settings;
+    	this.entryManager = new Entries.EntryManager(settings);
+		this.scalingManager = new Scaling.ScalingManager();
 
-    	this._settings = settings;
-    	this._dashClasses = _dashClasses;
-    	this._entryManager = new Entries.EntryManager(settings);
+    	this._dashClasses = dashClasses;
     	this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
 
 		this.removeBuiltInDash();
@@ -63,28 +64,29 @@ const DashManager = new Lang.Class({
 
 		this._signalManager = new Signals.SignalManager(this);
 
-		// TODO: why do we need this mechanism?
+		// TODO: isn't there a more specific signal we can connect to?
 		// Initialize later, to make sure themes are applied
 		this._laterManager = new MutterUtils.LaterManager(this);
 		this._laterManager.later(this.initialize);
     },
 
 	destroy: function() {
-    	log('DashManager.destroy');
+    	log('destroy');
 		this._signalManager.destroy();
 		this._laterManager.destroy();
 		if (this.dash !== null) {
 			this.dash.destroy();
 		}
-		this._entryManager.destroy();
+		this.entryManager.destroy();
+		this.scalingManager.destroy();
 		this.restoreBuiltInDash();
 		this.restoreAppMenu();
 	},
 
 	initialize: function() {
-		this._signalManager.connectSetting(this._settings, 'dash-location', 'string',
+		this._signalManager.connectSetting(this.settings, 'dash-location', 'string',
 			this._onDashLocationChanged);
-		this._signalManager.connectSetting(this._settings, 'icons-app-menu', 'boolean',
+		this._signalManager.connectSetting(this.settings, 'icons-app-menu', 'boolean',
 			this._onIconsAppMenuSettingChanged);
 	},
 
@@ -119,7 +121,7 @@ const DashManager = new Lang.Class({
 	},
 
 	_onDashLocationChanged: function(settings, dashLocation) {
-		log('dash-location setting changed: ' + dashLocation);
+		log('"dash-location" setting changed signal: ' + dashLocation);
 		let DashClass = this._dashClasses[dashLocation];
 		if (this.dash !== null) {
 			if (this.dash instanceof DashClass) {
@@ -130,11 +132,11 @@ const DashManager = new Lang.Class({
 				this.dash.destroy();
 			}
 		}
-		this.dash = new DashClass(this._settings, this._entryManager, dashLocation);
+		this.dash = new DashClass(this, dashLocation);
 	},
 
 	_onIconsAppMenuSettingChanged: function(settings, iconsAppMenu) {
-		log('icons-app-menu setting changed: ' + iconsAppMenu);
+		log('"icons-app-menu" setting changed signal: ' + iconsAppMenu);
 		if (iconsAppMenu) {
 			this.removeAppMenu();
 		}
@@ -151,17 +153,11 @@ const DashManager = new Lang.Class({
 const Dash = new Lang.Class({
     Name: 'EmDash.Dash',
 
-    _init: function(settings, entryManager, styleClass, vertical, iconHeight) {
-		this._settings = settings;
-    	this._entryManager = entryManager;
-
-    	// Icons
-    	this._icons = new Icons.Icons(entryManager, styleClass, vertical, iconHeight);
-
-		let windowTracker = Shell.WindowTracker.get_default();
+    _init: function(dashManager, styleClass, vertical, iconHeight) {
+		this._dashManager = dashManager;
+    	this._icons = new Icons.Icons(dashManager.entryManager, dashManager.scalingManager,
+    		styleClass, vertical, iconHeight);
 		this._signalManager = new Signals.SignalManager(this);
-		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
-		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusChanged);
     },
 
 	destroy: function() {
@@ -170,22 +166,5 @@ const Dash = new Lang.Class({
 	},
 
 	setLocation: function(location) {
-	},
-
-	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
-		log('workspace-switched signal from ' + oldWorkspaceIndex + ' to ' + newWorkspaceIndex +
-			' (' + direction + ')');
-		if (!this._entryManager.single) {
-			this._icons.refresh(newWorkspaceIndex);
-		}
-	},
-
-	_onFocusChanged: function(windowTracker, app) {
-		if (app === null) {
-			log('focus-app signal: none');
-		}
-		else {
-			log('focus-app signal: ' + app.id + ' ' + app.get_name());
-		}
 	}
 });

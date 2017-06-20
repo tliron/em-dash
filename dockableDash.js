@@ -33,37 +33,34 @@ const DockableDash = new Lang.Class({
 	Name: 'EmDash.DockableDash',
 	Extends: Dash.Dash,
 
-	_init: function(settings, entryManager, location) {
-		log('DockableDash._init');
+	_init: function(dashManager, location) {
+		log('_init');
 
 		let side = getMutterSideForLocation(location);
-		let align = getStAlignForAlignment(settings.get_string('dock-alignment'));
-		let stretch = settings.get_boolean('dock-stretch');
-		let toggle = settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
+		let align = getStAlignForAlignment(dashManager.settings.get_string('dock-alignment'));
+		let stretch = dashManager.settings.get_boolean('dock-stretch');
+		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 
 		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
-		this.parent(settings, entryManager, null, vertical, this._iconSize);
+		this.parent(dashManager, null, vertical, 64);
 
 		this._updateStyle(side);
 
 		this._dockable = new Dockable.Dockable(this._icons.actor, side, align, stretch, toggle);
 
-		let themeContext = St.ThemeContext.get_for_stage(global.stage);
 		this._signalManager.connect(this._icons.actor, 'style-changed', this._onStyleChanged);
-		this._signalManager.connectSetting(settings, 'dock-visibility', 'string',
+		this._signalManager.connectSetting(dashManager.settings, 'dock-visibility', 'string',
 			this._onDockVisibilitySettingChanged);
-		this._signalManager.connectSetting(settings, 'dock-alignment', 'string',
+		this._signalManager.connectSetting(dashManager.settings, 'dock-alignment', 'string',
 			this._onDockAlignmentSettingChanged);
-		this._signalManager.connectSetting(settings, 'dock-stretch', 'boolean',
+		this._signalManager.connectSetting(dashManager.settings, 'dock-stretch', 'boolean',
 			this._onDockStretchSettingChanged);
-		this._signalManager.connectSetting(settings, 'dock-borders', 'boolean',
+		this._signalManager.connectSetting(dashManager.settings, 'dock-borders', 'boolean',
 			this._onDockBordersSettingChanged);
-		this._signalManager.connectProperty(themeContext, 'scale-factor',
-			this._onScaleFactorChanged);
 	},
 
     destroy: function() {
-		log('DockableDash.destroy');
+		log('destroy');
     	this._dockable.destroy();
     	this.parent();
     },
@@ -73,11 +70,6 @@ const DockableDash = new Lang.Class({
 		this._icons.setVertical((side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
 		this._dockable.setSide(side);
 		this._updateStyle(side);
-	},
-
-	get _iconSize() {
-		let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-		return 64 * scaleFactor;
 	},
 
 	_updateStyle: function(side) {
@@ -110,7 +102,7 @@ const DockableDash = new Lang.Class({
 			break;
 		}
 
-		if (!this._settings.get_boolean('dock-borders')) {
+		if (!this._dashManager.settings.get_boolean('dock-borders')) {
 			actor.add_style_class_name('no-border');
 		}
 		else {
@@ -119,7 +111,7 @@ const DockableDash = new Lang.Class({
 	},
 
 	_onStyleChanged: function(actor) {
-		log('style-changed signal');
+		log('icons "style-changed" signal');
 
 		// Block the signal while changing the style
 		let connection = this._signalManager.get(this._onStyleChanged);
@@ -127,9 +119,9 @@ const DockableDash = new Lang.Class({
 
 		actor.style = null;
 
-		let location = this._settings.get_string('dash-location');
+		let location = this._dashManager.settings.get_string('dash-location');
 		let side = getMutterSideForLocation(location);
-		if ((side === Meta.Side.BOTTOM) && this._settings.get_boolean('dock-borders')) {
+		if ((side === Meta.Side.BOTTOM) && this._dashManager.settings.get_boolean('dock-borders')) {
 			// Rotate the corner radiuses from side to top
 			let themeNode = actor.get_theme_node();
 			let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
@@ -150,32 +142,26 @@ const DockableDash = new Lang.Class({
 	},
 
 	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
-		log('dock-visibility setting changed: ' + dockVisibility);
+		log('"dock-visibility" setting changed signal: ' + dockVisibility);
 		let toggle = dockVisibility === 'TOUCH_TO_SHOW';
 		this._dockable.setToggle(toggle);
 	},
 
 	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
-		log('dock-alignment setting changed: ' + dockAlignment);
+		log('"dock-alignment" setting changed signal: ' + dockAlignment);
 		let align = getStAlignForAlignment(dockAlignment);
 		this._dockable.setAlign(align);
 	},
 
 	_onDockStretchSettingChanged: function(setting, dockStretch) {
-		log('dock-stretch setting changed: ' + dockStretch);
+		log('"dock-stretch" setting changed signal: ' + dockStretch);
 		this._dockable.setStretch(dockStretch);
 	},
 
 	_onDockBordersSettingChanged: function(setting, dockBorders) {
-		log('dock-borders setting changed: ' + dockBorders);
-		let location = this._settings.get_string('dash-location');
+		log('"dock-borders" setting changed signal: ' + dockBorders);
+		let location = this._dashManager.settings.get_string('dash-location');
 		this._updateStyle(getMutterSideForLocation(location));
-	},
-
-	_onScaleFactorChanged: function(themeContext, scaleFactor) {
-		// Doesn't seem to be called
-		log('theme context scale-factor changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ' + scaleFactor);
-		this._icons.setSize(this._iconSize);
 	}
 });
 
