@@ -159,6 +159,12 @@ const ScalingManager = new Lang.Class({
 	},
 
 	set stFactor(factor) {
+		// WARNING: setting St scaling to 0 will crash GNOME Shell
+		if (factor < 1) {
+			log(`attemping to set bad value for stFactor: ${factor}`);
+			return;
+		}
+		
 		// We need to give time for other signal listeners to update the theme context first
 		this._laterManager.later(() => {
 			setStScaleFactor(factor);
@@ -170,6 +176,12 @@ const ScalingManager = new Lang.Class({
 	},
 
 	set mutterFactor(factor) {
+		// Setting Mutter factor to 0 means disabling the override
+		if (factor < 0) {
+			log(`attemping to set bad value for mutterFactor: ${factor}`);
+			return;
+		}
+
 		this._interfaceSettings.set_uint('scaling-factor', factor);
 	},
 
@@ -179,6 +191,13 @@ const ScalingManager = new Lang.Class({
 	},
 
 	set gdkFactor(factor) {
+		// WARNING: setting GDK scaling override to 0 will crash GNOME Shell and will prevent it
+		// from restarting!
+		if (factor < 1) {
+			log(`attemping to set bad value for gdkFactor: ${factor}`);
+			return;
+		}
+
 		if (this.gdkFactor !== factor) {
 			setGdkWindowScalingFactor(this._xSettings, factor);
 		}
@@ -203,22 +222,31 @@ const ScalingManager = new Lang.Class({
 	_onMutterScalingFactorSettingChanged: function(settings, mutterScalingFactor) {
 		log(`Mutter "scaling-factor" setting changed signal: ${mutterScalingFactor}`);
 		if (mutterScalingFactor === 0) {
-			// WARNING: setting St scaling to 0 will crash GNOME Shell. Worse, if you set the
-			// Gdk/WindowScalingFactor override to 0 you won't be able to start it again...
-			return;
+			// This will trigger a signal
+			this.stFactor = getStScaleFactor();
 		}
-		// Propagate
-		this.gdkFactor = mutterScalingFactor;
-		this.stFactor = mutterScalingFactor;
+		else {
+			// Propagate
+			this.gdkFactor = mutterScalingFactor;
+			this.stFactor = mutterScalingFactor;
+		}
 	},
 
 	_onXOverridesSettingChanged: function(settings, overrides) {
 		let gdkWindowScalingFactor = getGdkWindowScalingFactor(overrides);
 		log(`GNOME Settings Daemon overrides "Gdk/WindowScalingFactor" setting changed signal: ${gdkWindowScalingFactor}`);
 		if (gdkWindowScalingFactor !== null) {
-			// Propagate
-			this.mutterFactor = gdkWindowScalingFactor;
-			this.stFactor = gdkWindowScalingFactor;
+			if (gdkWindowScalingFactor < 1) {
+				this._laterManager.later(() => {
+					// If we won't fix this, GNOME Shell will not be able to start!!!
+					removeGdkWindowScalingFactor(settings);
+				});
+			}
+			else {
+				// Propagate
+				this.mutterFactor = gdkWindowScalingFactor;
+				this.stFactor = gdkWindowScalingFactor;
+			}
 		}
 	}
 });
@@ -266,4 +294,15 @@ function setGdkWindowScalingFactor(settings, factor) {
 		overrides = overrides.end();
 	}
 	settings.set_value('overrides', overrides);
+}
+
+
+function removeGdkWindowScalingFactor(settings) {
+	let overrides = settings.get_value('overrides');
+	if (overrides !== null) {
+		overrides = new GLib.VariantDict(overrides);
+		overrides.remove('Gdk/WindowScalingFactor');
+		overrides = overrides.end();
+		settings.set_value('overrides', overrides);
+	}
 }
