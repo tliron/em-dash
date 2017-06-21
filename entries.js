@@ -199,6 +199,19 @@ const EntrySequence = new Lang.Class({
 		return false;
 	},
 
+	/**
+	 * Find the index of an entry representing the application.
+	 */
+	getIndexOfRepresenting: function(app) {
+		for (let i = 0; i < this.entries.length; i++) {
+			let entry = this.entries[i];
+			if (entry.isRepresenting(app)) {
+				return i;
+			}
+		}
+		return null;
+	},
+
 
 	/**
 	 * Add an entry for the application if there is no entry already representing it.

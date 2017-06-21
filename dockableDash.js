@@ -42,7 +42,7 @@ const DockableDash = new Lang.Class({
 		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 
 		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
-		this.parent(dashManager, null, vertical, 64, true);
+		this.parent(dashManager, 'dock', vertical, 64, true);
 
 		this._updateStyle(side);
 

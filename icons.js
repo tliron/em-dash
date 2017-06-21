@@ -155,7 +155,8 @@ const Icon = new Lang.Class({
 		}
 
 		if (!this._menu) {
-			this._menu = new Menu.IconMenu(this, this._simpleName, this._icons);
+			this._menu = new Menu.IconMenu(this, this._simpleName,
+				this._icons.entryManager.settings);
 			this._menu.connect('activate-window', (menu, window) => {
 				this.activateWindow(window);
 			});
@@ -219,6 +220,7 @@ const Icons = new Lang.Class({
 
 		this._scalingManager = scalingManager;
 		this._iconSize = null;
+		this._focused = null;
 
 		// Box
 		this.box = new St.BoxLayout({
@@ -236,7 +238,9 @@ const Icons = new Lang.Class({
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(entryManager, 'changed', this._onEntriesChanged);
 		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
-		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusChanged);
+		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusAppChanged);
+		this._signalManager.connectSetting(this.entryManager.settings, 'icons-highlight-focused',
+			'boolean', this._onIconsHighlightFocusedSettingChanged);
 
 		this.setVertical(vertical);
 		this.setSize(iconSize);
@@ -304,6 +308,38 @@ const Icons = new Lang.Class({
 //			icon._Container.show();
 //			this.box.add_child(icon._Container);
 		}
+
+		this._updateFocusApp();
+	},
+
+	_updateFocusApp: function(app) {
+		if (this.entryManager.settings.get_boolean('icons-highlight-focused')) {
+			if (app === undefined) {
+				app = Shell.WindowTracker.get_default().focus_app;
+			}
+			if (app !== null) {
+				let workspaceIndex = global.screen.get_active_workspace().index();
+				let entrySequence = this.entryManager.getEntrySequence(workspaceIndex);
+				let index = entrySequence.getIndexOfRepresenting(app);
+				if (index !== null) {
+					let actor = this.box.get_child_at_index(index);
+					if ((actor !== null) && (this._focused !== actor)) {
+						this._removeFocusApp();
+						this._focused = actor;
+						this._focused.add_style_class_name('focused');
+						return;
+					}
+				}
+			}
+		}
+		this._removeFocusApp();
+	},
+
+	_removeFocusApp: function() {
+		if (this._focused !== null) {
+			this._focused.remove_style_class_name('focused');
+			this._focused = null;
+		}
 	},
 
 	_onEntriesChanged: function(entryManager) {
@@ -318,13 +354,19 @@ const Icons = new Lang.Class({
 		}
 	},
 
-	_onFocusChanged: function(windowTracker, app) {
+	_onFocusAppChanged: function(windowTracker, app) {
 		if (app === null) {
 			log('window tracker "focus-app" property changed signal: none');
 		}
 		else {
 			log(`window tracker "focus-app" property changed signal: ${app.id} ${app.get_name()}`);
 		}
+		this._updateFocusApp(app);
+	},
+
+	_onIconsHighlightFocusedSettingChanged: function(settings, iconsHighlightFocused) {
+		log(`"icons-highlight-focused" setting changed signal: ${iconsHighlightFocused}`);
+		this._updateFocusApp();
 	}
 });
 

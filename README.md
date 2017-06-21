@@ -129,4 +129,4 @@ TODO
 * Window previews/lists on hover
 * Animations
 * Dragging on empty dash
-* Panel merge mode doesn't show highlights
+* Add applications button

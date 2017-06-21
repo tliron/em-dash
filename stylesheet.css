@@ -1,7 +1,7 @@
 
 /* The panel is a very cramped place for the dash, so we'll squash some stuff that takes too much
    vertical space. This is especially true in Hi-DPI, where all elements become beefer, but the
-   panel is often still quite small. */
+   panel might often be quite small. */
 
 #dash.panel {
 	padding-top: 1px;
@@ -11,7 +11,6 @@
 }
 
 #dash.panel .overview-icon {
-	/*padding: 0 6px;*/
 	padding-top: 0;
 	padding-bottom: 0;
 	margin-top: 0;
@@ -19,14 +18,19 @@
 }
 
 #dash.panel .app-well-app-running-dot {
-	/*height: 1px;*/
 	padding-top: 0;
 	padding-bottom: 0;
 	margin-top: 0;
 	margin-bottom: 0;
 }
 
-/* Just remove the border */
+/* Improve appearance when docked */
+
+#dash.dock > StBoxLayout.vertical {
+	spacing: 6px; /* special property for St.BoxLayout */
+}
+
+/* Optional: just remove the border */
 
 #dash.no-border {
 	border-width: 0;
@@ -35,17 +39,32 @@
 	outline-offset: 0;
 }
 
-/* Allow the dash to blend better into its surroundings */
+/* Optional: allow the dash to blend better into its surroundings */
 
 #dash.merge {
 	border-width: 0;
 	border-radius: 0 0 0 0;
 	outline-width: 0;
 	outline-offset: 0;
+	box-shadow: none;
 	background-image: none;
-	background-color: inherit;
+	background-color: transparent;
 }
 
+/* Themes do not usually expect a dark background for the icons, so the default highlight is barely
+   visible. We'll make it more visible. */
+
+#dash.merge .app-well-app:hover .overview-icon,
+#dash.merge .app-well-app:focus .overview-icon,
+#dash.merge .app-well-app:selected .overview-icon {
+	background-color: rgba(238, 238, 236, 0.3);
+}
+
+/* Optional: highlight focused up */
+
+.app-well-app.focused {
+	background-color: rgba(238, 238, 236, 0.4);
+}
 
 
 /*
@@ -60,9 +79,6 @@
 }
 */
 
-#dash > StBoxLayout.vertical {
-	spacing: 6px; /* special property for St.BoxLayout */
-}
 
 /* Copied from the default theme */
 /*#em-dash .placeholder {

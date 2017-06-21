@@ -82,9 +82,13 @@ const PanelDash = new Lang.Class({
 	_updateStyle: function(panelAppearanceMerge) {
 		if (panelAppearanceMerge) {
 			this._icons.actor.add_style_class_name('merge');
+//			let color = Main.panel.actor.get_theme_node().get_background_color.to_string();
+//			log(`background-color: ${color};`);
+//			this._icons.actor.style = `background-color: ${color};`;
 		}
 		else {
 			this._icons.actor.remove_style_class_name('merge');
+			this._icons.actor.style = null;
 		}
 	},
 

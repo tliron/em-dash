@@ -17,6 +17,9 @@ const Lang = imports.lang;
 const AppDisplay = imports.ui.appDisplay;
 const PopupMenu = imports.ui.popupMenu;
 const Shell = imports.gi.Shell;
+const ShellMenu = imports.gi.ShellMenu;
+const Atk = imports.gi.Atk;
+const GObject = imports.gi.GObject;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
@@ -37,14 +40,13 @@ const IconMenu = new Lang.Class({
 	Name: 'EmDash.IconMenu',
 	Extends: AppDisplay.AppIconMenu,
 
-	_init: function(source, simpleName, icons) {
+	_init: function(source, simpleName, settings) {
 		log('_init');
 		this.parent(source);
 		this._simpleName = simpleName;
 		this._appMenu = null;
-		this._mpris = null;
-		this._settings = icons.entryManager.settings;
-		this._signalManager = new Signals.SignalManager(this);
+		this._mediaControlsMenu = null;
+		this._settings = settings;
 	},
 
 	/**
@@ -55,8 +57,9 @@ const IconMenu = new Lang.Class({
 		if (this._appMenu !== null) {
 			this._appMenu.destroy();
 		}
-		this._destroyMpris();
-		this._signalManager.destroy();
+		if (this._mediaControlsMenu !== null) {
+			this._mediaControlsMenu.destroy();
+		}
 		this.parent();
 	},
 
@@ -64,6 +67,17 @@ const IconMenu = new Lang.Class({
 	 * Override.
 	 */
 	_redisplay: function() {
+		log('_redisplay');
+
+		if (this._appMenu !== null) {
+			this._appMenu.destroy();
+			this._appMenu = null;
+		}
+		if (this._mediaControlsMenu !== null) {
+			this._mediaControlsMenu.destroy();
+			this._mediaControlsMenu = null;
+		}
+
 		this.parent();
 
 		// Application menu
@@ -72,62 +86,248 @@ const IconMenu = new Lang.Class({
 			let actionGroup = this._source.app.action_group;
 			if ((menuModel !== null) && (actionGroup !== null)) {
 				this._appMenu = new AppMenu(actionGroup, menuModel);
-				this._appendSeparator();
 				this.addMenuItem(this._appMenu.item);
 			}
 		}
 
 		// Media controls
-		this._destroyMpris();
-		if (this._settings.get_boolean('icons-media-controls')) {
-			if (this._simpleName !== null) {
-				this._mpris = new MPRIS.MPRIS(this._simpleName);
-				this._signalManager.connect(this._mpris, 'initialize', this._onMprisInitialized);
-			}
+		if (this._settings.get_boolean('icons-media-controls') && (this._simpleName !== null)) {
+			this._mediaControlsMenu = new MediaControlsMenu(this._simpleName);
+			this.addMenuItem(this._mediaControlsMenu.item);
 		}
 	},
 
-	_appendMediaControls: function() {
-		this._appendSeparator();
+});
+
+
+const AppMenuItemContainer = new Lang.Class({
+	Name: 'EmDash.AppMenuItemContainer',
+
+	_init: function(submenu) {
+		this._submenu = submenu;
+		this._items = [];
+		this._startPosition = 0;
+		this._menuTracker = null;
+		this._signalManager = new Signals.SignalManager(this);
+	},
+
+	destroy: function() {
+		this._signalManager.destroy();
+		if (this._menuTracker !== null) {
+			this._menuTracker.destroy();
+		}
+		for (let i = 0; i < this._items.length; i++) {
+			let item = this._items[i];
+			item.destroy();
+		}
+	},
+
+	_track: function(menu, actionGroup, itemModel) {
+		this._menu = menu;
+		this._menuTracker = Shell.MenuTracker.new(actionGroup, itemModel, null,
+			this._onInsertItem.bind(this, this),
+			this._onRemoveItem.bind(this, this));
+	},
+
+	_trackSub: function(menu, trackerItem) {
+		this._menu = menu;
+		this._menuTracker = Shell.MenuTracker.new_for_item_submenu(trackerItem,
+			this._onInsertItem.bind(this, this),
+			this._onRemoveItem.bind(this, this));
+	},
+
+	_onInsertItem: function(menu, trackerItem, position) {
+		log(`menu tracker insert item: ${position} ${trackerItem.label}`);
+
+		if (!this._submenu && (this._startPosition == 0)) {
+			let item = new PopupMenu.PopupSeparatorMenuItem();
+			this._menu.addMenuItem(item);
+			alwaysShowMenuSeparator(this._signalManager, this._menu, item);
+			this._startPosition = 1;
+		}
+
+		if (trackerItem.is_separator) {
+			this._menu.addMenuItem(
+				new PopupMenu.PopupSeparatorMenuItem(stripMnemonics(trackerItem.label)),
+				this._startPosition + position);
+		}
+		else {
+			let item = new AppMenuItem(trackerItem);
+			this._items.push(item);
+			this._menu.addMenuItem(item.item, this._startPosition + position);
+		}
+
+		if (this._submenu) {
+			// We need at least one item to show the submenu
+			this.item.setSubmenuShown(true);
+		}
+	},
+
+	_onRemoveItem: function(menu, position) {
+		log(`menu tracker remove item: ${position}`);
+		let items = this._menu._getMenuItems();
+		items[position].destroy();
+	}
+});
+
+
+/**
+ * Application menu section.
+ */
+const AppMenu = new Lang.Class({
+	Name: 'EmDash.AppMenu',
+	Extends: AppMenuItemContainer,
+
+	_init: function(actionGroup, menuModel, trackerItem = null) {
+		this.parent(false);
+		this.item = new PopupMenu.PopupMenuSection();
+		this._track(this.item, actionGroup, menuModel);
+	}
+});
+
+
+/**
+ * Manages the relationship between an application menu item and a tracker item.
+ */
+const AppMenuItem = new Lang.Class({
+	Name: 'EmDash.AppMenuItem',
+	Extends: AppMenuItemContainer,
+
+	_init: function(trackerItem) {
+		this.parent(true);
+		this._trackerItem = trackerItem;
+		this._signalManager = new Signals.SignalManager(this);
+
+		let label = stripMnemonics(trackerItem.label);
+		if (trackerItem.has_submenu) {
+			this.item = new PopupSubMenuMenuItem(label);
+			this._signalManager.connect(this.item, 'open', this._onOpen, true);
+			this._signalManager.connectProperty(trackerItem, 'submenu-shown',
+				this._onSubmenuShownChanged);
+		}
+		else {
+			this.item = new PopupMenu.PopupMenuItem(label);
+			this._signalManager.connect(this.item, 'activate', this._onActivated);
+			this._signalManager.connectProperty(trackerItem, 'sensitive', this._onSensitiveChanged);
+			this._signalManager.connectProperty(trackerItem, 'role', this._onRoleChanged);
+			this._signalManager.connectProperty(trackerItem, 'toggled', this._onToggledChanged);
+		}
+		this._signalManager.connectProperty(trackerItem, 'label', this._onLabelChanged);
+		this._trackerItem.bind_property('visible', this.item.actor, 'visible',
+			GObject.BindingFlags.SYNC_CREATE);
+	},
+
+	destroy: function() {
+		this._signalManager.destroy();
+		this._trackerItem.run_dispose();
+	},
+
+	_refreshRole: function(role) {
+		switch (role) {
+		case ShellMenu.MenuTrackerItemRole.NORMAL:
+			this.item.actor.accessible_role = Atk.Role.MENU_ITEM;
+			this.item.setOrnament(PopupMenu.Ornament.NONE);
+			break;
+		case ShellMenu.MenuTrackerItemRole.RADIO:
+			this.item.actor.accessible_role = Atk.Role.RADIO_MENU_ITEM;
+			this.item.setOrnament(this._trackerItem.toggled ?
+				PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE);
+			break;
+		case ShellMenu.MenuTrackerItemRole.CHECK:
+			this.item.actor.accessible_role = Atk.Role.CHECK_MENU_ITEM;
+			this.item.setOrnament(this._trackerItem.toggled ?
+				PopupMenu.Ornament.CHECK : PopupMenu.Ornament.NONE);
+			break;
+		}
+	},
+
+	_onOpen: function(item) {
+		log(`menu item "${this.item.label.text}" "open" signal`);
+		this._trackSub(this.item.menu, this._trackerItem);
+	},
+
+	_onActivated: function(menuItem) {
+		log(`menu item "${this.item.label.text}" "activate" signal`);
+		this._trackerItem.activated();
+	},
+
+	_onLabelChanged: function(trackerItem, label) {
+		log(`tracker item "${this.item.label.text}" "label" property changed signal: ${label}`);
+		this.item.label.text = stripMnemonics(label);
+	},
+
+	_onSubmenuShownChanged: function(trackerItem, submenuShown) {
+		log(`tracker item "${this.item.label.text}" "submenu-shown" property changed signal: ${submenuShown}`);
+		this.item.setSubmenuShown(submenuShown);
+	},
+
+	_onSensitiveChanged: function(trackerItem, sensitive) {
+		log(`tracker item "${this.item.label.text}" "sensitive" property changed signal: ${sensitive}`);
+		this.item.setSensitive(sensitive);
+	},
+
+	_onRoleChanged: function(trackerItem, role) {
+		log(`tracker item "${this.item.label.text}" "role" property changed signal: ${role}`);
+		this._refreshRole(role);
+	},
+
+	_onToggledChanged: function(trackerItem, toggled) {
+		log(`tracker item "${this.item.label.text}" "toggled" property changed signal: ${toggled}`);
+		this._refreshRole(trackerItem.role);
+	}
+});
+
+
+
+/**
+ * Media controls menu section.
+ */
+const MediaControlsMenu = new Lang.Class({
+	Name: 'EmDash.MediaControlsMenu',
+
+	_init: function(simpleName) {
+		this.item = new PopupMenu.PopupMenuSection();
+		this._mpris = new MPRIS.MPRIS(simpleName);
+
+		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager.connect(this._mpris, 'initialize', this._onInitialized);
+	},
+
+	destroy: function() {
+		this._signalManager.destroy();
+		this._mpris.destroy();
+	},
+
+	_onInitialized: function(mpris) {
+		log('mpris "initialize" signal');
+
+		this.item.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
 		// Standard icon names:
 		// https://specifications.freedesktop.org/icon-naming-spec/latest/ar01s04.html
 
-		this._appendImageMenuItem(_('Play'), 'media-playback-start', this._onPlay);
+		this._appendItem(_('Play'), 'media-playback-start', this._onPlay);
 		if (this._mpris.canPause) {
-			this._appendImageMenuItem(_('Pause'), 'media-playback-pause', this._onPause);
+			this._appendItem(_('Pause'), 'media-playback-pause', this._onPause);
 		}
-		this._appendImageMenuItem(_('Stop'), 'media-playback-stop', this._onStop);
+		this._appendItem(_('Stop'), 'media-playback-stop', this._onStop);
 		if (this._mpris.canGoNext) {
-			this._appendImageMenuItem(_('Next track'), 'media-skip-forward', this._onNext);
+			this._appendItem(_('Next track'), 'media-skip-forward', this._onNext);
 		}
 		if (this._mpris.canGoPrevious) {
-			this._appendImageMenuItem(_('Previous track'), 'media-skip-backward', this._onPrevious);
+			this._appendItem(_('Previous track'), 'media-skip-backward', this._onPrevious);
 		}
 	},
 
-	_appendImageMenuItem: function(labelText, iconName, callback) {
+	_appendItem: function(labelText, iconName, callback) {
+		log(`MediaControlsMenu._appendItem: ${labelText}`)
 		let item = new PopupImageMenuItem(labelText, iconName);
-		this.addMenuItem(item);
+		this.item.addMenuItem(item);
 		this._signalManager.connect(item, 'activate', callback);
-		return item;
-	},
-
-	_destroyMpris: function() {
-		if (this._mpris !== null) {
-			this._signalManager.disconnect(this._onMprisInitialized);
-			this._mpris.destroy();
-			this._mpris = null;
-		}
-	},
-
-	_onMprisInitialized: function(mpris) {
-		log('mpris "initialize" signal');
-		this._appendMediaControls();
 	},
 
 	_onPlay: function() {
-		log('play');
+		log('play')
 		this._mpris.play();
 	},
 
@@ -154,65 +354,6 @@ const IconMenu = new Lang.Class({
 
 
 /**
- * Application menu.
- */
-const AppMenu = new Lang.Class({
-	Name: 'EmDash.AppMenu',
-
-	_init: function(actionGroup, menuModel) {
-		this.item = new PopupSubMenuMenuItem(_('Application menu'));
-		this._actionGroup = actionGroup;;
-		this._menuModel = menuModel;
-		this._menuTracker = null;
-		this._signalManager = new Signals.SignalManager(this);
-		this._signalManager.connect(this.item, 'open', this._onOpened, true);
-	},
-
-	destroy: function() {
-		this._signalManager.destroy();
-		if (this._menuTracker != null) {
-			this._menuTracker.destroy();
-		}
-	},
-
-	_onOpened: function(item) {
-		log('item "open" signal');
-		this._menuTracker = Shell.MenuTracker.new(this._actionGroup, this._menuModel, null,
-			this._onInsertItem.bind(this, this),
-			this._onRemoveItem.bind(this, this));
-	},
-
-	_onInsertItem: function(menu, trackerItem, position) {
-		log(`_onInsertItem: ${position}`);
-		if (trackerItem.get_is_separator()) {
-
-		}
-		else if (trackerItem.get_has_submenu()) {
-
-		}
-		else {
-			let item = new PopupMenu.PopupMenuItem(stripMnemonics(trackerItem.label));
-			item._trackerItem = trackerItem;
-			this.item.menu.addMenuItem(item, position);
-			this._signalManager.connect(item, 'activate', this._onItemActivated);
-			this.item.setSubmenuShown(true); // can only be shown when have at least one item
-		}
-	},
-
-	_onRemoveItem: function(menu, position) {
-		log(`_onRemoveItem: ${position}`);
-		let items = menu._getMenuItems();
-		items[position].destroy();
-	},
-
-	_onItemActivated: function(item) {
-		log('item "activate" signal');
-		item._trackerItem.activated();
-	}
-});
-
-
-/**
  * Popup sub-menu item, with support for an "open" signal.
  */
 const PopupSubMenuMenuItem = new Lang.Class({
@@ -223,6 +364,7 @@ const PopupSubMenuMenuItem = new Lang.Class({
 		this.parent(open);
 		this.emit('open');
 	}
+
 });
 
 
@@ -253,5 +395,21 @@ const PopupImageMenuItem = new Lang.Class({
  */
 function stripMnemonics(label) {
 	// Remove all underscores that are not followed by another underscore
+	if (label === null) {
+		return null;
+	}
 	return label.replace(/_([^_])/, '$1');
+}
+
+
+
+/**
+ * PopupMenuBase tries to be smart about automatically hiding separators when their neighbors aren't
+ * visible, but it's buggy for our uses, so we'll override that mechanism.
+ */
+function alwaysShowMenuSeparator(signalManager, menu, item) {
+	signalManager.connect(menu, 'open-state-changed', (menu) => {
+		log('forcing menu separator to be visible')
+		item.actor.show();
+	});
 }
