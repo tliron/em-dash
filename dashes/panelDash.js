@@ -58,7 +58,7 @@ const PanelDash = new Lang.Class({
 
 	setLocation: function(location) {
 		// Note: in RTL, the _leftBox actually appears on the right :)
-		let actor = this._icons.actor;
+		let actor = this._view.actor;
 		switch (location) {
 		case 'PANEL_NEAR':
 			if (Main.panel._centerBox.contains(actor)) {
@@ -81,14 +81,10 @@ const PanelDash = new Lang.Class({
 
 	_updateStyle: function(panelAppearanceMerge) {
 		if (panelAppearanceMerge) {
-			this._icons.actor.add_style_class_name('merge');
-//			let color = Main.panel.actor.get_theme_node().get_background_color.to_string();
-//			log(`background-color: ${color};`);
-//			this._icons.actor.style = `background-color: ${color};`;
+			this._view.actor.add_style_class_name('merge');
 		}
 		else {
-			this._icons.actor.remove_style_class_name('merge');
-			this._icons.actor.style = null;
+			this._view.actor.remove_style_class_name('merge');
 		}
 	},
 
@@ -124,6 +120,6 @@ const PanelDash = new Lang.Class({
 
 	_onPanelHeightChanged: function(actor, height) {
 		log(`panel "height" property changed signal: ${height}`);
-		this._icons.setSize(this._dashManager.scalingManager.toLogical(height));
+		this._view.setSize(this._dashManager.scalingManager.toLogical(height));
 	}
 });

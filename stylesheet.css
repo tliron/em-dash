@@ -37,6 +37,7 @@
 	border-radius: 0 0 0 0;
 	outline-width: 0;
 	outline-offset: 0;
+	transition-duration: 200ms;
 }
 
 /* Optional: allow the dash to blend better into its surroundings */
@@ -49,6 +50,7 @@
 	box-shadow: none;
 	background-image: none;
 	background-color: transparent;
+	transition-duration: 200ms;
 }
 
 /* Themes do not usually expect a dark background for the icons, so the default highlight is barely
@@ -58,12 +60,14 @@
 #dash.merge .app-well-app:focus .overview-icon,
 #dash.merge .app-well-app:selected .overview-icon {
 	background-color: rgba(238, 238, 236, 0.3);
+	transition-duration: 100ms;
 }
 
-/* Optional: highlight focused up */
+/* Optional: highlight focused app */
 
 .app-well-app.focused {
 	background-color: rgba(238, 238, 236, 0.4);
+	transition-duration: 200ms;
 }
 
 

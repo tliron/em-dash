@@ -21,8 +21,8 @@ const Logging = Me.imports.utils.logging;
 const Signals = Me.imports.utils.signals;
 const ClutterUtils = Me.imports.utils.clutter;
 const Scaling = Me.imports.utils.scaling;
-const Entries = Me.imports.entries;
-const Icons = Me.imports.icons;
+const Models = Me.imports.models;
+const Views = Me.imports.views;
 
 const log = Logging.logger('dash');
 
@@ -39,7 +39,7 @@ const DashManager = new Lang.Class({
 
     	this.dash = null;
     	this.settings = settings;
-    	this.entryManager = new Entries.EntryManager(settings);
+    	this.modelManager = new Models.DashModelManager(settings);
 		this.scalingManager = new Scaling.ScalingManager();
 
     	this._dashClasses = dashClasses;
@@ -55,7 +55,7 @@ const DashManager = new Lang.Class({
 			this._appMenuParent = Main.panel._leftBox;
 		}
 		else {
-    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._RightBox, appMenu);
+    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._rightBox, appMenu);
 			if (this._appMenuIndex !== -1) {
 				this._appMenuParent = Main.panel._rightBox;
 			}
@@ -73,7 +73,7 @@ const DashManager = new Lang.Class({
 		if (this.dash !== null) {
 			this.dash.destroy();
 		}
-		this.entryManager.destroy();
+		this.modelManager.destroy();
 		this.scalingManager.destroy();
 		this.restoreBuiltInDash();
 		this.restoreAppMenu();
@@ -152,14 +152,14 @@ const Dash = new Lang.Class({
 
     _init: function(dashManager, styleClass, vertical, iconSize, quantize) {
 		this._dashManager = dashManager;
-    	this._icons = new Icons.Icons(dashManager.entryManager, dashManager.scalingManager,
+    	this._view = new Views.DashView(dashManager.modelManager, dashManager.scalingManager,
     		styleClass, vertical, iconSize, quantize);
 		this._signalManager = new Signals.SignalManager(this);
     },
 
 	destroy: function() {
 		this._signalManager.destroy();
-		this._icons.destroy();
+		this._view.destroy();
 	},
 
 	setLocation: function(location) {

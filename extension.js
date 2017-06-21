@@ -17,8 +17,8 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Logging = Me.imports.utils.logging;
 const Dash = Me.imports.dash;
-const PanelDash = Me.imports.panelDash;
-const DockableDash = Me.imports.dockableDash;
+const PanelDash = Me.imports.dashes.panelDash;
+const DockableDash = Me.imports.dashes.dockableDash;
 
 const log = Logging.logger('extension');
 

@@ -65,7 +65,7 @@ To run `make`, you might need to install these dependencies (this is for Ubuntu)
 #### Debugging
 
 It is recommended to test in a virtual machine running GNOME, so as not to break your dev
-environment.
+environment. Note that St CSS animations will not work unless you have 3D enabled!
 
 See the logs with [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html).
 You can filter specifically for the extension, e.g.:
@@ -94,7 +94,7 @@ reference material:
 * The [GNOME Shell JavaScript source code](https://github.com/GNOME/gnome-shell/tree/master/js/ui)
   is crucial. This is where your `imports.ui` come from. `imports.misc` is in the
   [same repository](https://github.com/GNOME/gnome-shell/tree/master/js/misc).
-* The general `imports` (`imports.lang`, `imports.gettext`) come from the
+* The general `imports` (`imports.lang`, `imports.gettext`, `imports.tweener`) come from the
   [gjs source code](https://git.gnome.org/browse/gjs/tree/modules).
 * All the `imports.gi` come from the GObject-Introspection system, which uses language-neutral XML
   descriptors for installed GObject libraries. (On Ubuntu, you can find the
@@ -115,6 +115,7 @@ reference material:
     `imports.gi.Gio`. You'll also see some documentation there for the XML format for the
     `/schemas/` files. The `type` fields use GLib's
     [GVariant format](https://developer.gnome.org/glib/stable/gvariant-format-strings.html).
+* Learn about [tweeners](http://hosted.zeh.com.br/tweener/docs/en-us/).
 * The preferences page is quite different from all the above, as it's actually a GTK+ widget. The
   [Glade designer](https://glade.gnome.org/) can be used to edit the `prefs.ui` file used by the
   GTK+ builder.

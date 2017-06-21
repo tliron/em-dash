@@ -47,6 +47,15 @@ const IconMenu = new Lang.Class({
 		this._appMenu = null;
 		this._mediaControlsMenu = null;
 		this._settings = settings;
+
+//		// See: panelMenu.js
+//		let Main = imports.ui.main;
+//		let St = imports.gi.St;
+//		let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+//		let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+//		let verticalMargins = this.actor.margin_top + this.actor.margin_bottom;
+//		let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
+//		this.box.style = ('max-height: %spx;').format(50);
 	},
 
 	/**
@@ -95,19 +104,21 @@ const IconMenu = new Lang.Class({
 			this._mediaControlsMenu = new MediaControlsMenu(this._simpleName);
 			this.addMenuItem(this._mediaControlsMenu.item);
 		}
-	},
-
+	}
 });
 
 
-const AppMenuItemContainer = new Lang.Class({
-	Name: 'EmDash.AppMenuItemContainer',
+/**
+ * Base class for containers that use Shell.MenuTracker to insert and remove items.
+ */
+const TrackingContainer = new Lang.Class({
+	Name: 'EmDash.TrackingContainer',
 
-	_init: function(submenu) {
-		this._submenu = submenu;
+	_init: function() {
+		this._menu = null;
+		this._menuTracker = null;
 		this._items = [];
 		this._startPosition = 0;
-		this._menuTracker = null;
 		this._signalManager = new Signals.SignalManager(this);
 	},
 
@@ -120,6 +131,7 @@ const AppMenuItemContainer = new Lang.Class({
 			let item = this._items[i];
 			item.destroy();
 		}
+		this.item.destroy();
 	},
 
 	_track: function(menu, actionGroup, itemModel) {
@@ -129,7 +141,7 @@ const AppMenuItemContainer = new Lang.Class({
 			this._onRemoveItem.bind(this, this));
 	},
 
-	_trackSub: function(menu, trackerItem) {
+	_trackSubmenu: function(menu, trackerItem) {
 		this._menu = menu;
 		this._menuTracker = Shell.MenuTracker.new_for_item_submenu(trackerItem,
 			this._onInsertItem.bind(this, this),
@@ -137,19 +149,23 @@ const AppMenuItemContainer = new Lang.Class({
 	},
 
 	_onInsertItem: function(menu, trackerItem, position) {
-		log(`menu tracker insert item: ${position} ${trackerItem.label}`);
+		log(`menu tracker insert item: ${position} "${trackerItem.label||''}"`);
 
-		if (!this._submenu && (this._startPosition == 0)) {
+		let submenu = this.item instanceof PopupSubMenuMenuItem;
+
+		if (!submenu && (this._startPosition == 0)) {
+			// Add a separator before the first item
 			let item = new PopupMenu.PopupSeparatorMenuItem();
+			this._items.push(item);
 			this._menu.addMenuItem(item);
 			alwaysShowMenuSeparator(this._signalManager, this._menu, item);
 			this._startPosition = 1;
 		}
 
 		if (trackerItem.is_separator) {
-			this._menu.addMenuItem(
-				new PopupMenu.PopupSeparatorMenuItem(stripMnemonics(trackerItem.label)),
-				this._startPosition + position);
+			let item = new PopupMenu.PopupSeparatorMenuItem(stripMnemonics(trackerItem.label));
+			this._items.push(item);
+			this._menu.addMenuItem(item, this._startPosition + position);
 		}
 		else {
 			let item = new AppMenuItem(trackerItem);
@@ -157,7 +173,7 @@ const AppMenuItemContainer = new Lang.Class({
 			this._menu.addMenuItem(item.item, this._startPosition + position);
 		}
 
-		if (this._submenu) {
+		if (submenu) {
 			// We need at least one item to show the submenu
 			this.item.setSubmenuShown(true);
 		}
@@ -176,12 +192,14 @@ const AppMenuItemContainer = new Lang.Class({
  */
 const AppMenu = new Lang.Class({
 	Name: 'EmDash.AppMenu',
-	Extends: AppMenuItemContainer,
+	Extends: TrackingContainer,
 
 	_init: function(actionGroup, menuModel, trackerItem = null) {
-		this.parent(false);
+		this.parent();
 		this.item = new PopupMenu.PopupMenuSection();
 		this._track(this.item, actionGroup, menuModel);
+//		this.item = new PopupMenu.PopupSubMenuMenuItem('Application Menu');
+//		this._track(this.item.menu, actionGroup, menuModel);
 	}
 });
 
@@ -191,12 +209,11 @@ const AppMenu = new Lang.Class({
  */
 const AppMenuItem = new Lang.Class({
 	Name: 'EmDash.AppMenuItem',
-	Extends: AppMenuItemContainer,
+	Extends: TrackingContainer, // we only need the base class functionality for has_submenu
 
 	_init: function(trackerItem) {
-		this.parent(true);
+		this.parent();
 		this._trackerItem = trackerItem;
-		this._signalManager = new Signals.SignalManager(this);
 
 		let label = stripMnemonics(trackerItem.label);
 		if (trackerItem.has_submenu) {
@@ -208,17 +225,19 @@ const AppMenuItem = new Lang.Class({
 		else {
 			this.item = new PopupMenu.PopupMenuItem(label);
 			this._signalManager.connect(this.item, 'activate', this._onActivated);
-			this._signalManager.connectProperty(trackerItem, 'sensitive', this._onSensitiveChanged);
 			this._signalManager.connectProperty(trackerItem, 'role', this._onRoleChanged);
 			this._signalManager.connectProperty(trackerItem, 'toggled', this._onToggledChanged);
+			this._refreshRole(trackerItem.role);
 		}
 		this._signalManager.connectProperty(trackerItem, 'label', this._onLabelChanged);
-		this._trackerItem.bind_property('visible', this.item.actor, 'visible',
+		this._signalManager.connectProperty(trackerItem, 'sensitive', this._onSensitiveChanged);
+		this.item.setSensitive(trackerItem.sensitive);
+		trackerItem.bind_property('visible', this.item.actor, 'visible',
 			GObject.BindingFlags.SYNC_CREATE);
 	},
 
 	destroy: function() {
-		this._signalManager.destroy();
+		this.parent();
 		this._trackerItem.run_dispose();
 	},
 
@@ -242,37 +261,37 @@ const AppMenuItem = new Lang.Class({
 	},
 
 	_onOpen: function(item) {
-		log(`menu item "${this.item.label.text}" "open" signal`);
-		this._trackSub(this.item.menu, this._trackerItem);
+		log(`menu item "${this.item.label.text||''}" "open" signal`);
+		this._trackSubmenu(this.item.menu, this._trackerItem);
 	},
 
 	_onActivated: function(menuItem) {
-		log(`menu item "${this.item.label.text}" "activate" signal`);
+		log(`menu item "${this.item.label.text||''}" "activate" signal`);
 		this._trackerItem.activated();
 	},
 
 	_onLabelChanged: function(trackerItem, label) {
-		log(`tracker item "${this.item.label.text}" "label" property changed signal: ${label}`);
+		log(`tracker item "${this.item.label.text||''}" "label" property changed signal: ${label}`);
 		this.item.label.text = stripMnemonics(label);
 	},
 
 	_onSubmenuShownChanged: function(trackerItem, submenuShown) {
-		log(`tracker item "${this.item.label.text}" "submenu-shown" property changed signal: ${submenuShown}`);
+		log(`tracker item "${this.item.label.text||''}" "submenu-shown" property changed signal: ${submenuShown}`);
 		this.item.setSubmenuShown(submenuShown);
 	},
 
 	_onSensitiveChanged: function(trackerItem, sensitive) {
-		log(`tracker item "${this.item.label.text}" "sensitive" property changed signal: ${sensitive}`);
+		log(`tracker item "${this.item.label.text||''}" "sensitive" property changed signal: ${sensitive}`);
 		this.item.setSensitive(sensitive);
 	},
 
 	_onRoleChanged: function(trackerItem, role) {
-		log(`tracker item "${this.item.label.text}" "role" property changed signal: ${role}`);
+		log(`tracker item "${this.item.label.text||''}" "role" property changed signal: ${role}`);
 		this._refreshRole(role);
 	},
 
 	_onToggledChanged: function(trackerItem, toggled) {
-		log(`tracker item "${this.item.label.text}" "toggled" property changed signal: ${toggled}`);
+		log(`tracker item "${this.item.label.text||''}" "toggled" property changed signal: ${toggled}`);
 		this._refreshRole(trackerItem.role);
 	}
 });
@@ -296,6 +315,7 @@ const MediaControlsMenu = new Lang.Class({
 	destroy: function() {
 		this._signalManager.destroy();
 		this._mpris.destroy();
+		this.item.destroy();
 	},
 
 	_onInitialized: function(mpris) {

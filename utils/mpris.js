@@ -49,14 +49,14 @@ const MPRIS = new Lang.Class({
 		this._mediaPlayerPlaylists = null;
 		this._mediaPlayerTracklist = null;
 
-		// While we can create proxies without an owner, they won't work :)
+		// While we can successfully create proxies without an owner, they won't work :)
 		getOwner(this._busName, Lang.bind(this, this._onGetOwner));
 	},
 
 	destroy: function() {
 		log('destroy');
-		// There is no way to disconnect the existing DBus remote calls, so we'll just make sure not
-		// to do anything if answers arrive after we've been destroyed
+		// There is no way to cancel the existing DBus remote calls, so we'll just make sure not to
+		// do anything if answers arrive after we've been destroyed
 		this._destroyed = true;
 	},
 
@@ -96,16 +96,21 @@ const MPRIS = new Lang.Class({
 		// Create proxies
 		let onProxyCreated = Lang.bind(this, this._onProxyCreated);
 		let interfacePath = '/org/mpris/MediaPlayer2';
-//		createProxy(PropertiesWrapper, this._busName, interfacePath,
-//			'properties', onProxyCreated);
-//		createProxy(MediaPlayerWrapper, this._busName, interfacePath,
-//			'mediaPlayer', onProxyCreated);
 		createProxy(MediaPlayerPlayerWrapper, this._busName, interfacePath,
-			'mediaPlayerPlayer', onProxyCreated);
-//		createProxy(MediaPlayerPlaylistsWrapper, this._busName, interfacePath,
-//			'mediaPlayerPlaylists', onProxyCreated);
-//		createProxy(MediaPlayerTracklistWrapper, this._busName, interfacePath,
-//			'mediaPlayerTracklist', onProxyCreated);
+				'mediaPlayerPlayer', onProxyCreated);
+
+		// We're currently not using these other proxies, but are leaving the code here for possible
+		// future use
+		/*
+		createProxy(PropertiesWrapper, this._busName, interfacePath,
+			'properties', onProxyCreated);
+		createProxy(MediaPlayerWrapper, this._busName, interfacePath,
+			'mediaPlayer', onProxyCreated);
+		createProxy(MediaPlayerPlaylistsWrapper, this._busName, interfacePath,
+			'mediaPlayerPlaylists', onProxyCreated);
+		createProxy(MediaPlayerTracklistWrapper, this._busName, interfacePath,
+			'mediaPlayerTracklist', onProxyCreated);
+		*/
 	},
 
 	_onProxyCreated: function(name, proxy) {
