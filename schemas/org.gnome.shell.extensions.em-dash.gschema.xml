@@ -37,8 +37,8 @@
       <summary>Panel height</summary>
       <description>Custom height for the panel.</description>
     </key>
-    <key name="dock-icon-size" enum="org.gnome.shell.extensions.em-dash.icon-size">
-      <default>'64'</default>
+    <key name="dock-icon-size" type="u">
+      <default>64</default>
       <summary>Dock icon size</summary>
       <description>Icon size for the dock.</description>
     </key>

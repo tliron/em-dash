@@ -82,12 +82,16 @@ const PrefsWidget = new Lang.Class({
 		}
 
 		// Marks
-		let panelHeight = this._builder.get_object('panel_height')
-		panelHeight.add_mark(16, Gtk.PositionType.BOTTOM, '16');
-		panelHeight.add_mark(32, Gtk.PositionType.BOTTOM, '32');
-		panelHeight.add_mark(64, Gtk.PositionType.BOTTOM, '64');
-		panelHeight.add_mark(96, Gtk.PositionType.BOTTOM, '96');
-		panelHeight.add_mark(128, Gtk.PositionType.BOTTOM, '128');
+		function addMarks(scale) {
+			scale.add_mark(16, Gtk.PositionType.BOTTOM, '16');
+			scale.add_mark(32, Gtk.PositionType.BOTTOM, '32');
+			scale.add_mark(48, Gtk.PositionType.BOTTOM, '48');
+			scale.add_mark(64, Gtk.PositionType.BOTTOM, '64');
+			scale.add_mark(96, Gtk.PositionType.BOTTOM, '96');
+			scale.add_mark(128, Gtk.PositionType.BOTTOM, '128');
+		}
+		addMarks(this._builder.get_object('panel_height'));
+		addMarks(this._builder.get_object('dock_icon_size'));
 
 		// Update version
 		let version = Me.metadata.version;
@@ -157,10 +161,10 @@ const PrefsWidget = new Lang.Class({
 			this._onPanelCustomHeightSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'panel-height', 'uint',
 			this._onPanelHeightSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'dock-icon-size', 'enum',
+		this._signalManager.connectSetting(this._settings, 'dock-icon-size', 'uint',
 			this._onDockIconSizeSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dock-alignment', 'string',
-				this._onDockAlignmentSettingChanged);
+			this._onDockAlignmentSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dock-visibility', 'string',
 			this._onDockVisibilitySettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dash-per-workspace', 'boolean',
@@ -321,22 +325,22 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onPanelHeightValueChanged: function(scale) {
-		let value = scale.get_value();
-		log(`"panel_height" scale value changed signal: ${value}`);
-		this._settings.set_uint('panel-height', value);
+		let panelHeight = scale.get_value();
+		log(`"panel_height" scale value changed signal: ${panelHeight}`);
+		this._settings.set_uint('panel-height', panelHeight);
 	},
 
 	// Icon size combo box
 
 	_onDockIconSizeSettingChanged: function(settings, dockIconSize) {
 		log(`"dock-icon-size" setting changed signal: ${dockIconSize}`);
-		this._builder.get_object('dock_icon_size').active_id = String(dockIconSize);
+		this._builder.get_object('dock_icon_size').set_value(dockIconSize);
 	},
 
-	_onDockIconSizeChanged: function(combo) {
-		let dockIconSize = combo.active_id;
-		log(`"dock_icon_size" combo box "changed" signal: ${dockIconSize}`);
-		this._settings.set_enum('dock-icon-size', dockIconSize);
+	_onDockIconSizeValueChanged: function(scale) {
+		let dockIconSize = scale.get_value();
+		log(`"dock_icon_size" scale value changed signal: ${dockIconSize}`);
+		this._settings.set_uint('dock-icon-size', dockIconSize);
 	},
 
 	// Alignment radio buttons

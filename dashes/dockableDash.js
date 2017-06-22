@@ -37,20 +37,20 @@ const DockableDash = new Lang.Class({
 		log('_init');
 
 		let side = getMutterSideForLocation(location);
-		let align = getStAlignForAlignment(dashManager.settings.get_string('dock-alignment'));
+		let align = getStAlignForAlignment(dashManager.settings.get_enum('dock-alignment'));
 		let stretch = dashManager.settings.get_boolean('dock-stretch');
 		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 
 		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
-		this.parent(dashManager, 'dock', vertical, dashManager.settings.get_enum('dock-icon-size'),
-			true);
+		this.parent(dashManager, 'dock', vertical, dashManager.settings.get_uint('dock-icon-size'),
+			false);
 
 		this._updateStyle(side);
 
 		this._dockable = new Dockable.Dockable(this._view.actor, side, align, stretch, toggle);
 
 		this._signalManager.connect(this._view.actor, 'style-changed', this._onStyleChanged);
-		this._signalManager.connectSetting(dashManager.settings, 'dock-icon-size', 'enum',
+		this._signalManager.connectSetting(dashManager.settings, 'dock-icon-size', 'uint',
 			this._onDockIconSizeSettingChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-stretch', 'boolean',
 			this._onDockStretchSettingChanged);

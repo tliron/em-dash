@@ -8,15 +8,6 @@
     <value value='3' nick='EDGE_FAR'/>
     <value value='4' nick='EDGE_BOTTOM'/>
   </enum>
-  <enum id='org.gnome.shell.extensions.em-dash.icon-size'>
-    <value value='16' nick='16'/>
-    <value value='22' nick='22'/>
-    <value value='24' nick='24'/>
-    <value value='32' nick='32'/>
-    <value value='48' nick='48'/>
-    <value value='64' nick='64'/>
-    <value value='96' nick='96'/>
-  </enum>
   <enum id='org.gnome.shell.extensions.em-dash.alignment'>
     <value value='0' nick='NEAR'/>
     <value value='1' nick='MIDDLE'/>

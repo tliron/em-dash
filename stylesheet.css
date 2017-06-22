@@ -10,13 +10,7 @@
 	margin-bottom: 0;
 }
 
-#dash.panel .overview-icon {
-	padding-top: 0;
-	padding-bottom: 0;
-	margin-top: 0;
-	margin-bottom: 0;
-}
-
+#dash.panel .overview-icon,
 #dash.panel .app-well-app-running-dot {
 	padding-top: 0;
 	padding-bottom: 0;
@@ -32,22 +26,19 @@
 
 /* Optional: just remove the border */
 
-#dash.no-border {
-	border-width: 0;
-	border-radius: 0 0 0 0;
-	outline-width: 0;
-	outline-offset: 0;
-	transition-duration: 200ms;
-}
-
-/* Optional: allow the dash to blend better into its surroundings */
-
+#dash.no-border,
 #dash.merge {
 	border-width: 0;
 	border-radius: 0 0 0 0;
 	outline-width: 0;
 	outline-offset: 0;
 	box-shadow: none;
+	transition-duration: 200ms;
+}
+
+/* Optional: allow the dash to blend better into its surroundings */
+
+#dash.merge {
 	background-image: none;
 	background-color: transparent;
 	transition-duration: 200ms;
@@ -59,6 +50,7 @@
 #dash.merge .app-well-app:hover .overview-icon,
 #dash.merge .app-well-app:focus .overview-icon,
 #dash.merge .app-well-app:selected .overview-icon {
+	/* TODO: betterr to do this dynamically */
 	background-color: rgba(238, 238, 236, 0.3);
 	transition-duration: 100ms;
 }
@@ -66,42 +58,10 @@
 /* Optional: highlight focused app */
 
 .app-well-app.focused {
+	/* TODO: make a dynamic blend, like in Unity's Launcher! */
 	background-color: rgba(238, 238, 236, 0.3);
-	border-radius: 4px;
 	border: 1px solid transparent;
+	border-radius: 4px;
 	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
 	transition-duration: 200ms;
 }
-
-
-/*
-.app-well-app {
-	background-color: rgba(0, 255, 0, 0.5);
-}
-*/
-
-/*
-.app-well-app-running-dot {
-	margin-bottom: 0;
-}
-*/
-
-
-/* Copied from the default theme */
-/*#em-dash .placeholder {
-	background-image: url("resource:///org/gnome/shell/theme/dash-placeholder.svg");
-	background-size: contain;
-	height: 24px;
-}*/
-
-
-/*
-.app-well-app:hover {
-	background-color: red;
-}
-
-.app-well-app:hover .overview-icon {
-	border-width: 0;
-	border-radius: 0 0 0 0;
-}
-*/

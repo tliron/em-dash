@@ -30,7 +30,7 @@ const log = Logging.logger('scaling');
 
 
 // Non-SVG icon themes tend to have icons in these sizes (except for 64 and 96)
-const iconLogicalSizes = [8, 16, 22, 24, 32, 48, 64, 96, 128, 256, 512];
+const ICON_SAFE_SIZES = [8, 16, 22, 24, 32, 48, 64, 96, 128, 256, 512];
 
 
 /**
@@ -145,14 +145,14 @@ const ScalingManager = new Lang.Class({
 		return physicalSize / this._factor;
 	},
 
-	getQuantizedIconSize: function(physicalSize) {
-		for (let i = 1; i < iconLogicalSizes.length; i++) {
-			let nextPhysicalSize = this.toPhysical(iconLogicalSizes[i]);
+	getSafeIconSize: function(physicalSize) {
+		for (let i = 1; i < ICON_SAFE_SIZES.length; i++) {
+			let nextPhysicalSize = this.toPhysical(ICON_SAFE_SIZES[i]);
 			if (nextPhysicalSize > physicalSize) {
-				return this.toPhysical(iconLogicalSizes[i - 1]);
+				return this.toPhysical(ICON_SAFE_SIZES[i - 1]);
 			}
 		}
-		return this.toPhysical(iconLogicalSizes[iconLogicalSizes.length - 1]);
+		return this.toPhysical(ICON_SAFE_SIZES[ICON_SAFE_SIZES.length - 1]);
 	},
 
 	get stFactor() {

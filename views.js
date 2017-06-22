@@ -122,7 +122,7 @@ const DashView = new Lang.Class({
 		let physicalActorSize = this._scalingManager.toPhysical(this._iconSize);
 		let physicalIconSize = physicalActorSize * 0.75;
 		if (this.quantize) {
-			physicalIconSize = this._scalingManager.getQuantizedIconSize(physicalIconSize);
+			physicalIconSize = this._scalingManager.getSafeIconSize(physicalIconSize);
 		}
 
 		this.box.remove_all_children();
