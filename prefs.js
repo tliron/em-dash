@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -157,10 +157,12 @@ const PrefsWidget = new Lang.Class({
 			this._onPanelCustomHeightSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'panel-height', 'uint',
 			this._onPanelHeightSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dock-icon-size', 'enum',
+			this._onDockIconSizeSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'dock-alignment', 'string',
+				this._onDockAlignmentSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dock-visibility', 'string',
 			this._onDockVisibilitySettingChanged);
-		this._signalManager.connectSetting(this._settings, 'dock-alignment', 'string',
-			this._onDockAlignmentSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dash-per-workspace', 'boolean',
 			this._onDashPerWorkspaceSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'icons-left-click', 'string',
@@ -324,32 +326,17 @@ const PrefsWidget = new Lang.Class({
 		this._settings.set_uint('panel-height', value);
 	},
 
-	// Visibility radio buttons
+	// Icon size combo box
 
-	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
-		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
-		switch (dockVisibility) {
-		case 'ALWAYS':
-			this._builder.get_object('visibility_always_visible').active = true;
-			break;
-		case 'TOUCH_TO_SHOW':
-			this._builder.get_object('visibility_touch_to_show').active = true;
-			break;
-		}
+	_onDockIconSizeSettingChanged: function(settings, dockIconSize) {
+		log(`"dock-icon-size" setting changed signal: ${dockIconSize}`);
+		this._builder.get_object('dock_icon_size').active_id = String(dockIconSize);
 	},
 
-	_onVisibilityAlwaysVisibleToggled: function(button) {
-		log('"visibility_always_visible" radio button "toggled" signal');
-		if (button.active) {
-			this._settings.set_string('dock-visibility', 'ALWAYS');
-		}
-	},
-
-	_onVisibilityTouchToShowToggled: function(button) {
-		log('"visibility_touch_to_show" radio button "toggled" signal');
-		if (button.active) {
-			this._settings.set_string('dock-visibility', 'TOUCH_TO_SHOW');
-		}
+	_onDockIconSizeChanged: function(combo) {
+		let dockIconSize = combo.active_id;
+		log(`"dock_icon_size" combo box "changed" signal: ${dockIconSize}`);
+		this._settings.set_enum('dock-icon-size', dockIconSize);
 	},
 
 	// Alignment radio buttons
@@ -387,6 +374,34 @@ const PrefsWidget = new Lang.Class({
 		log('"alignment_far" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_string('dock-alignment', 'FAR');
+		}
+	},
+
+	// Visibility radio buttons
+
+	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
+		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
+		switch (dockVisibility) {
+		case 'ALWAYS':
+			this._builder.get_object('visibility_always_visible').active = true;
+			break;
+		case 'TOUCH_TO_SHOW':
+			this._builder.get_object('visibility_touch_to_show').active = true;
+			break;
+		}
+	},
+
+	_onVisibilityAlwaysVisibleToggled: function(button) {
+		log('"visibility_always_visible" radio button "toggled" signal');
+		if (button.active) {
+			this._settings.set_string('dock-visibility', 'ALWAYS');
+		}
+	},
+
+	_onVisibilityTouchToShowToggled: function(button) {
+		log('"visibility_touch_to_show" radio button "toggled" signal');
+		if (button.active) {
+			this._settings.set_string('dock-visibility', 'TOUCH_TO_SHOW');
 		}
 	},
 

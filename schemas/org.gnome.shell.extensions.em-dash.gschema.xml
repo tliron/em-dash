@@ -37,25 +37,30 @@
       <summary>Panel height</summary>
       <description>Custom height for the panel.</description>
     </key>
-    <key name="dock-visibility" enum="org.gnome.shell.extensions.em-dash.visibility">
-      <default>'ALWAYS'</default>
-      <summary>Dock visibility</summary>
-      <description>When to show the dock.</description>
+    <key name="dock-icon-size" enum="org.gnome.shell.extensions.em-dash.icon-size">
+      <default>'64'</default>
+      <summary>Dock icon size</summary>
+      <description>Icon size for the dock.</description>
     </key>
     <key name="dock-stretch" type="b">
       <default>true</default>
       <summary>Dock stretch</summary>
       <description>Whether to to stretch the dock to fill the monitor edge.</description>
     </key>
+    <key name="dock-borders" type="b">
+      <default>true</default>
+      <summary>Dock borders</summary>
+      <description>Whether to show border when docked on left or right monitor edges.</description>
+    </key>
     <key name="dock-alignment" enum="org.gnome.shell.extensions.em-dash.alignment">
       <default>'MIDDLE'</default>
       <summary>Dock alignment</summary>
       <description>How to align icons in the dock.</description>
     </key>
-    <key name="dock-borders" type="b">
-      <default>true</default>
-      <summary>Dock borders</summary>
-      <description>Whether to show border when docked on left or right monitor edges.</description>
+    <key name="dock-visibility" enum="org.gnome.shell.extensions.em-dash.visibility">
+      <default>'ALWAYS'</default>
+      <summary>Dock visibility</summary>
+      <description>When to show the dock.</description>
     </key>
     <key name="icons-highlight-focused" type="b">
       <default>false</default>

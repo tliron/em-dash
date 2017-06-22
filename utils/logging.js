@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -20,7 +20,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 function logger(name) {
 	return (message) => {
 		if (Me.LOGGING_ENABLED && Me.LOGGING_IMPLEMENTATION) {
-			Me.LOGGING_IMPLEMENTATION(`[EmDash] {${name}} ${message}`);
+			Me.LOGGING_IMPLEMENTATION(`[Em-Dash] {${name}} ${message}`);
 		}
 	};
 }

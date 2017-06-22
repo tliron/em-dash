@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -36,6 +36,12 @@ const Draggable = new Lang.Class({
 
 		this._draggable = DND.makeDraggable(actor);
 
+		// Monkey patches
+		this._originalCancelDrag = this._draggable._cancelDrag;
+		this._draggable._cancelDrag = Lang.bind(this, this._cancelDrag);
+		this._originalGetRestoreLocation = this._draggable._getRestoreLocation;
+		this._draggable._getRestoreLocation = Lang.bind(this, this._getRestoreLocation);
+
 		this._signalManager = new Signals.SignalManager(this);
 		this._signalManager.connect(this._draggable, 'drag-begin', this._onDragBegan);
 		this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCancelled);
@@ -55,6 +61,20 @@ const Draggable = new Lang.Class({
 		if (this.actor._delegate && this.actor._delegate.handleDragBegin) {
 			this.actor._delegate.handleDragBegin();
 		}
+	},
+
+	_cancelDrag: function(eventTime) {
+		if (this.actor._delegate && this.actor._delegate.handleDragCancelling) {
+			this.actor._delegate.handleDragCancelling();
+		}
+		this._originalCancelDrag.call(this._draggable, eventTime);
+	},
+
+	_getRestoreLocation: function() {
+		if (this.actor._delegate && this.actor._delegate.getDragRestoreLocation) {
+			return this.actor._delegate.getDragRestoreLocation();
+		}
+		return this._originalGetRestoreLocation.call(this._draggable);
 	},
 
 	_onDragCancelled: function(draggable, time) {

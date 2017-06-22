@@ -1,12 +1,13 @@
 
-Em Dash
+Em—Dash
 =======
 
 **WORK IN PROGRESS, DO NOT USE**
 
-A GNOME Shell extension that replaces the built-in dash with a much enhanced version.
+A GNOME Shell extension that replaces the built-in overview dash with a much enhanced dash on the
+desktop.
 
-It provides the following optional extra features for the dash:
+It provides the following features for the dash:
 
 * Move it out of the overlay and into the **top panel** or dock it on an **edge** of one of the
   **monitors**.
@@ -37,15 +38,15 @@ What does the name mean?
 ------------------------
 
 The [em dash](https://en.wikipedia.org/wiki/Dash#Em_dash) is the longest version of the typographic
-dash.
+dash. Hilariously, the "Em—Dash" name is stylized with an em dash inside of it.  
 
 
 Developers
 ----------
 
-Em Dash has a deliberately extensible and reusable architecture. If you have your own idea for a
+Em—Dash has a deliberately extensible and reusable architecture. If you have your own idea for a
 new kind of dash implementation, you can extend the `Dash` class, or even use the `EntryManager`
-directly. Would you also kindly contribute it to Em Dash?
+directly. Would you also kindly contribute it to Em—Dash?
 
 And if you want to use some of the UI features, you might enjoy `Dockable`, a generic class that can
 be used to dock any St actor to a monitor edge. Also, our Icon class can be used independently in
@@ -65,12 +66,13 @@ To run `make`, you might need to install these dependencies (this is for Ubuntu)
 #### Debugging
 
 It is recommended to test in a virtual machine running GNOME, so as not to break your dev
-environment. Note that St CSS animations will not work unless you have 3D enabled!
+environment while yoiu work. Note, though, that St CSS animations will not work unless you have 3D
+enabled, so you want to make sure your virtual guest supports 3D.
 
 See the logs with [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html).
 You can filter specifically for the extension, e.g.:
 
-    journalctl -f -o cat GNOME_SHELL_EXTENSION_NAME="Em Dash"
+    journalctl -f -o cat GNOME_SHELL_EXTENSION_NAME="Em-Dash"
 
 Unfortunately, this will not show uncaught exceptions, which are logged by gjs (GNOME JavaScript):
 
@@ -128,6 +130,6 @@ TODO
 * In touch-to-show, make sure it is shown in overview! Also on all monitors!
 * Allow dragging to after all other favorites
 * Window previews/lists on hover
-* Animations
 * Dragging on empty dash
 * Add applications button
+* Wobbly drag and drop in panel

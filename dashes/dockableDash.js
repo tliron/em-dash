@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -42,21 +42,24 @@ const DockableDash = new Lang.Class({
 		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
 
 		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
-		this.parent(dashManager, 'dock', vertical, 64, true);
+		this.parent(dashManager, 'dock', vertical, dashManager.settings.get_enum('dock-icon-size'),
+			true);
 
 		this._updateStyle(side);
 
 		this._dockable = new Dockable.Dockable(this._view.actor, side, align, stretch, toggle);
 
 		this._signalManager.connect(this._view.actor, 'style-changed', this._onStyleChanged);
-		this._signalManager.connectSetting(dashManager.settings, 'dock-visibility', 'string',
-			this._onDockVisibilitySettingChanged);
-		this._signalManager.connectSetting(dashManager.settings, 'dock-alignment', 'string',
-			this._onDockAlignmentSettingChanged);
+		this._signalManager.connectSetting(dashManager.settings, 'dock-icon-size', 'enum',
+			this._onDockIconSizeSettingChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-stretch', 'boolean',
 			this._onDockStretchSettingChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-borders', 'boolean',
 			this._onDockBordersSettingChanged);
+		this._signalManager.connectSetting(dashManager.settings, 'dock-alignment', 'string',
+			this._onDockAlignmentSettingChanged);
+		this._signalManager.connectSetting(dashManager.settings, 'dock-visibility', 'string',
+			this._onDockVisibilitySettingChanged);
 		this._signalManager.connect(dashManager.scalingManager, 'changed', this._onScalingChanged);
 	},
 
@@ -142,16 +145,9 @@ const DockableDash = new Lang.Class({
 		connection.blocked = false;
 	},
 
-	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
-		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
-		let toggle = dockVisibility === 'TOUCH_TO_SHOW';
-		this._dockable.setToggle(toggle);
-	},
-
-	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
-		log(`"dock-alignment" setting changed signal: ${dockAlignment}`);
-		let align = getStAlignForAlignment(dockAlignment);
-		this._dockable.setAlign(align);
+	_onDockIconSizeSettingChanged: function(setting, dockIconSize) {
+		log(`"dock-icon-size" setting changed signal: ${dockIconSize}`);
+		this._view.setSize(dockIconSize);
 	},
 
 	_onDockStretchSettingChanged: function(setting, dockStretch) {
@@ -163,6 +159,18 @@ const DockableDash = new Lang.Class({
 		log(`"dock-borders" setting changed signal: ${dockBorders}`);
 		let location = this._dashManager.settings.get_string('dash-location');
 		this._updateStyle(getMutterSideForLocation(location));
+	},
+
+	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
+		log(`"dock-alignment" setting changed signal: ${dockAlignment}`);
+		let align = getStAlignForAlignment(dockAlignment);
+		this._dockable.setAlign(align);
+	},
+
+	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
+		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
+		let toggle = dockVisibility === 'TOUCH_TO_SHOW';
+		this._dockable.setToggle(toggle);
 	},
 
 	_onScalingChanged: function(scaling, factor) {

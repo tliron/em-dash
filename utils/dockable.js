@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -219,7 +219,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_setBounds: function(bounds) {
-		log(`_setBounds: ${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}`);
+		log(`_setBounds: x=${bounds.x} y=${bounds.y} w=${bounds.width} h=${bounds.height}`);
 		this.actor.move_anchor_point_from_gravity(bounds.anchor);
 		this.actor.set_position(bounds.x, bounds.y);
 		this.actor.set_size(bounds.width, bounds.height);
@@ -270,7 +270,7 @@ const Dockable = new Lang.Class({
 	},
 
 	_setPressureBarrier: function(barrier) {
-		log(`_setPressureBarrier: ${barrier.x1} ${barrier.y1} ${barrier.x2} ${barrier.y2}`);
+		log(`_setPressureBarrier: x1=${barrier.x1} y1=${barrier.y1} x2=${barrier.x2} y2=${barrier.y2}`);
 		this._destroyPressureBarrier();
 		barrier.display = global.display;
 		this._barrier = new Meta.Barrier(barrier);
@@ -337,10 +337,10 @@ const Dockable = new Lang.Class({
 			(workArea.width === this._workArea.width) &&
 			(workArea.height === this._workArea.height)) {
 			// No change
-			log(`work area not changed: ${workArea.x} ${workArea.y} ${workArea.width} ${workArea.height}`);
+			log(`work area not changed: x=${workArea.x} y=${workArea.y} w=${workArea.width} h=${workArea.height}`);
 			return false;
 		}
-		log(`work area changed: ${workArea.x} ${workArea.y} ${workArea.width} ${workArea.height}`);
+		log(`work area changed: x=${workArea.x} y=${workArea.y} w=${workArea.width} h=${workArea.height}`);
 		this._workArea.x = workArea.x;
 		this._workArea.y = workArea.y;
 		this._workArea.width = workArea.width;

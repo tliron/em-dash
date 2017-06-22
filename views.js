@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -14,10 +14,11 @@
  */
 
 const Lang = imports.lang;
+const Signals = imports.signals;
 const Main = imports.ui.main;
 const AppDisplay = imports.ui.appDisplay;
 const AppFavorites = imports.ui.appFavorites;
-//const Tweener = imports.ui.tweener;
+const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
 const Shell = imports.gi.Shell;
 const Clutter = imports.gi.Clutter;
@@ -25,7 +26,7 @@ const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
-const Signals = Me.imports.utils.signals;
+const SignalsUtils = Me.imports.utils.signals;
 const Scaling = Me.imports.utils.draggable;
 const ClutterUtils = Me.imports.utils.clutter;
 const Draggable = Me.imports.utils.draggable;
@@ -35,6 +36,9 @@ const Models = Me.imports.models;
 const log = Logging.logger('views');
 
 
+const ANIMATION_TIME = 0.1;
+
+
 /**
  * UI representation of a dash model.
  */
@@ -42,6 +46,8 @@ const DashView = new Lang.Class({
 	Name: 'EmDash.DashView',
 
 	_init: function(modelManager, scalingManager, styleClass, vertical, iconSize, quantize) {
+		log('DashView._init');
+
 		this.modelManager = modelManager;
 		this.quantize = quantize;
 
@@ -62,23 +68,25 @@ const DashView = new Lang.Class({
 		});
 
 		let windowTracker = Shell.WindowTracker.get_default();
-		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager = new SignalsUtils.SignalManager(this);
 		this._signalManager.connect(modelManager, 'changed', this._onDashModelChanged);
 		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
-		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusAppChanged);
-		this._signalManager.connectSetting(this.modelManager.settings, 'icons-highlight-focused',
-			'boolean', this._onIconsHighlightFocusedSettingChanged);
 
 		this.setVertical(vertical);
 		this.setSize(iconSize);
+
+		this._signalManager.connectProperty(windowTracker, 'focus-app', this._onFocusAppChanged);
+		this._signalManager.connectSetting(this.modelManager.settings, 'icons-highlight-focused',
+			'boolean', this._onIconsHighlightFocusedSettingChanged);
 	},
 
 	destroy: function() {
+		log('DashView.destroy');
 		this._signalManager.destroy();
 		this.actor.destroy();
 	},
 
-	getIconAt: function(index) {
+	getIconViewAt: function(index) {
 		let actor = this.box.get_child_at_index(index);
 		return actor !== null ? actor._delegate : null;
 	},
@@ -122,7 +130,7 @@ const DashView = new Lang.Class({
 		for (let i = 0; i < dashModel.icons.length; i++) {
 			let iconModel = dashModel.icons[i];
 			let iconView = new IconView(this, iconModel.app, i);
-			iconView.actor.height = physicalActorSize
+			iconView.actor.height = physicalActorSize;
 			iconView._fixedIconSize = this._scalingManager.toLogical(physicalIconSize);
 			this.box.add_child(iconView.actor);
 
@@ -208,7 +216,7 @@ const IconView = new Lang.Class({
 	Extends: AppDisplay.AppIcon,
 
 	_init: function(dashView, app, modelIndex) {
-		log(`_init: ${modelIndex}`);
+		log(`IconView._init: ${modelIndex}`);
 		this._dashView = dashView;
 		this._modelIndex = modelIndex;
 		this._fixedIconSize = null;
@@ -242,13 +250,52 @@ const IconView = new Lang.Class({
 		// Hooked from EmDash.Draggable using our actor._delegate
 		log(`handleDragBegin hook: ${this.app.id}`);
 		this._removeMenuTimeout();
-		this.actor.hide();
+
+		let position = this.icon.icon.get_transformed_position();
+		this._originalX = position[0];
+		this._originalY = position[1];
+		this._originalWidth = this.actor.width;
+		this._originalHeight = this.actor.height;
+
+		// Become an empty space
+		this.actor.child.hide();
+
+		// Dissolve
+		Tweener.addTween(this.actor, {
+			time: ANIMATION_TIME,
+			transition: 'easeOutQuad',
+			width: 0,
+			height: 0,
+			onComplete: () => {
+				this.actor.hide();
+			}
+		});
+	},
+
+	getDragRestoreLocation: function() {
+		// Hooked from EmDash.Draggable using our actor._delegate
+		log(`getDragRestoreLocation hook: ${this.app.id}`);
+		return [this._originalX, this._originalY, 1];
+	},
+
+	handleDragCancelling: function() {
+		// Hooked from EmDash.Draggable using our actor._delegate
+		log(`handleDragCancelling hook: ${this.app.id}`);
+
+		// Appear
+		this.actor.show();
+		Tweener.addTween(this.actor, {
+			time: ANIMATION_TIME,
+			transition: 'easeOutQuad',
+			width: this._originalWidth,
+			height: this._originalHeight,
+		});
 	},
 
 	handleDragEnd: function(dropped) {
 		// Hooked from EmDash.Draggable using our actor._delegate
-		log(`handleDragEnd hook: ${this.app.id} ${dropped}`);
-		this.actor.show();
+		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
+		this.actor.child.show();
 	},
 
 	/*
@@ -264,6 +311,11 @@ const IconView = new Lang.Class({
 	// Dragging over us
 
 	handleDragOver: function(source, actor, x, y, extra) {
+		if (source === this) {
+			log('handleDragOver hook: it\'s us');
+			return DND.DragMotionResult.NO_DROP;
+		}
+
 		// Hooked from DND using our actor._delegate
 		if (!(source instanceof AppDisplay.AppIcon)) {
 			log('handleDragOver hook: not an app');
@@ -278,18 +330,18 @@ const IconView = new Lang.Class({
 			app = this.app;
 		}
 		else {
-			let icon = this._dashView.getIconAt(this._modelIndex - 1);
-			if (icon !== null) {
-				app = icon.app;
+			let iconView = this._dashView.getIconViewAt(this._modelIndex - 1);
+			if (iconView !== null) {
+				app = iconView.app;
 			}
 		}
 		if ((app === null) || !Models.isFavoriteApp(app)) {
-			log('handleDragOver hook: not a favorite app');
+			log(`handleDragOver hook: ${app?app.id:'?'} not a favorite app`);
 			return DND.DragMotionResult.NO_DROP;
 		}
 
-		log(`handleDragOver hook: ${this.app.id} ${Math.round(x)} ${Math.round(y)}`);
-		startDropHovering(this.actor, after);
+		log(`handleDragOver hook: ${this.app.id} x=${Math.round(x)} y=${Math.round(y)}`);
+		addDropPlaceholder(this.actor, after);
 		return DND.DragMotionResult.MOVE_DROP;
 	},
 
@@ -338,7 +390,7 @@ const IconView = new Lang.Class({
 	 * Override.
 	 */
 	_onDestroy: function() {
-		log('_onDestroy');
+		log('IconView._onDestroy');
 		if (this._draggable !== null) {
 			this._draggable.destroy();
 		}
@@ -357,21 +409,34 @@ const IconView = new Lang.Class({
 });
 
 
+let _dropPlaceholder = null;
+let _dragMonitor = {
+	dragMotion: _onDragMotion,
+	dragDrop: _onDragDrop
+};
+
+
 /**
- * Drop hovering placeholder.
+ * Drop hovering placeholder singleton.
  */
-const Placeholder = new Lang.Class({
-	Name: 'EmDash.Placeholder',
+const DropPlaceholder = new Lang.Class({
+	Name: 'EmDash.DropPlaceholder',
 
 	_init: function(actor, after) {
+		this.nextActor = null;
+		this.nextAfter = null;
+
 		this._iconView = actor._delegate;
 		this._after = after;
-		log(`Placeholder._init: ${this._iconView.app.id} ${after}`);
+		this._destroying = false;
+		log(`DropPlaceholder._init: ${this._iconView.app.id} ${after?'after':''}`);
+
+		let vertical = this._iconView._dashView.box.vertical;
 
 		this.actor = new St.Widget({
 			name: 'em-dash-placeholder',
-			width: actor.width,
-			height: actor.height,
+			width: vertical ? actor.width : 0,
+			height: vertical ? 0 : actor.height,
 			style_class: 'placeholder' // GNOME theme styling
 		});
 		this.actor._delegate = this; // hook for DND
@@ -380,26 +445,64 @@ const Placeholder = new Lang.Class({
 		let container = this._iconView._dashView.box;
 		let index = ClutterUtils.getActorIndexOfChild(container, actor);
 		if (after) {
-			container.insert_child_at_index(this.actor, index + 1);
+			this._neighbor = container.get_child_at_index(index + 1);
 			this._modelIndex = this._iconView._modelIndex + 1;
+			container.insert_child_at_index(this.actor, index + 1);
 		}
 		else {
-			container.insert_child_at_index(this.actor, index);
+			this._neighbor = actor;
 			this._modelIndex = this._iconView._modelIndex;
+			container.insert_child_at_index(this.actor, index);
 		}
 
-		// Drag monitor
-		this._dragMonitor = {
-			dragMotion: Lang.bind(this, this._onDragMotion),
-			dragDrop: Lang.bind(this, this._onDragDrop)
+		// Appear
+		let tween = {
+			time: ANIMATION_TIME,
+			transition: 'easeOutQuad'
 		};
-		DND.addDragMonitor(this._dragMonitor);
+		if (vertical) {
+			tween.height = actor.height;
+		}
+		else {
+			tween.width = actor.width;
+		}
+		Tweener.addTween(this.actor, tween);
 	},
 
-	destroy: function() {
-		log('Placeholder.destroy');
-		DND.removeDragMonitor(this._dragMonitor);
-		this.actor.destroy();
+	destroy: function(actor, after) {
+		if (this._destroying) {
+			return;
+		}
+
+		this._destroying = true;
+
+		log('DropPlaceholder.destroying');
+
+		// Dissolve
+		let vertical = this._iconView._dashView.box.vertical;
+		let tween = {
+			time: ANIMATION_TIME,
+			transition: 'easeOutQuad',
+			onComplete: () => {
+				this.actor.destroy();
+				log('DropPlaceholder.destroyed');
+				if ((this.nextActor !== null) && (this.nextAfter !== null)) {
+					// The old switcheroo
+					_dropPlaceholder = new DropPlaceholder(this.nextActor, this.nextAfter);
+				}
+				else {
+					DND.removeDragMonitor(_dragMonitor);
+					_dropPlaceholder = null;
+				}
+			}
+		};
+		if (vertical) {
+			tween.height = 0;
+		}
+		else {
+			tween.width = 0;
+		}
+		Tweener.addTween(this.actor, tween);
 	},
 
 	isFor: function(actor, after) {
@@ -423,43 +526,50 @@ const Placeholder = new Lang.Class({
 			moveFavoriteToPos(appId, source._modelIndex, this._modelIndex);
 		}
 		return true;
-	},
-
-	_onDragMotion: function(dragEvent) {
-		// We're checking for the dash box, too, so that moving into the spaces between icons won't
-		// cause hovering to stop
-		if ((dragEvent.targetActor !== this.actor) &&
-			(dragEvent.targetActor !== this._iconView._dashView.box)) {
-			endDropHovering();
-		}
-		return DND.DragMotionResult.CONTINUE;
-	},
-
-	_onDragDrop: function(dropEvent) {
-		log('dragDrop monitor hook');
-		endDropHovering();
-		return DND.DragDropResult.CONTINUE;
 	}
 });
 
 
-let _dropHoveringPlaceholder = null;
-
-
-function startDropHovering(actor, after) {
-	if ((_dropHoveringPlaceholder === null) || !_dropHoveringPlaceholder.isFor(actor, after)) {
-		endDropHovering();
-		_dropHoveringPlaceholder = new Placeholder(actor, after);
+function addDropPlaceholder(actor, after) {
+	if (_dropPlaceholder === null) {
+		_dropPlaceholder = new DropPlaceholder(actor, after);
+		DND.addDragMonitor(_dragMonitor);
+	}
+	else {
+		_dropPlaceholder.nextActor = actor;
+		_dropPlaceholder.nextAfter = after;
+		_dropPlaceholder.destroy();
 	}
 }
 
 
-function endDropHovering() {
-	if (_dropHoveringPlaceholder !== null) {
-		_dropHoveringPlaceholder.destroy();
-		_dropHoveringPlaceholder = null;
+function removeDropPlaceholder() {
+	if (_dropPlaceholder !== null) {
+		_dropPlaceholder.nextActor = null;
+		_dropPlaceholder.nextAfter = null;
+		_dropPlaceholder.destroy();
 	}
 }
+
+
+function _onDragMotion(dragEvent) {
+	if (_dropPlaceholder !== null) {
+		// Remove placeholder if we've moved out of the dash view box
+		if (!isDescendent(dragEvent.targetActor, _dropPlaceholder._iconView._dashView.box)) {
+			//log('dragMotion monitor hook: not in our area');
+			removeDropPlaceholder();
+		}
+	}
+	return DND.DragMotionResult.CONTINUE;
+}
+
+
+function _onDragDrop(dropEvent) {
+	log('dragDrop monitor hook');
+	removeDropPlaceholder();
+	return DND.DragDropResult.CONTINUE;
+}
+
 
 
 /*
@@ -480,4 +590,14 @@ function moveFavoriteToPos(appId, fromPos, toPos) {
 	let favorites = AppFavorites.getAppFavorites();
 	favorites._removeFavorite(appId);
 	favorites._addFavorite(appId, toPos);
+}
+
+
+function isDescendent(actor, ancestor) {
+	for (; actor !== null; actor = actor.get_parent()) {
+		if (actor === ancestor) {
+			return true;
+		}
+	}
+	return false;
 }

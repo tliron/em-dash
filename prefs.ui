@@ -514,6 +514,52 @@
                     <property name="orientation">vertical</property>
                     <property name="spacing">6</property>
                     <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Icon size:</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkComboBoxText" id="dock_icon_size">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <items>
+                              <item id="16" translatable="yes">16</item>
+                              <item id="22" translatable="yes">22</item>
+                              <item id="24" translatable="yes">24</item>
+                              <item id="32" translatable="yes">32</item>
+                              <item id="48" translatable="yes">48</item>
+                              <item id="64" translatable="yes">64</item>
+                              <item id="96" translatable="yes">96</item>
+                            </items>
+                            <signal name="changed" handler="DockIconSizeChanged" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
                       <object class="GtkCheckButton" id="size_stretch">
                         <property name="label" translatable="yes">Stretch to fill edge</property>
                         <property name="visible">True</property>
@@ -526,7 +572,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">0</property>
+                        <property name="position">1</property>
                       </packing>
                     </child>
                     <child>
@@ -542,7 +588,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>
@@ -1191,7 +1237,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">&lt;b&gt;Em Dash&lt;/b&gt;</property>
+            <property name="label" translatable="yes">&lt;b&gt;Em—Dash&lt;/b&gt;</property>
             <property name="use_markup">True</property>
           </object>
           <packing>

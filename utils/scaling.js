@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -29,7 +29,8 @@ const MutterUtils = Me.imports.utils.mutter;
 const log = Logging.logger('scaling');
 
 
-const iconLogicalSizes = [16, 22, 24, 32, 48, 64];
+// Non-SVG icon themes tend to have icons in these sizes (except for 64 and 96)
+const iconLogicalSizes = [8, 16, 22, 24, 32, 48, 64, 96, 128, 256, 512];
 
 
 /**
@@ -164,7 +165,7 @@ const ScalingManager = new Lang.Class({
 			log(`attemping to set bad value for stFactor: ${factor}`);
 			return;
 		}
-		
+
 		// We need to give time for other signal listeners to update the theme context first
 		this._laterManager.later(() => {
 			setStScaleFactor(factor);

@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -26,6 +26,9 @@ const Collections = Me.imports.utils.collections;
 const log = Logging.logger('models');
 
 
+const SINGLE_WORKSPACE_INDEX = -1;
+
+
 /**
  * Manages dash icon sequences.
  *
@@ -40,8 +43,6 @@ const log = Logging.logger('models');
  */
 const DashModelManager = new Lang.Class({
 	Name: 'EmDash.DashModelManager',
-
-	SINGLE_WORKSPACE_INDEX: -1,
 
 	_init: function(settings) {
 		log('_init');
@@ -73,13 +74,13 @@ const DashModelManager = new Lang.Class({
 
 	getDashModel: function(workspaceIndex) {
 		if (this.single) {
-			workspaceIndex = this.SINGLE_WORKSPACE_INDEX;
+			workspaceIndex = SINGLE_WORKSPACE_INDEX;
 		}
 		let dashModel = this._dashModels[workspaceIndex];
 		if (dashModel === undefined) {
 			dashModel = this._dashModels[workspaceIndex] = new DashModel();
 			dashModel.addFavorites();
-			if (workspaceIndex === this.SINGLE_WORKSPACE_INDEX) {
+			if (workspaceIndex === SINGLE_WORKSPACE_INDEX) {
 				dashModel.addRunning();
 			}
 			else {
@@ -107,7 +108,7 @@ const DashModelManager = new Lang.Class({
 	 */
 	addToAll: function(app) {
 		if (this.single) {
-			return this.addTo(this.SINGLE_WORKSPACE_INDEX, app);
+			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
 		let n_workspaces = global.screen.n_workspaces;
@@ -125,7 +126,7 @@ const DashModelManager = new Lang.Class({
 	 */
 	add: function(app) {
 		if (this.single) {
-			return this.addTo(this.SINGLE_WORKSPACE_INDEX, app);
+			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
 		let workspaceIndexes = getWorkspacesForApp(app);
@@ -169,7 +170,7 @@ const DashModelManager = new Lang.Class({
 
 	log: function() {
 		if (this.single) {
-			let dashModel = this._dashModels[this.SINGLE_WORKSPACE_INDEX];
+			let dashModel = this._dashModels[SINGLE_WORKSPACE_INDEX];
 			if (dashModel !== undefined) {
 				log(`single: ${dashModel}`);
 			}
