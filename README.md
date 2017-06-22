@@ -133,3 +133,5 @@ TODO
 * Dragging on empty dash
 * Add applications button
 * Wobbly drag and drop in panel
+* Dock with borders seems to keep moving its strut by a pixel or two as app focus changes
+* Mouse button config
