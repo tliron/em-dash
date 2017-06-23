@@ -68,8 +68,10 @@ const DashView = new Lang.Class({
 		});
 
 		let windowTracker = Shell.WindowTracker.get_default();
+		let appSystem = Shell.AppSystem.get_default();
 		this._signalManager = new SignalsUtils.SignalManager(this);
 		this._signalManager.connect(modelManager, 'changed', this._onDashModelChanged);
+		this._signalManager.connect(appSystem, 'installed-changed', this._onInstalledChanged);
 		this._signalManager.connect(global.screen, 'workspace-switched', this._onWorkspaceSwitched);
 
 		this.setVertical(vertical);
@@ -133,15 +135,6 @@ const DashView = new Lang.Class({
 			iconView.actor.height = physicalActorSize;
 			iconView._fixedIconSize = this._scalingManager.toLogical(physicalIconSize);
 			this.box.add_child(iconView.actor);
-
-//			let Dash = imports.ui.dash;
-//			iconView._Container = new Dash.DashItemContainer();
-//			iconView._Container.setChild(iconView.actor);
-//			iconView.actor.label_actor = null;
-//			iconView._Container.setLabelText(iconModel.app.get_name());
-//			//_hookUpLabel
-//			iconView._Container.show();
-//			this.box.add_child(iconView._Container);
 		}
 
 		this._updateFocusApp();
@@ -179,6 +172,12 @@ const DashView = new Lang.Class({
 
 	_onDashModelChanged: function(modelManager) {
 		log('dash model "changed" signal');
+		this.refresh();
+	},
+
+	_onInstalledChanged: function(appSystem) {
+		log('app system "installed-changed" signal');
+		// This could potentially change some of our icons
 		this.refresh();
 	},
 
@@ -221,6 +220,10 @@ const IconView = new Lang.Class({
 		this._model = model;
 		this._modelIndex = modelIndex;
 		this._fixedIconSize = null;
+		this._originalX = null;
+		this._originalY = null;
+		this._originalWidth = null;
+		this._originalHeight = null;
 
 		this.parent(model.app, {
 			showLabel: false,
@@ -245,7 +248,21 @@ const IconView = new Lang.Class({
 		}
 	},
 
+	// Activation
+
+	/**
+	 * Override to support our custom actions.
+	 */
 	activate: function(button) {
+		// CTRL forces launch
+		let event = Clutter.get_current_event();
+		if (event !== null) {
+			if ((event.get_state() & Clutter.ModifierType.CONTROL_MASK) !== 0) {
+				this._launch();
+				return;
+			}
+		}
+
 		let settings = this._dashView.modelManager.settings;
 		switch (settings.get_string('icons-left-click')) {
 		case 'NOTHING':
@@ -265,15 +282,12 @@ const IconView = new Lang.Class({
 		}
 	},
 
-	get _windows() {
+	get _workspaceIndex() {
 		let settings = this._dashView.modelManager.settings;
 		if (settings.get_boolean('dash-per-workspace')) {
-			let workspaceIndex = global.screen.get_active_workspace().index();
-			return this._model.getWindows(workspaceIndex);
+			return global.screen.get_active_workspace().index();
 		}
-		else {
-			return this._model.getWindows();
-		}
+		return undefined;
 	},
 
 	_launch: function() {
@@ -287,7 +301,7 @@ const IconView = new Lang.Class({
 		}
 		else {
 			// Some apps don't allow more than one instance to be running, so for them this may
-			// cause nothing to happen -- not even focusing on their window
+			// cause nothing to happen; we'll try anyway
 			this.app.launch(0, -1, false);
 		}
 		Main.overview.hide();
@@ -306,28 +320,22 @@ const IconView = new Lang.Class({
 		log(`_launchOrToggle: ${this.app.id}`);
 
 		if (this.app.state !== Shell.AppState.RUNNING) {
-			this._launch();
+			// Launch
+			if (this.app.can_open_new_window()) {
+				// Opening a new window would also be considered "launching"
+				this.app.open_new_window(-1);
+			}
+			else {
+				this.app.activate();
+			}
 			return;
 		}
 
-		let windows = this._windows;
-		let hasFocus = false;
-		for (let i = 0; i < windows.length; i++) {
-			let window = windows[i];
-			if (window.has_focus()) {
-				hasFocus = true;
-				break;
-			}
-		}
-		if (hasFocus) {
-			for (let i = 0; i < windows.length; i++) {
-				let window = windows[i];
-				window.minimize();
-			}
-		}
-		else {
+		if (!this._model.hideIfHasFocus(this._workspaceIndex)) {
+			// We should be already running, so it should not launch, only raise the primary window
 			this.app.activate();
 		}
+		Main.overview.hide();
 	},
 
 	_launchOrCycle: function() {

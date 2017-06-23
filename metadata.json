@@ -1,7 +1,7 @@
 {
 	"uuid": "em-dash@github.com_tliron",
 	"name": "Em—Dash",
-	"description": "Replaces the built-in overview dash with a much enhanced dash on the desktop",
+	"description": "An enhanced GNOME Shell desktop dash.",
 	"url": "https://github.com/tliron/em-dash",
 	"original-author": "tal.liron@gmail.com",
 	"shell-version": ["3.18", "3.20", "3.22", "3.24"],

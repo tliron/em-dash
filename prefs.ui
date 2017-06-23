@@ -1097,9 +1097,9 @@
                             <items>
                               <item id="NOTHING" translatable="yes">Do nothing</item>
                               <item id="LAUNCH" translatable="yes">Launch</item>
-                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or activate primary window</item>
-                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch or activate/hide primary window</item>
-                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch or activate next window</item>
+                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or show</item>
+                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch, show, or hide</item>
+                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch, show next window, or hide</item>
                             </items>
                             <signal name="changed" handler="WindowsLeftClickChanged" swapped="no"/>
                           </object>
@@ -1128,9 +1128,9 @@
                             <items>
                               <item id="NOTHING" translatable="yes">Do nothing</item>
                               <item id="LAUNCH" translatable="yes">Launch</item>
-                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or activate primary window</item>
-                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch or activate/hide primary window</item>
-                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch or activate next window</item>
+                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or show</item>
+                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch, show, or hide</item>
+                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch, show next window, or hide</item>
                             </items>
                             <signal name="changed" handler="WindowsMiddleClickChanged" swapped="no"/>
                           </object>
@@ -1177,7 +1177,7 @@
                     </child>
                     <child>
                       <object class="GtkCheckButton" id="windows_wheel_scroll">
-                        <property name="label" translatable="yes">Wheel scroll to cycle raising windows</property>
+                        <property name="label" translatable="yes">Scroll wheel to cycle through windows</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -1189,6 +1189,20 @@
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Note:&lt;/b&gt; CTRL + left click will &lt;i&gt;always&lt;/i&gt; force a launch</property>
+                        <property name="use_markup">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>
@@ -1235,7 +1249,7 @@
         <property name="margin_top">12</property>
         <property name="margin_bottom">12</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">6</property>
+        <property name="spacing">12</property>
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
@@ -1260,6 +1274,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Version:</property>
+                <property name="use_markup">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1293,7 +1308,8 @@
             <property name="can_focus">False</property>
             <property name="valign">center</property>
             <property name="vexpand">True</property>
-            <property name="label" translatable="yes">A GNOME Shell extension that replaces the built-in dash with a much enhanced version.</property>
+            <property name="label" translatable="yes">An enhanced GNOME Shell desktop dash.</property>
+            <property name="use_markup">True</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -1306,6 +1322,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes">Copyright 2017 by Tal Liron</property>
+            <property name="use_markup">True</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -1317,7 +1334,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Report bugs: &lt;a href="https://github.com/tliron/em-dash"&gt;https://github.com/tliron/em-dash&lt;/a&gt;</property>
+            <property name="label" translatable="yes">Report bugs and request features: &lt;a href="https://github.com/tliron/em-dash/issues"&gt;https://github.com/tliron/em-dash/issues&lt;/a&gt;</property>
             <property name="use_markup">True</property>
           </object>
           <packing>

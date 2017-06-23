@@ -50,12 +50,11 @@ const DashModelManager = new Lang.Class({
 		this.settings = settings;
 		this.single = null;
 
-		let appSystem = Shell.AppSystem.get_default();
 		let appFavorites = AppFavorites.getAppFavorites();
+		let appSystem = Shell.AppSystem.get_default();
 		this._signalManager = new SignalsUtils.SignalManager(this);
 		this._signalManager.connectSetting(settings, 'dash-per-workspace', 'boolean',
 			this._onDashPerWorkspaceSettingChanged); // triggers a refresh immediately
-		this._signalManager.connect(appSystem, 'installed-changed', this._onInstalledChanged);
 		this._signalManager.connect(appSystem, 'app-state-changed', this._onStateChanged);
 		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);
 		this._signalManager.connect(global.screen, 'workspace-added', this._onWorkspaceAdded);
@@ -194,11 +193,6 @@ const DashModelManager = new Lang.Class({
 			this.single = single;
 			this.refresh();
 		}
-	},
-
-	_onInstalledChanged: function(appSystem) {
-		log('app system "installed-changed" signal');
-		this.refresh();
 	},
 
 	_onStateChanged: function(appSystem, app) {
@@ -512,6 +506,33 @@ const IconModel = new Lang.Class({
 		return windows;
 	},
 
+	/**
+	 * Checks if any of our windows has focus, for all workspaces or for a specific workspace.
+	 */
+	hasFocus: function(workspaceIndex) {
+		return anyWindowHasFocus(this.getWindows(workspaceIndex));
+	},
+
+	/**
+	 * Hides our windows for all workspaces or for a specific workspace.
+	 */
+	hide: function(workspaceIndex) {
+		return hideWindows(this.getWindows(workspaceIndex));
+	},
+
+	/**
+	 * Hides our windows for all workspaces or for a specific workspace if any of out windows has
+	 * focus.
+	 */
+	hideIfHasFocus: function(workspaceIndex) {
+		let windows = this.getWindows(workspaceIndex);
+		if (anyWindowHasFocus(windows)) {
+			hideWindows(windows);
+			return true;
+		}
+		return false;
+	},
+
 	toString: function(workspaceIndex) {
 		let s = '';
 		if (this._favorite) {
@@ -600,4 +621,23 @@ function isAppOnWorkspace(app, workspaceIndex) {
 function isFavoriteApp(app) {
 	let favorites = AppFavorites.getAppFavorites().getFavorites();
 	return favorites.indexOf(app) != -1;
+}
+
+
+function anyWindowHasFocus(windows) {
+	for (let i = 0; i < windows.length; i++) {
+		let window = windows[i];
+		if (window.has_focus()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+function hideWindows(windows) {
+	for (let i = 0; i < windows.length; i++) {
+		let window = windows[i];
+		window.minimize();
+	}
 }

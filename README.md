@@ -4,12 +4,11 @@ Em—Dash
 
 **WORK IN PROGRESS, DO NOT USE**
 
-A GNOME Shell extension that replaces the built-in overview dash with a much enhanced dash on the
-desktop.
+An enhanced GNOME Shell desktop dash, implemented as aa GNOME Shell extension.
 
 It provides the following features for the dash:
 
-* Move it out of the overlay and into the **top panel** or dock it on an **edge** of one of the
+* Move it out of the overview and into the **top panel** or dock it on an **edge** of one of the
   **monitors**.
 * Configure to show windows in **all of the workspaces** (like the built-in dash) or only in the
   **current workspace**.
@@ -112,7 +111,8 @@ reference material:
     built for Clutter (this is what a "GNOME Shell theme" is for). Note that in terms of variety of
     widgets, St is currently nowhere as rich as GTK+ is.
   * `imports.gi.Meta` is actually [Mutter](https://developer.gnome.org/meta/stable/), an
-    abstraction above the compositing window manager, such as Metacity.
+    abstraction above the compositing window manager, such as Metacity. (That's likely the source of
+    the "Meta" name.)
   * [GSettings](https://developer.gnome.org/gio/stable/GSettings.html) are part of
     `imports.gi.Gio`. You'll also see some documentation there for the XML format for the
     `/schemas/` files. The `type` fields use GLib's
