@@ -129,7 +129,7 @@ const DashView = new Lang.Class({
 		log(`_refresh: ${physicalActorSize} ${physicalIconSize}`);
 		for (let i = 0; i < dashModel.icons.length; i++) {
 			let iconModel = dashModel.icons[i];
-			let iconView = new IconView(this, iconModel.app, i);
+			let iconView = new IconView(this, iconModel, i);
 			iconView.actor.height = physicalActorSize;
 			iconView._fixedIconSize = this._scalingManager.toLogical(physicalIconSize);
 			this.box.add_child(iconView.actor);
@@ -215,19 +215,20 @@ const IconView = new Lang.Class({
 	Name: 'EmDash.IconView',
 	Extends: AppDisplay.AppIcon,
 
-	_init: function(dashView, app, modelIndex) {
+	_init: function(dashView, model, modelIndex) {
 		log(`IconView._init: ${modelIndex}`);
 		this._dashView = dashView;
+		this._model = model;
 		this._modelIndex = modelIndex;
 		this._fixedIconSize = null;
 
-		this.parent(app, {
+		this.parent(model.app, {
 			showLabel: false,
 			isDraggable: false // we will handle draggable ourselves
 		});
 
 		// Can we extract a simple name?
-		let id = app.id;
+		let id = model.app.id;
 		if (id.endsWith('.desktop')) {
 			this._simpleName = id.substring(0, id.length - '.desktop'.length);
 		}
@@ -236,12 +237,102 @@ const IconView = new Lang.Class({
 		}
 
 		// Draggable?
-		if (global.settings.is_writable('favorite-apps') && Models.isFavoriteApp(app)) {
+		if (global.settings.is_writable('favorite-apps') && Models.isFavoriteApp(model.app)) {
 			this._draggable = new Draggable.Draggable(this.actor);
 		}
 		else {
 			this._draggable = null;
 		}
+	},
+
+	activate: function(button) {
+		let settings = this._dashView.modelManager.settings;
+		switch (settings.get_string('icons-left-click')) {
+		case 'NOTHING':
+			return;
+		case 'LAUNCH':
+			this._launch();
+			return;
+		case 'LAUNCH_OR_SHOW':
+			this._launchOrShow();
+			return;
+		case 'LAUNCH_OR_TOGGLE':
+			this._launchOrToggle();
+			return;
+		case 'LAUNCH_OR_CYCLE':
+			this._launchOrCycle();
+			return;
+		}
+	},
+
+	get _windows() {
+		let settings = this._dashView.modelManager.settings;
+		if (settings.get_boolean('dash-per-workspace')) {
+			let workspaceIndex = global.screen.get_active_workspace().index();
+			return this._model.getWindows(workspaceIndex);
+		}
+		else {
+			return this._model.getWindows();
+		}
+	},
+
+	_launch: function() {
+		log(`_launch: ${this.app.id}`);
+		if (this.app.state === Shell.AppState.STOPPED) {
+			this.animateLaunch();
+		}
+		if (this.app.can_open_new_window()) {
+			// Opening a new window would also be considered "launching"
+			this.app.open_new_window(-1);
+		}
+		else {
+			// Some apps don't allow more than one instance to be running, so for them this may
+			// cause nothing to happen -- not even focusing on their window
+			this.app.launch(0, -1, false);
+		}
+		Main.overview.hide();
+	},
+
+	_launchOrShow: function() {
+		log(`_launchOrShow: ${this.app.id}`);
+		if (this.app.state === Shell.AppState.STOPPED) {
+			this.animateLaunch();
+		}
+		this.app.activate();
+		Main.overview.hide();
+	},
+
+	_launchOrToggle: function() {
+		log(`_launchOrToggle: ${this.app.id}`);
+
+		if (this.app.state !== Shell.AppState.RUNNING) {
+			this._launch();
+			return;
+		}
+
+		let windows = this._windows;
+		let hasFocus = false;
+		for (let i = 0; i < windows.length; i++) {
+			let window = windows[i];
+			if (window.has_focus()) {
+				hasFocus = true;
+				break;
+			}
+		}
+		if (hasFocus) {
+			for (let i = 0; i < windows.length; i++) {
+				let window = windows[i];
+				window.minimize();
+			}
+		}
+		else {
+			this.app.activate();
+		}
+	},
+
+	_launchOrCycle: function() {
+		log(`_launchOrCycle: ${this.app.id}`);
+		// TODO
 	},
 
 	// Dragging us

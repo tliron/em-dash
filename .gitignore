@@ -5,3 +5,4 @@ schemas/gschemas.compiled
 po/*.mo
 po/em-dash.pot
 prefs.ui.h
+*.py

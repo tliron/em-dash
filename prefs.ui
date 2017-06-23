@@ -1097,9 +1097,9 @@
                             <items>
                               <item id="NOTHING" translatable="yes">Do nothing</item>
                               <item id="LAUNCH" translatable="yes">Launch</item>
-                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or raise all windows</item>
-                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch or raise/hide all windows</item>
-                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch or raise next window</item>
+                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or activate primary window</item>
+                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch or activate/hide primary window</item>
+                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch or activate next window</item>
                             </items>
                             <signal name="changed" handler="WindowsLeftClickChanged" swapped="no"/>
                           </object>
@@ -1128,9 +1128,9 @@
                             <items>
                               <item id="NOTHING" translatable="yes">Do nothing</item>
                               <item id="LAUNCH" translatable="yes">Launch</item>
-                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or raise all windows</item>
-                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch or raise/hide all windows</item>
-                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch or raise next window</item>
+                              <item id="LAUNCH_OR_SHOW" translatable="yes">Launch or activate primary window</item>
+                              <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch or activate/hide primary window</item>
+                              <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch or activate next window</item>
                             </items>
                             <signal name="changed" handler="WindowsMiddleClickChanged" swapped="no"/>
                           </object>
