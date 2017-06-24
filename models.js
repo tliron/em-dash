@@ -17,6 +17,7 @@ const Lang = imports.lang;
 const Signals = imports.signals;
 const AppFavorites = imports.ui.appFavorites;
 const Shell = imports.gi.Shell;
+const Clutter = imports.gi.Clutter;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Logging = Me.imports.utils.logging;
@@ -510,13 +511,14 @@ const IconModel = new Lang.Class({
 	 * Checks if any of our windows has focus, for all workspaces or for a specific workspace.
 	 */
 	hasFocus: function(workspaceIndex) {
-		return anyWindowHasFocus(this.getWindows(workspaceIndex));
+		return getFocusedWindowIndex(this.getWindows(workspaceIndex)) !== -1;
 	},
 
 	/**
 	 * Hides our windows for all workspaces or for a specific workspace.
 	 */
 	hide: function(workspaceIndex) {
+		log('hide');
 		return hideWindows(this.getWindows(workspaceIndex));
 	},
 
@@ -526,11 +528,42 @@ const IconModel = new Lang.Class({
 	 */
 	hideIfHasFocus: function(workspaceIndex) {
 		let windows = this.getWindows(workspaceIndex);
-		if (anyWindowHasFocus(windows)) {
+		if (getFocusedWindowIndex(windows) !== -1) {
+			log('hideIfHasFocus: true');
 			hideWindows(windows);
 			return true;
 		}
+		log('hideIfHasFocus: false');
 		return false;
+	},
+
+	/**
+	 * Move focus to next window or hide if focused on last window for all workspaces or for a
+	 * specific workspace.
+	 */
+	cycleFocusOrHide: function(workspaceIndex) {
+		let windows = this.getWindows(workspaceIndex);
+		if (windows.length === 0) {
+			log('cycleFocusOrHide: do nothing');
+			return;
+		}
+
+		let focusedWindowIndex = getFocusedWindowIndex(windows);
+		if (focusedWindowIndex === -1) {
+			// Focus on first window
+			log('cycleFocusOrHide: first');
+			focusWindow(windows[0]);
+		}
+		else if (focusedWindowIndex < windows.length - 1 ) {
+			// Focus on next window
+			focusedWindowIndex += 1;
+			log(`cycleFocusOrHide: ${focusedWindowIndex}`);
+			focusWindow(windows[focusedWindowIndex]);
+		}
+		else {
+			log('cycleFocusOrHide: hide');
+			this.hide(workspaceIndex);
+		}
 	},
 
 	toString: function(workspaceIndex) {
@@ -624,14 +657,14 @@ function isFavoriteApp(app) {
 }
 
 
-function anyWindowHasFocus(windows) {
+function getFocusedWindowIndex(windows) {
 	for (let i = 0; i < windows.length; i++) {
 		let window = windows[i];
 		if (window.has_focus()) {
-			return true;
+			return i;
 		}
 	}
-	return false;
+	return -1;
 }
 
 
@@ -640,4 +673,11 @@ function hideWindows(windows) {
 		let window = windows[i];
 		window.minimize();
 	}
+}
+
+
+function focusWindow(window) {
+	window.unminimize();
+	window.raise();
+	window.focus(Clutter.CURRENT_TIME);
 }

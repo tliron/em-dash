@@ -248,46 +248,68 @@ const IconView = new Lang.Class({
 		}
 	},
 
-	// Activation
+	// Clicks
 
 	/**
-	 * Override to support our custom actions.
+	 * Override to support our custom left-click actions.
 	 */
 	activate: function(button) {
+		let settings = this._dashView.modelManager.settings;
+		let iconsLeftClick = settings.get_string('icons-left-click');
+
 		// CTRL forces launch
 		let event = Clutter.get_current_event();
 		if (event !== null) {
 			if ((event.get_state() & Clutter.ModifierType.CONTROL_MASK) !== 0) {
-				this._launch();
-				return;
+				iconsLeftClick = 'LAUNCH';
 			}
 		}
 
-		let settings = this._dashView.modelManager.settings;
-		switch (settings.get_string('icons-left-click')) {
-		case 'NOTHING':
-			return;
-		case 'LAUNCH':
-			this._launch();
-			return;
-		case 'LAUNCH_OR_SHOW':
-			this._launchOrShow();
-			return;
-		case 'LAUNCH_OR_TOGGLE':
-			this._launchOrToggle();
-			return;
-		case 'LAUNCH_OR_CYCLE':
-			this._launchOrCycle();
-			return;
+		if (iconsLeftClick !== 'NOTHING') {
+			this._clickAction(iconsLeftClick);
 		}
 	},
 
-	get _workspaceIndex() {
-		let settings = this._dashView.modelManager.settings;
-		if (settings.get_boolean('dash-per-workspace')) {
-			return global.screen.get_active_workspace().index();
+	/**
+	 * Override to support our custom middle-click actions.
+	 */
+	_onButtonPress: function(actor, event) {
+		let button = event.get_button();
+		switch (button) {
+		case 1:
+			this._setPopupTimeout();
+			break;
+		case 2:
+			let settings = this._dashView.modelManager.settings;
+			let iconsMiddleClick = settings.get_string('icons-middle-click');
+			if (iconsMiddleClick !== 'NOTHING') {
+				this._clickAction(iconsMiddleClick);
+				return Clutter.EVENT_STOP;
+			}
+			break;
+		case 3:
+			this.popupMenu();
+			return Clutter.EVENT_STOP;
 		}
-		return undefined;
+		return Clutter.EVENT_PROPAGATE;
+	},
+
+	_clickAction: function(action) {
+		Main.overview.hide();
+		switch (action) {
+		case 'LAUNCH':
+			this._launch();
+			break;
+		case 'LAUNCH_OR_SHOW':
+			this._launchOrShow();
+			break;
+		case 'LAUNCH_OR_TOGGLE':
+			this._launchOrToggle();
+			break;
+		case 'LAUNCH_OR_CYCLE':
+			this._launchOrCycle();
+			break;
+		}
 	},
 
 	_launch: function() {
@@ -304,7 +326,6 @@ const IconView = new Lang.Class({
 			// cause nothing to happen; we'll try anyway
 			this.app.launch(0, -1, false);
 		}
-		Main.overview.hide();
 	},
 
 	_launchOrShow: function() {
@@ -313,14 +334,36 @@ const IconView = new Lang.Class({
 			this.animateLaunch();
 		}
 		this.app.activate();
-		Main.overview.hide();
 	},
 
 	_launchOrToggle: function() {
 		log(`_launchOrToggle: ${this.app.id}`);
+		if (!this._activateIfStopped() && !this._model.hideIfHasFocus(this._workspaceIndex)) {
+			// If we get here we should be already running, so this would not launch, only raise the
+			// primary window
+			this.app.activate();
+		}
+	},
 
-		if (this.app.state !== Shell.AppState.RUNNING) {
+	_launchOrCycle: function() {
+		log(`_launchOrCycle: ${this.app.id}`);
+		if (!this._activateIfStopped()) {
+			this._model.cycleFocusOrHide(this._workspaceIndex);
+		}
+	},
+
+	get _workspaceIndex() {
+		let settings = this._dashView.modelManager.settings;
+		if (settings.get_boolean('dash-per-workspace')) {
+			return global.screen.get_active_workspace().index();
+		}
+		return undefined;
+	},
+
+	_activateIfStopped: function() {
+		if (this.app.state === Shell.AppState.STOPPED) {
 			// Launch
+			this.animateLaunch();
 			if (this.app.can_open_new_window()) {
 				// Opening a new window would also be considered "launching"
 				this.app.open_new_window(-1);
@@ -328,19 +371,9 @@ const IconView = new Lang.Class({
 			else {
 				this.app.activate();
 			}
-			return;
+			return true;
 		}
-
-		if (!this._model.hideIfHasFocus(this._workspaceIndex)) {
-			// We should be already running, so it should not launch, only raise the primary window
-			this.app.activate();
-		}
-		Main.overview.hide();
-	},
-
-	_launchOrCycle: function() {
-		log(`_launchOrCycle: ${this.app.id}`);
-		// TODO
+		return false;
 	},
 
 	// Dragging us
