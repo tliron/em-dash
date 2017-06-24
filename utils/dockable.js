@@ -23,11 +23,10 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
-const Signals = Me.imports.utils.signals;
-const Dash = Me.imports.dash;
+const LoggingUtils = Me.imports.utils.logging;
+const SignalUtils = Me.imports.utils.signal;
 
-const log = Logging.logger('dockable');
+const log = LoggingUtils.logger('dockable');
 
 
 /**
@@ -81,9 +80,8 @@ const Dockable = new Lang.Class({
 				Main.layoutManager.modalDialogGroup);
 		}
 
-		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
-		// Emitted only if track_hover is true:
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover);
 	},
 
@@ -356,8 +354,9 @@ const Dockable = new Lang.Class({
 	},
 
 	_onHover: function(actor, hover) {
-		// We tried using the leave-event for this, but it proved problematic: it would be emitted
-		// even if we move into children of our actor. But hover tracking works for us!
+		// Emitted only if track_hover is true.
+		// (We tried using the leave-event for this, but it proved problematic: it would be emitted
+		// even if we move into children of our actor. But hover tracking works for us!)
 		log(`"hover" property changed signal: ${hover}`);
 		if (!hover) {
 			this._collapsed = true;

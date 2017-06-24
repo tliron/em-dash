@@ -22,15 +22,15 @@ const Atk = imports.gi.Atk;
 const GObject = imports.gi.GObject;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
-const Signals = Me.imports.utils.signals;
+const LoggingUtils = Me.imports.utils.logging;
+const SignalUtils = Me.imports.utils.signal;
 const MPRIS = Me.imports.utils.mpris;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const N_ = e => e;
 
-const log = Logging.logger('menu');
+const log = LoggingUtils.logger('iconMenu');
 
 
 /**
@@ -119,7 +119,7 @@ const TrackingContainer = new Lang.Class({
 		this._menuTracker = null;
 		this._items = [];
 		this._startPosition = 0;
-		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager = new SignalUtils.SignalManager(this);
 	},
 
 	destroy: function() {
@@ -308,7 +308,7 @@ const MediaControlsMenu = new Lang.Class({
 		this.item = new PopupMenu.PopupMenuSection();
 		this._mpris = new MPRIS.MPRIS(simpleName);
 
-		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this._mpris, 'initialize', this._onInitialized);
 	},
 

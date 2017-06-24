@@ -15,6 +15,8 @@ It provides the following features for the dash:
 
 For the dash icons:
 
+* **Highlight** the focused application with a smart backlight (a feature borrowed from the Unity
+  desktop).
 * Show dots for **how many** windows are open (the built-in dash only shows a line if *any* are
   open).
 * Configure the behavior of **left-click** and **middle-click** on the dash icons: raise window,
@@ -94,7 +96,8 @@ reference material:
 
 * The [GNOME Shell JavaScript source code](https://github.com/GNOME/gnome-shell/tree/master/js/ui)
   is crucial. This is where your `imports.ui` come from. `imports.misc` is in the
-  [same repository](https://github.com/GNOME/gnome-shell/tree/master/js/misc).
+  [same repository](https://github.com/GNOME/gnome-shell/tree/master/js/misc) as is the
+  [default CSS](https://github.com/GNOME/gnome-shell/blob/master/data/theme/gnome-shell.css).
 * The general `imports` (`imports.lang`, `imports.gettext`, `imports.tweener`) come from the
   [gjs source code](https://git.gnome.org/browse/gjs/tree/modules).
 * All the `imports.gi` come from the GObject-Introspection system, which uses language-neutral XML
@@ -134,6 +137,4 @@ TODO
 * Add applications button
 * Wobbly drag and drop in panel
 * Dock with borders seems to keep moving its strut by a pixel or two as app focus changes
-* Mouse button config
 * Restarting with bottom dock -- doesn't rotate corners
-* Drag on self - icon disappears!

@@ -22,9 +22,9 @@ const Signals = imports.signals;
 const Gio = imports.gi.Gio;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
+const LoggingUtils = Me.imports.utils.logging;
 
-const log = Logging.logger('mpris');
+const log = LoggingUtils.logger('mpris');
 
 
 /**

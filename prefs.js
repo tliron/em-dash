@@ -20,11 +20,11 @@ const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Logging = Me.imports.utils.logging;
-const Signals = Me.imports.utils.signals;
+const LoggingUtils = Me.imports.utils.logging;
+const SignalUtils = Me.imports.utils.signal;
 
 
-const log = Logging.logger('prefs');
+const log = LoggingUtils.logger('prefs');
 
 
 function init() {
@@ -100,7 +100,7 @@ const PrefsWidget = new Lang.Class({
 		}
 		this._builder.get_object('about_version').label = version;
 
-		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager = new SignalUtils.SignalManager(this);
 		this._builder.connect_signals_full(Lang.bind(this, this._onConnectBuilderSignal));
 		this._bindSettings();
 	},

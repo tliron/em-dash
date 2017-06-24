@@ -22,11 +22,11 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
-const SignalsUtils = Me.imports.utils.signals;
+const LoggingUtils = Me.imports.utils.logging;
+const SignalUtils = Me.imports.utils.signal;
 const MutterUtils = Me.imports.utils.mutter;
 
-const log = Logging.logger('scaling');
+const log = LoggingUtils.logger('scaling');
 
 
 // Non-SVG icon themes tend to have icons in these sizes (except for 64 and 96)
@@ -120,7 +120,7 @@ const ScalingManager = new Lang.Class({
 		this._laterManager = new MutterUtils.LaterManager(this);
 
 		let themeContext = St.ThemeContext.get_for_stage(global.stage);
-		this._signalManager = new SignalsUtils.SignalManager(this);
+		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connectProperty(themeContext, 'scale-factor',
 			this._onStThemeContextScaleFactorChanged);
 		this._signalManager.connectSetting(this._interfaceSettings, 'scaling-factor', 'uint',

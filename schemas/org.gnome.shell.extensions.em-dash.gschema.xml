@@ -98,7 +98,7 @@
       <description>What to do when the mouse hovers over an icon.</description>
     </key>
     <key name="icons-wheel-scroll" type="b">
-      <default>false</default>
+      <default>true</default>
       <summary>Icon wheel scroll</summary>
       <description>Whether to cycle windows when mouse wheel scrolling on an icon.</description>
     </key>

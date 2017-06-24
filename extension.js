@@ -15,12 +15,12 @@
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Logging = Me.imports.utils.logging;
-const Dash = Me.imports.dash;
+const LoggingUtils = Me.imports.utils.logging;
+const DashManager = Me.imports.dashes.dashManager;
 const PanelDash = Me.imports.dashes.panelDash;
 const DockableDash = Me.imports.dashes.dockableDash;
 
-const log = Logging.logger('extension');
+const log = LoggingUtils.logger('extension');
 
 let settings = null;
 let dashManager = null;
@@ -39,7 +39,7 @@ function enable() {
 
     log('enabling...');
 
-	dashManager = new Dash.DashManager(settings, {
+	dashManager = new DashManager.DashManager(settings, {
 		PANEL_NEAR: PanelDash.PanelDash,
 		PANEL_MIDDLE: PanelDash.PanelDash,
 		EDGE_NEAR: DockableDash.DockableDash,

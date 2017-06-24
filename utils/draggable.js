@@ -17,10 +17,10 @@ const Lang = imports.lang;
 const DND = imports.ui.dnd;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
-const Signals = Me.imports.utils.signals;
+const LoggingUtils = Me.imports.utils.logging;
+const SignalUtils = Me.imports.utils.signal;
 
-const log = Logging.logger('draggable');
+const log = LoggingUtils.logger('draggable');
 
 
 /**
@@ -42,7 +42,7 @@ const Draggable = new Lang.Class({
 		this._originalGetRestoreLocation = this._draggable._getRestoreLocation;
 		this._draggable._getRestoreLocation = Lang.bind(this, this._getRestoreLocation);
 
-		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this._draggable, 'drag-begin', this._onDragBegan);
 		this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCancelled);
 		this._signalManager.connect(this._draggable, 'drag-end', this._onDragEnded);

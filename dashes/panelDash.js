@@ -18,10 +18,10 @@ const Main = imports.ui.main;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
-const Dash = Me.imports.dash;
+const LoggingUtils = Me.imports.utils.logging;
+const Dash = Me.imports.dashes.dash;
 
-const log = Logging.logger('panelDash');
+const log = LoggingUtils.logger('panelDash');
 
 
 /**

@@ -19,11 +19,11 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
-const Dockable = Me.imports.utils.dockable;
-const Dash = Me.imports.dash;
+const LoggingUtils = Me.imports.utils.logging;
+const DockableUtils = Me.imports.utils.dockable;
+const Dash = Me.imports.dashes.dash;
 
-const log = Logging.logger('dockableDash');
+const log = LoggingUtils.logger('dockableDash');
 
 
 /**
@@ -47,7 +47,7 @@ const DockableDash = new Lang.Class({
 
 		this._updateStyle(side);
 
-		this._dockable = new Dockable.Dockable(this._view.actor, side, align, stretch, toggle);
+		this._dockable = new DockableUtils.Dockable(this._view.actor, side, align, stretch, toggle);
 
 		this._signalManager.connect(this._view.actor, 'style-changed', this._onStyleChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-icon-size', 'uint',

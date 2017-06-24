@@ -17,14 +17,13 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Logging = Me.imports.utils.logging;
-const Signals = Me.imports.utils.signals;
+const LoggingUtils = Me.imports.utils.logging;
+const SignalUtils = Me.imports.utils.signal;
 const ClutterUtils = Me.imports.utils.clutter;
 const Scaling = Me.imports.utils.scaling;
-const Models = Me.imports.models;
-const Views = Me.imports.views;
+const ModelManager = Me.imports.models.modelManager;
 
-const log = Logging.logger('dash');
+const log = LoggingUtils.logger('dashManager');
 
 
 /**
@@ -39,7 +38,7 @@ const DashManager = new Lang.Class({
 
     	this.dash = null;
     	this.settings = settings;
-    	this.modelManager = new Models.DashModelManager(settings);
+    	this.modelManager = new ModelManager.ModelManager(settings);
 		this.scalingManager = new Scaling.ScalingManager();
 
     	this._dashClasses = dashClasses;
@@ -61,10 +60,16 @@ const DashManager = new Lang.Class({
 			}
 		}
 
-		this._signalManager = new Signals.SignalManager(this);
+		this._signalManager = new SignalUtils.SignalManager(this);
 
-		// Initialize only when we have scaling
-		this._signalManager.connect(this.scalingManager, 'initialized', this.initialize, true);
+		this._signalManager.connect(this.scalingManager, 'initialized', () => {
+			// Initialize only when we have scaling info
+			log('initialize');
+			this._signalManager.connectSetting(settings, 'dash-location', 'string',
+				this._onDashLocationChanged);
+			this._signalManager.connectSetting(settings, 'icons-app-menu', 'boolean',
+				this._onIconsAppMenuSettingChanged);
+		}, true);
     },
 
 	destroy: function() {
@@ -77,14 +82,6 @@ const DashManager = new Lang.Class({
 		this.scalingManager.destroy();
 		this.restoreBuiltInDash();
 		this.restoreAppMenu();
-	},
-
-	initialize: function() {
-		log('initialize');
-		this._signalManager.connectSetting(this.settings, 'dash-location', 'string',
-			this._onDashLocationChanged);
-		this._signalManager.connectSetting(this.settings, 'icons-app-menu', 'boolean',
-			this._onIconsAppMenuSettingChanged);
 	},
 
 	removeBuiltInDash: function() {
@@ -140,28 +137,5 @@ const DashManager = new Lang.Class({
 		else {
 			this.restoreAppMenu();
 		}
-	}
-});
-
-
-/**
- * Base class for dash implementations, such as PanelDash and DockableDash.
- */
-const Dash = new Lang.Class({
-    Name: 'EmDash.Dash',
-
-    _init: function(dashManager, styleClass, vertical, iconSize, quantize) {
-		this._dashManager = dashManager;
-    	this._view = new Views.DashView(dashManager.modelManager, dashManager.scalingManager,
-    		styleClass, vertical, iconSize, quantize);
-		this._signalManager = new Signals.SignalManager(this);
-    },
-
-	destroy: function() {
-		this._signalManager.destroy();
-		this._view.destroy();
-	},
-
-	setLocation: function(location) {
 	}
 });
