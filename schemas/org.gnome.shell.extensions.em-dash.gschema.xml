@@ -88,12 +88,12 @@
       <description>What to do when an icon is left-clicked.</description>
     </key>
     <key name="icons-middle-click" enum="org.gnome.shell.extensions.em-dash.click">
-      <default>'NOTHING'</default>
+      <default>'LAUNCH'</default>
       <summary>Icon middle-click</summary>
       <description>What to do when an icon is middle-clicked.</description>
     </key>
     <key name="icons-hover" enum="org.gnome.shell.extensions.em-dash.hover">
-      <default>'NOTHING'</default>
+      <default>'APPLICATION_NAME'</default>
       <summary>Icon hover</summary>
       <description>What to do when the mouse hovers over an icon.</description>
     </key>

@@ -15,7 +15,7 @@
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.visibility'>
     <value value='0' nick='ALWAYS'/>
-    <value value='1' nick='TOUCH_TO_SHOW'/>
+    <value value='1' nick='TOUCH_TO_REVEAL'/>
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.click'>
     <value value='0' nick='NOTHING'/>
@@ -26,7 +26,8 @@
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.hover'>
     <value value='0' nick='NOTHING'/>
-    <value value='1' nick='WINDOW_LIST'/>
-    <value value='2' nick='WINDOW_PREVIEWS'/>
+    <value value='1' nick='APPLICATION_NAME'/>
+    <value value='2' nick='WINDOW_LIST'/>
+    <value value='3' nick='WINDOW_PREVIEWS'/>
   </enum>
 </schemalist>

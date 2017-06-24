@@ -289,6 +289,79 @@
             <property name="position">1</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkFrame">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label_xalign">0</property>
+            <property name="shadow_type">in</property>
+            <child>
+              <object class="GtkAlignment">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="left_padding">12</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkRadioButton" id="location_single_dash">
+                        <property name="label" translatable="yes">Show the same dash on all workspaces</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="halign">start</property>
+                        <property name="use_underline">True</property>
+                        <property name="active">True</property>
+                        <property name="draw_indicator">True</property>
+                        <signal name="toggled" handler="SingleDashToggled" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkRadioButton" id="location_dash_per_workspace">
+                        <property name="label" translatable="yes">Show only windows from current workspace</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="halign">start</property>
+                        <property name="use_underline">True</property>
+                        <property name="draw_indicator">True</property>
+                        <property name="group">location_single_dash</property>
+                        <signal name="toggled" handler="DashPerWorkspaceToggled" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Workspaces</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
       </object>
     </child>
     <child type="tab">
@@ -747,8 +820,8 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkRadioButton" id="visibility_touch_to_show">
-                        <property name="label" translatable="yes">Touch to show</property>
+                      <object class="GtkRadioButton" id="visibility_touch_to_reveal">
+                        <property name="label" translatable="yes">Touch to reveal</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -757,7 +830,7 @@
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">visibility_always_visible</property>
-                        <signal name="toggled" handler="VisibilityTouchToShowToggled" swapped="no"/>
+                        <signal name="toggled" handler="VisibilityTouchToRevealToggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -952,106 +1025,6 @@
             <property name="position">1</property>
           </packing>
         </child>
-      </object>
-      <packing>
-        <property name="position">3</property>
-      </packing>
-    </child>
-    <child type="tab">
-      <object class="GtkLabel">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Icons</property>
-        <property name="use_underline">True</property>
-      </object>
-      <packing>
-        <property name="position">3</property>
-        <property name="tab_fill">False</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="margin_left">6</property>
-        <property name="margin_right">6</property>
-        <property name="margin_top">6</property>
-        <property name="margin_bottom">6</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">6</property>
-        <child>
-          <object class="GtkFrame">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label_xalign">0</property>
-            <property name="shadow_type">in</property>
-            <child>
-              <object class="GtkAlignment">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="left_padding">12</property>
-                <child>
-                  <object class="GtkBox">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="margin_top">6</property>
-                    <property name="margin_bottom">6</property>
-                    <property name="orientation">vertical</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <object class="GtkRadioButton" id="windows_single_dash">
-                        <property name="label" translatable="yes">Always show windows from all workspaces</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="halign">start</property>
-                        <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">True</property>
-                        <signal name="toggled" handler="SingleDashToggled" swapped="no"/>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkRadioButton" id="windows_dash_per_workspace">
-                        <property name="label" translatable="yes">Show only windows from current workspace</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="halign">start</property>
-                        <property name="use_underline">True</property>
-                        <property name="draw_indicator">True</property>
-                        <property name="group">windows_single_dash</property>
-                        <signal name="toggled" handler="DashPerWorkspaceToggled" swapped="no"/>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child type="label">
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Workspaces</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
         <child>
           <object class="GtkFrame">
             <property name="visible">True</property>
@@ -1091,7 +1064,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkComboBoxText" id="windows_left_click">
+                          <object class="GtkComboBoxText" id="icons_left_click">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <items>
@@ -1101,7 +1074,7 @@
                               <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch, show, or hide</item>
                               <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch, show next window, or hide</item>
                             </items>
-                            <signal name="changed" handler="WindowsLeftClickChanged" swapped="no"/>
+                            <signal name="changed" handler="IconsLeftClickChanged" swapped="no"/>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -1118,11 +1091,11 @@
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
-                            <property name="top_attach">1</property>
+                            <property name="top_attach">2</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkComboBoxText" id="windows_middle_click">
+                          <object class="GtkComboBoxText" id="icons_middle_click">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <items>
@@ -1132,11 +1105,11 @@
                               <item id="LAUNCH_OR_TOGGLE" translatable="yes">Launch, show, or hide</item>
                               <item id="LAUNCH_OR_CYCLE" translatable="yes">Launch, show next window, or hide</item>
                             </items>
-                            <signal name="changed" handler="WindowsMiddleClickChanged" swapped="no"/>
+                            <signal name="changed" handler="IconsMiddleClickChanged" swapped="no"/>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
-                            <property name="top_attach">1</property>
+                            <property name="top_attach">2</property>
                           </packing>
                         </child>
                         <child>
@@ -1144,29 +1117,46 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="halign">start</property>
-                            <property name="label" translatable="yes">Hover:</property>
+                            <property name="label" translatable="yes">Show on hover:</property>
                             <property name="use_underline">True</property>
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
-                            <property name="top_attach">2</property>
+                            <property name="top_attach">3</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkComboBoxText" id="windows_hover">
+                          <object class="GtkComboBoxText" id="icons_hover">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <items>
                               <item id="NOTHING" translatable="yes">Do nothing</item>
-                              <item id="WINDOW_LIST" translatable="yes">Show window list menu</item>
-                              <item id="WINDOW_PREVIEWS" translatable="yes">Show window previews menu</item>
+                              <item id="APPLICATION_NAME" translatable="yes">Application name</item>
+                              <item id="WINDOW_LIST" translatable="yes">Window list</item>
+                              <item id="WINDOW_PREVIEWS" translatable="yes">Window previews</item>
                             </items>
-                            <signal name="changed" handler="WindowsHoverChanged" swapped="no"/>
+                            <signal name="changed" handler="IconsHoverChanged" swapped="no"/>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
-                            <property name="top_attach">2</property>
+                            <property name="top_attach">3</property>
                           </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="halign">start</property>
+                            <property name="label" translatable="yes">(&lt;b&gt;CTRL&lt;/b&gt; + left click will force a launch)</property>
+                            <property name="use_markup">True</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="top_attach">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
                         </child>
                       </object>
                       <packing>
@@ -1176,7 +1166,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkCheckButton" id="windows_wheel_scroll">
+                      <object class="GtkCheckButton" id="icons_wheel_scroll">
                         <property name="label" translatable="yes">Scroll wheel to cycle through windows</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -1191,20 +1181,6 @@
                         <property name="position">1</property>
                       </packing>
                     </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="halign">start</property>
-                        <property name="label" translatable="yes">&lt;b&gt;Note:&lt;/b&gt; CTRL + left click will &lt;i&gt;always&lt;/i&gt; force a launch</property>
-                        <property name="use_markup">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
                   </object>
                 </child>
               </object>
@@ -1213,30 +1189,30 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Mouse behavior on icons</property>
+                <property name="label" translatable="yes">Mouse</property>
               </object>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
       <packing>
-        <property name="position">4</property>
+        <property name="position">3</property>
       </packing>
     </child>
     <child type="tab">
       <object class="GtkLabel">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Windows</property>
+        <property name="label" translatable="yes">_Icons</property>
         <property name="use_underline">True</property>
       </object>
       <packing>
-        <property name="position">4</property>
+        <property name="position">3</property>
         <property name="tab_fill">False</property>
       </packing>
     </child>
@@ -1371,7 +1347,7 @@
         </child>
       </object>
       <packing>
-        <property name="position">5</property>
+        <property name="position">4</property>
       </packing>
     </child>
     <child type="tab">
@@ -1382,7 +1358,7 @@
         <property name="use_underline">True</property>
       </object>
       <packing>
-        <property name="position">5</property>
+        <property name="position">4</property>
         <property name="tab_fill">False</property>
       </packing>
     </child>

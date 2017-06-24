@@ -39,7 +39,7 @@ const DockableDash = new Lang.Class({
 		let side = getMutterSideForLocation(location);
 		let align = getStAlignForAlignment(dashManager.settings.get_enum('dock-alignment'));
 		let stretch = dashManager.settings.get_boolean('dock-stretch');
-		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_SHOW';
+		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_REVEAL';
 
 		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
 		this.parent(dashManager, 'dock', vertical, dashManager.settings.get_uint('dock-icon-size'),
@@ -169,7 +169,7 @@ const DockableDash = new Lang.Class({
 
 	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
 		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
-		let toggle = dockVisibility === 'TOUCH_TO_SHOW';
+		let toggle = dockVisibility === 'TOUCH_TO_REVEAL';
 		this._dockable.setToggle(toggle);
 	},
 

@@ -148,7 +148,7 @@ const PrefsWidget = new Lang.Class({
 			Gio.SettingsBindFlags.DEFAULT);
 
 		this._settings.bind('icons-wheel-scroll',
-			this._builder.get_object('windows_wheel_scroll'),
+			this._builder.get_object('icons_wheel_scroll'),
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
@@ -389,8 +389,8 @@ const PrefsWidget = new Lang.Class({
 		case 'ALWAYS':
 			this._builder.get_object('visibility_always_visible').active = true;
 			break;
-		case 'TOUCH_TO_SHOW':
-			this._builder.get_object('visibility_touch_to_show').active = true;
+		case 'TOUCH_TO_REVEAL':
+			this._builder.get_object('visibility_touch_reveal').active = true;
 			break;
 		}
 	},
@@ -402,10 +402,10 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 
-	_onVisibilityTouchToShowToggled: function(button) {
-		log('"visibility_touch_to_show" radio button "toggled" signal');
+	_onVisibilityTouchToRevealToggled: function(button) {
+		log('"visibility_touch_to_reveal" radio button "toggled" signal');
 		if (button.active) {
-			this._settings.set_string('dock-visibility', 'TOUCH_TO_SHOW');
+			this._settings.set_string('dock-visibility', 'TOUCH_TO_REVEAL');
 		}
 	},
 
@@ -414,22 +414,22 @@ const PrefsWidget = new Lang.Class({
 	_onDashPerWorkspaceSettingChanged: function(settings, dashPerWorkspace) {
 		log(`"dash-per-workspace" setting changed signal: ${dashPerWorkspace}`);
 		if (dashPerWorkspace) {
-			this._builder.get_object('windows_dash_per_workspace').active = true;
+			this._builder.get_object('location_dash_per_workspace').active = true;
 		}
 		else {
-			this._builder.get_object('windows_single_dash').active = true;
+			this._builder.get_object('location_single_dash').active = true;
 		}
 	},
 
 	_onSingleDashToggled: function(button) {
-		log('windows_single_dash radio button "toggled" signal');
+		log('location_single_dash radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_boolean('dash-per-workspace', false);
 		}
 	},
 
 	_onDashPerWorkspaceToggled: function(button) {
-		log('"windows_dash_per_workspace" radio button "toggled" signal');
+		log('"location_dash_per_workspace" radio button "toggled" signal');
 		if (button.active) {
 			this._settings.set_boolean('dash-per-workspace', true);
 		}
@@ -439,12 +439,12 @@ const PrefsWidget = new Lang.Class({
 
 	_onIconsLeftClickSettingChanged: function(settings, iconsLeftClick) {
 		log(`"icons-left-click" setting changed signal: ${iconsLeftClick}`);
-		this._builder.get_object('windows_left_click').active_id = iconsLeftClick;
+		this._builder.get_object('icons_left_click').active_id = iconsLeftClick;
 	},
 
-	_onWindowsLeftClickChanged: function(combo) {
+	_onIconsLeftClickChanged: function(combo) {
 		let leftClick = combo.active_id;
-		log(`"windows_left_click" combo box "changed" signal: ${leftClick}`);
+		log(`"icons_left_click" combo box "changed" signal: ${leftClick}`);
 		this._settings.set_string('icons-left-click', leftClick);
 	},
 
@@ -452,12 +452,12 @@ const PrefsWidget = new Lang.Class({
 
 	_onIconsMiddleClickSettingChanged: function(settings, iconsMiddleClick) {
 		log(`"icons-middle-click" setting changed signal: ${iconsMiddleClick}`);
-		this._builder.get_object('windows_middle_click').active_id = iconsMiddleClick;
+		this._builder.get_object('icons_middle_click').active_id = iconsMiddleClick;
 	},
 
-	_onWindowsMiddleClickChanged: function(combo) {
+	_onIconsMiddleClickChanged: function(combo) {
 		let middleClick = combo.active_id;
-		log(`"windows_middle_click" combo box "changed" signal: ${middleClick}`);
+		log(`"icons_middle_click" combo box "changed" signal: ${middleClick}`);
 		this._settings.set_string('icons-middle-click', middleClick);
 	},
 
@@ -465,12 +465,12 @@ const PrefsWidget = new Lang.Class({
 
 	_onIconsHoverSettingChanged: function(settings, iconsHover) {
 		log(`"icons-hover" setting changed signal: ${iconsHover}`);
-		this._builder.get_object('windows_hover').active_id = iconsHover;
+		this._builder.get_object('icons_hover').active_id = iconsHover;
 	},
 
-	_onWindowsHoverChanged: function(combo) {
+	_onIconsHoverChanged: function(combo) {
 		let hover = combo.active_id;
-		log(`"windows_hover" combo box "changed" signal: ${hover}`);
+		log(`"icons_hover" combo box "changed" signal: ${hover}`);
 		this._settings.set_string('icons-hover', hover);
 	}
 });
