@@ -67,6 +67,11 @@
       <summary>Icon highlight</summary>
       <description>Whether to highlight the icon for the currently focused application.</description>
     </key>
+    <key name="icons-highlight-focused-gradient" type="b">
+      <default>true</default>
+      <summary>Icon highlight gradient</summary>
+      <description>Whether to use color gradient when highlighting the icon for the currently focused application.</description>
+    </key>
     <key name="icons-dots" type="b">
       <default>false</default>
       <summary>Icon dots</summary>

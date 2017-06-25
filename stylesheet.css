@@ -10,6 +10,10 @@
 	margin-bottom: 0;
 }
 
+#dash.panel > StBoxLayout {
+	spacing: 3px; /* special property for St.BoxLayout */
+}
+
 #dash.panel .overview-icon,
 #dash.panel .app-well-app-running-dot {
 	padding-top: 0;
@@ -20,8 +24,13 @@
 
 /* Improve appearance when docked */
 
+#dash.dock > StBoxLayout {
+	spacing: 5px; /* special property for St.BoxLayout */
+}
+
 #dash.dock > StBoxLayout.vertical {
-	spacing: 6px; /* special property for St.BoxLayout */
+	padding-left: 5px;
+	padding-right: 5px;
 }
 
 /* Optional: just remove the border */
@@ -58,7 +67,6 @@
 
 .focused {
 	border-radius: 5px;
-	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
-	background-gradient-direction: vertical;
-	/* background-gradient-start and background-gradient-end are set dynamically */
+	/*box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);*/
+	/* background is set dynamically */
 }

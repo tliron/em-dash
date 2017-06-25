@@ -128,7 +128,12 @@ const PrefsWidget = new Lang.Class({
 			Gio.SettingsBindFlags.DEFAULT);
 
 		this._settings.bind('icons-highlight-focused',
-			this._builder.get_object('icons_higlight_focused'),
+			this._builder.get_object('icons_highlight_focused'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
+
+		this._settings.bind('icons-highlight-focused-gradient',
+			this._builder.get_object('icons_highlight_focused_gradient'),
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
@@ -433,6 +438,14 @@ const PrefsWidget = new Lang.Class({
 		if (button.active) {
 			this._settings.set_boolean('dash-per-workspace', true);
 		}
+	},
+
+	// Highlight check button
+
+	_onIconsHighlightFocusedToggled: function(button) {
+		let highlightFocused = button.active;
+		log(`"icons_highlight_focused" check button "toggled" signal: ${highlightFocused}`);
+		this._builder.get_object('icons_highlight_focused_gradient').sensitive = highlightFocused;
 	},
 
 	// Left-click combo box

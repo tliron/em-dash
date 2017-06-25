@@ -73,6 +73,9 @@ const DashView = new Lang.Class({
 				this._onFocusAppChanged);
 			this._signalManager.connectSetting(this.modelManager.settings,
 				'icons-highlight-focused', 'boolean', this._onIconsHighlightFocusedSettingChanged);
+			this._signalManager.connectSetting(this.modelManager.settings,
+				'icons-highlight-focused-gradient', 'boolean',
+				this._onIconsHighlightFocusedGradientSettingChanged);
 		}, true);
 	},
 
@@ -197,5 +200,14 @@ const DashView = new Lang.Class({
 	_onIconsHighlightFocusedSettingChanged: function(settings, iconsHighlightFocused) {
 		log(`"icons-highlight-focused" setting changed signal: ${iconsHighlightFocused}`);
 		this._updateFocusApp();
-	}
+	},
+
+	_onIconsHighlightFocusedGradientSettingChanged: function(settings,
+		iconsHighlightFocusedGradient) {
+		log(`"icons-highlight-focused-gradient" setting changed signal: ${iconsHighlightFocusedGradient}`);
+		if (this._focused !== null) {
+			this._focused.unfocus();
+			this._focused.focus();
+		}
+	},
 });

@@ -108,20 +108,25 @@ const IconView = new Lang.Class({
 		log(`focus: ${this.app.id}`);
 		let icon = this.icon.icon;
 		if (icon !== null) {
+			// TODO: use the theme to get the pixbuf
+			//log(this._dashView.actor.get_theme());
+
 			let [name, pixbuf] = IconUtils.getStIconPixBuf(icon);
 			let backlight = BacklightUtils.getBacklightColor(name, pixbuf);
 			log(`backlight: l=${backlight.lighter} o=${backlight.original} d=${backlight.darker}`);
 
-			this.actor.style = `
+			let settings = this._dashView.modelManager.settings;
+			if (settings.get_boolean('icons-highlight-focused-gradient')) {
+				this.actor.style = `
+background-gradient-direction: vertical;
 background-gradient-start: ${backlight.original};
 background-gradient-end: ${backlight.darker};`;
-
+			}
+			else {
+				this.actor.style = `background-color: ${backlight.darker};`;
+			}
 			// Assumes dot on botton
-			this._dot.style = `
-border-color: ${backlight.darker};
-background-color: ${backlight.lighter};`;
-
-			log(this._dashView.actor.get_theme());
+			this._dot.style = `background-color: ${backlight.original};`;
 		}
 		this.actor.add_style_class_name('focused');
 	},

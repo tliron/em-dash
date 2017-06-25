@@ -38,19 +38,7 @@ function luminance(r, g, b, lum) {
 }
 
 
-function HSVtoRGB(...args) {
-	let h, s, v;
-	if (args.length === 1) {
-		({h, s, v} = args[0]);
-//		let color = arguments[0];
-//		h = color.h;
-//		s = color.s;
-//		v = color.v;
-	}
-	else {
-		[h, s, v] = args;
-	}
-
+function HSVtoRGB(h, s, v) {
 	let i = Math.floor(h * 6);
 	let f = h * 6 - i;
 	let p = v * (1 - s);
@@ -99,19 +87,7 @@ function HSVtoRGB(...args) {
 }
 
 
-function RGBtoHSV(...args) {
-	let r, g, b;
-	if (args.length === 1) {
-		({r, g, b} = args[0]);
-//		let color = arguments[0];
-//		r = color.r;
-//		g = color.g;
-//		b = color.b;
-	}
-	else {
-		[r, g, b] = args;
-	}
-
+function RGBtoHSV(r, g, b) {
 	let max = Math.max(r, g, b);
 	let min = Math.min(r, g, b);
 	let d = max - min;
