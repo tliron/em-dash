@@ -46,7 +46,7 @@ const DropPlaceholder = new Lang.Class({
 		this._iconView = actor._delegate;
 		this._after = after;
 		this._destroying = false;
-		log(`_init: ${this._iconView.app.id} ${after?'after':''}`);
+		log(`_init: ${this._iconView.app.id}${after?' after':''}`);
 
 		let vertical = this._iconView._dashView.box.vertical;
 
@@ -93,7 +93,7 @@ const DropPlaceholder = new Lang.Class({
 
 		this._destroying = true;
 
-		log(`destroying: ${immediate}`);
+		log(`destroying: ${immediate?'immediate':'animated'}`);
 
 		// Dissolve
 		let vertical = this._iconView._dashView.box.vertical;

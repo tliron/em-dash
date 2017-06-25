@@ -12,32 +12,45 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <http://www.gnu.org/licenses/>.
  *
- * Original code by GitHub user SavageTiger:
+ * Adapted from code by GitHub user SavageTiger:
  *
  *   https://github.com/SavageTiger/dash-to-dock
  *
- * Original note: "Most of this code comes from reposts on StackOverflow. I was unable to trace the
- * original authors, otherwise I would have credited them here."
+ * SavageTiger's note: "Most of this code comes from reposts on StackOverflow. I was unable to trace
+ * the original authors, otherwise I would have credited them here."
  */
 
 
-function luminance(r, g, b, lum) {
-	let hex = b | (g << 8) | (r << 16);
+/**
+ * Calculates normal, light, and dark variation and converts to hex.
+ */
+function getVariationsAsHex(r, g, b) {
+	return {
+		normal: toHexWithLuminance(r, g, b),
+		light: toHexWithLuminance(r, g, b, 0.2),
+		dark: toHexWithLuminance(r, g, b, -0.5)
+	};
+}
 
-	hex = (0x1000000 + hex).toString(16).slice(1);
 
-	// Convert to decimal and change luminosity
+/**
+ * Converts RGB to hex string, optionally applying luminance.
+ */
+function toHexWithLuminance(r, g, b, lum = 0) {
 	let rgb = '#';
+	let array = [r, g, b];
 	for (let i = 0; i < 3; i++) {
-		let c = parseInt(hex.substr(i * 2, 2), 16);
+		let c = array[i];
 		c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
-		rgb += ('00' + c).substr(c.length);
+		rgb += c;
 	}
-
 	return rgb;
 }
 
 
+/**
+ * Convert HSV to RGB.
+ */
 function HSVtoRGB(h, s, v) {
 	let i = Math.floor(h * 6);
 	let f = h * 6 - i;
@@ -79,14 +92,13 @@ function HSVtoRGB(h, s, v) {
 			break;
 	}
 
-	return {
-		r: Math.round(r * 255),
-		g: Math.round(g * 255),
-		b: Math.round(b * 255)
-	};
+	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
 
+/**
+ * Convert RGB to HSV.
+ */
 function RGBtoHSV(r, g, b) {
 	let max = Math.max(r, g, b);
 	let min = Math.min(r, g, b);
@@ -112,9 +124,5 @@ function RGBtoHSV(r, g, b) {
 			break;
 	}
 
-	return {
-		h: h,
-		s: s,
-		v: v
-	};
+	return [h, s, v];
 }

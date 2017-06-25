@@ -12,9 +12,12 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <http://www.gnu.org/licenses/>.
  *
- * Original code by GitHub user SavageTiger:
+ * Adapted from code by GitHub user SavageTiger:
  *
  *   https://github.com/SavageTiger/dash-to-dock
+ *
+ * SavageTiger's note: "The backlight color choosing algorithm was mostly ported from the C++ source
+ * of Canonical's Unity 7 to JavaScript, so it more or less works the same way."
  */
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -23,43 +26,46 @@ const ColorUtils = Me.imports.utils.color;
 
 const log = LoggingUtils.logger('backlight');
 
+// Default to a neutral gray
+const DEFAULT_BACKLIGHT = ColorUtils.getVariationsAsHex(180, 180, 180);
+
 
 /**
- * The backlight color choosing algorithm was mostly ported from the C++ source of Canonical's
- * Unity 7 to JavaScript, so it more or less works the same way.
+ * Gets backlight color variations based on relative weight of colors, or uses a cached value.
  */
-function getBacklightColor(id, pixbufGetter) {
-	let backlightColor = _backlightColorCache[id];
+function getBacklight(id, pixbufGetter) {
+	let backlight = _backlightCache[id];
 
-	if (backlightColor === undefined) {
-		let rgb;
+	if (backlight === undefined) {
 		let pixbuf = pixbufGetter();
 		if (pixbuf !== null) {
-			rgb = calculateBacklightColor(pixbuf);
+			let [r, g, b] = getBacklightColor(pixbuf);
+			backlight = ColorUtils.getVariationsAsHex(r, g, b);
 		}
 		else {
-			log('getBacklightColor: no pixbuf');
-			rgb = {
-				r: 128,
-				g: 128,
-				b: 128
-			};
+			log(`getBacklight: no pixbuf for ${id}`);
+			backlight = DEFAULT_BACKLIGHT;
 		}
 
-		backlightColor = {
-			lighter: ColorUtils.luminance(rgb.r, rgb.g, rgb.b, 0.2),
-			original: ColorUtils.luminance(rgb.r, rgb.g, rgb.b, 0),
-			darker: ColorUtils.luminance(rgb.r, rgb.g, rgb.b, -0.5)
-		};
-
-		_backlightColorCache[id] = backlightColor;
+		_backlightCache[id] = backlight;
 	}
 
-	return backlightColor;
+	return backlight;
 }
 
 
-function calculateBacklightColor(pixbuf) {
+/**
+ * Resets the backlight cache.
+ */
+function reset() {
+	_backlightCache = {};
+}
+
+
+/**
+ * Calculates a backlight color based on relative weight of colors.
+ */
+function getBacklightColor(pixbuf) {
 	let pixels = pixbuf.get_pixels();
 	let width = pixbuf.get_width();
 	let height = pixbuf.get_height();
@@ -72,7 +78,7 @@ function calculateBacklightColor(pixbuf) {
 	let resampleY = 1;
 	let resampleX = 1;
 
-	// Fast resampling of large icons with convenient sizes
+	// Improve performance by down-sampling large icons with convenient sizes
 	if ((height === 512) || (height === 256) || (width === 256) || (width === 512)) {
 		if (height === 512) {
 			resampleY = 8;
@@ -118,24 +124,26 @@ function calculateBacklightColor(pixbuf) {
 	let g = gTotal / total;
 	let b = bTotal / total;
 
-	let hsv = ColorUtils.RGBtoHSV(r * 255, g * 255, b * 255);
+	let [h, s, v] = ColorUtils.RGBtoHSV(r * 255, g * 255, b * 255);
 
-	if (hsv.s > 0.15) {
-		hsv.s = 0.65;
+	if (s > 0.15) {
+		s = 0.65;
 	}
-	hsv.v = 0.90;
+	v = 0.90;
 
-	return ColorUtils.HSVtoRGB(hsv.h, hsv.s, hsv.v);
+	return ColorUtils.HSVtoRGB(h, s, v);
 }
 
 
+/**
+ * Fast resampling of pixels.
+ */
 function resamplePixels(pixbuf, pixels, resampleX, resampleY) {
 	let resampledPixels = [];
 	let limit = pixbuf.get_height() * pixbuf.get_width() / (resampleX * resampleY);
 
 	for (let i = 0; i < limit; i++) {
 		let pixel = i * resampleX * resampleY;
-
 		resampledPixels.push(pixels[pixel * 4]);
 		resampledPixels.push(pixels[pixel * 4 + 1]);
 		resampledPixels.push(pixels[pixel * 4 + 2]);
@@ -146,4 +154,4 @@ function resamplePixels(pixbuf, pixels, resampleX, resampleY) {
 }
 
 
-let _backlightColorCache = {};
+let _backlightCache = {};

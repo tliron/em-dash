@@ -136,3 +136,4 @@ TODO
 * Wobbly drag and drop in panel
 * Dock with borders seems to keep moving its strut by a pixel or two as app focus changes
 * Restarting with bottom dock -- doesn't rotate corners
+* Reset backcolor cache if icon theme changes

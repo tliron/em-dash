@@ -179,31 +179,54 @@ const IconModel = new Lang.Class({
 	},
 
 	/**
-	 * Move focus to next window or hide if focused on last window for all workspaces or for a
-	 * specific workspace.
+	 * Cycle focus to next/previous window or optionally hide when reaching the end for all
+	 * workspaces or for a specific workspace.
 	 */
-	cycleFocusOrHide: function(workspaceIndex) {
+	cycleFocus: function(workspaceIndex, next, hideOnLast = false) {
 		let windows = this.getWindows(workspaceIndex);
 		if (windows.length === 0) {
-			log('cycleFocusOrHide: do nothing');
+			log('cycleFocus: do nothing');
 			return;
 		}
 
 		let focusedWindowIndex = WindowUtils.getFocusedWindowIndex(windows);
 		if (focusedWindowIndex === -1) {
 			// Focus on first window
-			log('cycleFocusOrHide: first');
+			log('cycleFocus: first');
 			WindowUtils.focusWindow(windows[0]);
 		}
-		else if (focusedWindowIndex < windows.length - 1 ) {
-			// Focus on next window
-			focusedWindowIndex += 1;
-			log(`cycleFocusOrHide: ${focusedWindowIndex}`);
-			WindowUtils.focusWindow(windows[focusedWindowIndex]);
+		else if (next) {
+			if (focusedWindowIndex < windows.length - 1) {
+				// Focus on next window
+				focusedWindowIndex += 1;
+				log(`cycleFocus: next ${focusedWindowIndex}`);
+				WindowUtils.focusWindow(windows[focusedWindowIndex]);
+			}
+			else if (hideOnLast) {
+				log('cycleFocusOrHide: hide');
+				this.hide(workspaceIndex);
+			}
+			else {
+				log('cycleFocus: first');
+				WindowUtils.focusWindow(windows[0]);
+			}
 		}
 		else {
-			log('cycleFocusOrHide: hide');
-			this.hide(workspaceIndex);
+			if (focusedWindowIndex > 0) {
+				// Focus on previous window
+				focusedWindowIndex -= 1;
+				log(`cycleFocus: previous ${focusedWindowIndex}`);
+				WindowUtils.focusWindow(windows[focusedWindowIndex]);
+			}
+			else if (hideOnLast) {
+				log('cycleFocusOrHide: hide');
+				this.hide(workspaceIndex);
+			}
+			else {
+				focusedWindowIndex = windows.length - 1;
+				log(`cycleFocus: last ${focusedWindowIndex}`);
+				WindowUtils.focusWindow(windows[focusedWindowIndex]);
+			}
 		}
 	},
 

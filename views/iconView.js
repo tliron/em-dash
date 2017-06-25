@@ -24,6 +24,7 @@ const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
+const SignalUtils = Me.imports.utils.signal;
 const DraggableUtils = Me.imports.utils.draggable;
 const AppUtils = Me.imports.utils.app;
 const IconUtils = Me.imports.utils.icon;
@@ -32,7 +33,6 @@ const IconMenu = Me.imports.views.iconMenu;
 const DropPlaceholder = Me.imports.views.dropPlaceholder;
 
 const log = LoggingUtils.logger('iconView');
-
 
 const ANIMATION_TIME = 0.1;
 
@@ -78,6 +78,11 @@ const IconView = new Lang.Class({
 		else {
 			this._draggable = null;
 		}
+
+		this._signalManager = new SignalUtils.SignalManager(this);
+		let settings = this._dashView.modelManager.settings;
+		this._signalManager.connectSetting(settings, 'icons-wheel-scroll', 'boolean',
+			this._onIconsWheelScrollSettingChanged);
 	},
 
 	/**
@@ -85,6 +90,7 @@ const IconView = new Lang.Class({
 	 */
 	_onDestroy: function() {
 		log(`_onDestroy: ${this.app.id}`);
+		this._signalManager.destroy();
 		if (this._draggable !== null) {
 			this._draggable.destroy();
 		}
@@ -110,27 +116,27 @@ const IconView = new Lang.Class({
 		log(`focus: ${this.app.id}`);
 		let icon = this.icon.icon;
 		if (icon !== null) {
-			let backlight = BacklightUtils.getBacklightColor(this.app.id, () => {
+			let backlight = BacklightUtils.getBacklight(this.app.id, () => {
 				if (icon instanceof St.Icon) {
 					return IconUtils.getStIconPixbuf(icon, 64);
 				}
 				log('focus: not an St.Icon');
 				return null;
 			});
-			log(`backlight: l=${backlight.lighter} o=${backlight.original} d=${backlight.darker}`);
+			log(`backlight: l=${backlight.light} n=${backlight.normal} d=${backlight.dark}`);
 
 			let settings = this._dashView.modelManager.settings;
 			if (settings.get_boolean('icons-highlight-focused-gradient')) {
 				this.actor.style = `
 background-gradient-direction: vertical;
-background-gradient-start: ${backlight.original};
-background-gradient-end: ${backlight.darker};`;
+background-gradient-start: ${backlight.normal};
+background-gradient-end: ${backlight.dark};`;
 			}
 			else {
-				this.actor.style = `background-color: ${backlight.darker};`;
+				this.actor.style = `background-color: ${backlight.dark};`;
 			}
 			// Assumes dot on botton
-			this._dot.style = `background-color: ${backlight.original};`;
+			this._dot.style = `background-color: ${backlight.normal};`;
 		}
 		this.actor.add_style_class_name('focused');
 	},
@@ -185,7 +191,7 @@ background-gradient-end: ${backlight.darker};`;
 		return false;
 	},
 
-	// Clicks
+	// Mouse actions
 
 	/**
 	 * Override to support our custom left-click actions.
@@ -205,10 +211,6 @@ background-gradient-end: ${backlight.darker};`;
 		if (iconsLeftClick !== 'NOTHING') {
 			this._clickAction(iconsLeftClick);
 		}
-	},
-
-	_onClicked: function(actor, button) {
-		this.parent(actor, button);
 	},
 
 	/**
@@ -233,6 +235,35 @@ background-gradient-end: ${backlight.darker};`;
 			return Clutter.EVENT_STOP;
 		}
 		return Clutter.EVENT_PROPAGATE;
+	},
+
+	_onIconsWheelScrollSettingChanged: function(settings, iconsWheelScroll) {
+		log(`"icons-wheel-scroll" setting changed signal: ${this.app.id} ${iconsWheelScroll}`);
+		if (iconsWheelScroll) {
+			if (this._signalManager.get(this._onScrollEvent) === null) {
+				this._signalManager.connect(this.actor, 'scroll-event', this._onScrollEvent);
+			}
+		}
+		else {
+			this._signalManager.disconnect(this._onScrollEvent);
+		}
+	},
+
+	_onScrollEvent: function(actor, scrollEvent) {
+		switch (scrollEvent.get_scroll_direction()) {
+		case Clutter.ScrollDirection.UP:
+			log(`actor "scroll-event" signal: ${this.app.id} up`);
+			this._model.cycleFocus(this._workspaceIndex, false);
+			break;
+		case Clutter.ScrollDirection.DOWN:
+			log(`actor "scroll-event" signal: ${this.app.id} down`);
+			this._model.cycleFocus(this._workspaceIndex, true);
+			break;
+		default:
+			log(`actor "scroll-event" signal: ${this.app.id}`);
+			return false;
+		}
+		return true;
 	},
 
 	_clickAction: function(action) {
@@ -289,7 +320,7 @@ background-gradient-end: ${backlight.darker};`;
 	_launchOrCycle: function() {
 		log(`_launchOrCycle: ${this.app.id}`);
 		if (!this._activateIfStopped()) {
-			this._model.cycleFocusOrHide(this._workspaceIndex);
+			this._model.cycleFocus(this._workspaceIndex, true, true);
 		}
 	},
 
@@ -319,6 +350,13 @@ background-gradient-end: ${backlight.darker};`;
 
 	// Dragging us
 
+	handleDragBegin: function() {
+		// Hooked from EmDash.Draggable using our actor._delegate
+		log(`handleDragBegin hook: ${this.app.id}`);
+		this._removeMenuTimeout();
+		this._dissolve();
+	},
+
 	/*
 	 * Override to make sure the drag actor is the same size as our icon.
 	 */
@@ -327,13 +365,6 @@ background-gradient-end: ${backlight.darker};`;
 		let size = this.icon.icon.icon_size;
 		log(`getDragActor hook: ${this.app.id} ${size}`);
 		return this.app.create_icon_texture(size);
-	},
-
-	handleDragBegin: function() {
-		// Hooked from EmDash.Draggable using our actor._delegate
-		log(`handleDragBegin hook: ${this.app.id}`);
-		this._removeMenuTimeout();
-		this._dissolve();
 	},
 
 	getDragRestoreLocation: function() {
@@ -346,18 +377,18 @@ background-gradient-end: ${backlight.darker};`;
 		// Hooked from EmDash.Draggable using our actor._delegate
 		// Called as soon as the mouse button is released
 		log(`handleDragCancelling hook: ${this.app.id}`);
-		// Note: handleDragEnd may be called before the reappear animation is complete!
-		this._reappear();
+		// Note: handleDragEnd may be called *before* the reappear animation is complete
+		this._appear();
 	},
 
 	handleDragEnd: function(dropped) {
 		// Hooked from EmDash.Draggable using our actor._delegate
-		// When cancelling, called when the draggable finishes "snapping back"
+		// When cancelling, called when the draggable *finishes* "snapping back"
 		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
 		this.actor.child.show();
-		// If cancelled, then the animation was already started in handleDragCancelling
 		if (dropped) {
-			this._reappear(DropPlaceholder.selfDrop);
+			// If cancelled, then the animation was already started in handleDragCancelling
+			this._appear(DropPlaceholder.selfDrop);
 		}
 	},
 
@@ -389,8 +420,8 @@ background-gradient-end: ${backlight.darker};`;
 		});
 	},
 
-	_reappear: function(immediate = false) {
-		log(`_reappear: ${this.app.id} ${immediate}`);
+	_appear: function(immediate = false) {
+		log(`_appear: ${this.app.id} ${immediate?'immediate':'animated'}`);
 		this.actor.show();
 		Tweener.addTween(this.actor, {
 			time: immediate ? 0 : ANIMATION_TIME,
@@ -409,7 +440,7 @@ background-gradient-end: ${backlight.darker};`;
 
 	handleDragOver: function(source, actor, x, y, extra) {
 		if (source === this) {
-			log('handleDragOver hook: it\'s us');
+			log('handleDragOver hook: self');
 			return DND.DragMotionResult.NO_DROP;
 		}
 

@@ -28,19 +28,6 @@ const LoggingUtils = Me.imports.utils.logging;
 
 const log = LoggingUtils.logger('icon');
 
-// Unfortunately these are not exposed via GObject introspection, so copied from gtkicontheme.h
-const GtkIconLookupFlags = {
-	NO_SVG:           1 << 0,
-	FORCE_SVG:        1 << 1,
-	USE_BUILTIN:      1 << 2,
-	GENERIC_FALLBACK: 1 << 3,
-	FORCE_SIZE:       1 << 4,
-	FORCE_REGULAR:    1 << 5,
-	FORCE_SYMBOLIC:   1 << 6,
-	DIR_LTR:          1 << 7,
-	DIR_RTL:          1 << 8
-};
-
 
 /**
  * Gets a GdkPixbuf from an St.Icon.
@@ -61,21 +48,21 @@ function getStIconPixbuf(stIcon, physicalSize) {
 	}
 
 	// Lookup flags
-	let lookupFlags = GtkIconLookupFlags.USE_BUILTIN;
-	switch (themeNode.icon_style) {
+	let lookupFlags = Gtk.IconLookupFlags.USE_BUILTIN;
+	switch (themeNode.get_icon_style()) {
 	case St.IconStyle.REGULAR:
-		lookupFlags |= GtkIconLookupFlags.FORCE_REGULAR;
+		lookupFlags |= Gtk.IconLookupFlags.FORCE_REGULAR;
 		break;
 	case St.IconStyle.SYMBOLIC:
-		lookupFlags |= GtkIconLookupFlags.FORCE_SYMBOLIC;
+		lookupFlags |= Gtk.IconLookupFlags.FORCE_SYMBOLIC;
 		break;
 	}
 	switch (stIcon.text_direction) {
 	case Clutter.TextDirection.LTR:
-		lookupFlags |= GtkIconLookupFlags.DIR_LTR;
+		lookupFlags |= Gtk.IconLookupFlags.DIR_LTR;
 		break;
 	case Clutter.TextDirection.RTL:
-		lookupFlags |= GtkIconLookupFlags.DIR_RTL;
+		lookupFlags |= Gtk.IconLookupFlags.DIR_RTL;
 		break;
 	}
 

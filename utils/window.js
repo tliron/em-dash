@@ -13,6 +13,8 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
+const Clutter = imports.gi.Clutter;
+
 
 function getFocusedWindowIndex(windows) {
 	for (let i = 0; i < windows.length; i++) {
