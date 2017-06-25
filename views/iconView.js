@@ -102,16 +102,6 @@ const IconView = new Lang.Class({
 		return this.parent(iconSize);
 	},
 
-	/*
-	 * Override to make sure the drag actor is the same size as our icon.
-	 */
-	getDragActor: function() {
-		// Hooked from DND using our actor._delegate
-		let size = this.icon.icon.icon_size;
-		log(`getDragActor hook: ${this.app.id} ${size}`);
-		return this.app.create_icon_texture(size);
-	},
-
 	// Focus
 
 	focus: function() {
@@ -320,21 +310,65 @@ background-color: ${backlight.lighter};`;
 
 	// Dragging us
 
+	/*
+	 * Override to make sure the drag actor is the same size as our icon.
+	 */
+	getDragActor: function() {
+		// Hooked from DND using our actor._delegate
+		let size = this.icon.icon.icon_size;
+		log(`getDragActor hook: ${this.app.id} ${size}`);
+		return this.app.create_icon_texture(size);
+	},
+
 	handleDragBegin: function() {
 		// Hooked from EmDash.Draggable using our actor._delegate
 		log(`handleDragBegin hook: ${this.app.id}`);
 		this._removeMenuTimeout();
+		this._dissolve();
+	},
 
+	getDragRestoreLocation: function() {
+		// Hooked from EmDash.Draggable using our actor._delegate
+		log(`getDragRestoreLocation hook: ${this.app.id}`);
+		return [this._originalX, this._originalY, 1];
+	},
+
+	handleDragCancelling: function() {
+		// Hooked from EmDash.Draggable using our actor._delegate
+		// Called as soon as the mouse button is released
+		log(`handleDragCancelling hook: ${this.app.id}`);
+		// Note: handleDragEnd may be called before the reappear animation is complete!
+		this._reappear();
+	},
+
+	handleDragEnd: function(dropped) {
+		// Hooked from EmDash.Draggable using our actor._delegate
+		// When cancelling, called when the draggable finishes "snapping back"
+		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
+		this.actor.child.show();
+		// If cancelled, then the animation was already started in handleDragCancelling
+		if (dropped) {
+			this._reappear(DropPlaceholder.selfDrop);
+		}
+	},
+
+	_dissolve: function() {
+		log(`_dissolve: ${this.app.id}`);
 		let position = this.icon.icon.get_transformed_position();
 		this._originalX = position[0];
 		this._originalY = position[1];
 		this._originalWidth = this.actor.width;
 		this._originalHeight = this.actor.height;
+		this._originalStyleClass = this.actor.style_class;
+		this._originalStyle = this.actor.style;
 
 		// Become an empty space
 		this.actor.child.hide();
+		this._dot.hide();
+		this.actor.style_class = null;
+		this.actor.style = null;
 
-		// Dissolve
+		// Shrink
 		Tweener.addTween(this.actor, {
 			time: ANIMATION_TIME,
 			transition: 'easeOutQuad',
@@ -346,30 +380,20 @@ background-color: ${backlight.lighter};`;
 		});
 	},
 
-	getDragRestoreLocation: function() {
-		// Hooked from EmDash.Draggable using our actor._delegate
-		log(`getDragRestoreLocation hook: ${this.app.id}`);
-		return [this._originalX, this._originalY, 1];
-	},
-
-	handleDragCancelling: function() {
-		// Hooked from EmDash.Draggable using our actor._delegate
-		log(`handleDragCancelling hook: ${this.app.id}`);
-
-		// Appear
+	_reappear: function(immediate = false) {
+		log(`_reappear: ${this.app.id} ${immediate}`);
 		this.actor.show();
 		Tweener.addTween(this.actor, {
-			time: ANIMATION_TIME,
+			time: immediate ? 0 : ANIMATION_TIME,
 			transition: 'easeOutQuad',
 			width: this._originalWidth,
 			height: this._originalHeight,
+			onComplete: () => {
+				this._dot.show();
+				this.actor.style_class = this._originalStyleClass;
+				this.actor.style = this._originalStyle;
+			}
 		});
-	},
-
-	handleDragEnd: function(dropped) {
-		// Hooked from EmDash.Draggable using our actor._delegate
-		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
-		this.actor.child.show();
 	},
 
 	// Dragging over us

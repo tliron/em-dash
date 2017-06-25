@@ -4,31 +4,29 @@ Em—Dash
 
 **WORK IN PROGRESS, DO NOT USE**
 
-An enhanced GNOME Shell desktop dash, implemented as aa GNOME Shell extension.
+An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension.
 
-It provides the following features for the dash:
+It's primary function is to move the dash out of the overview and into the **top panel** or dock it
+on an **edge** of one of the **monitors**.
 
-* Move it out of the overview and into the **top panel** or dock it on an **edge** of one of the
-  **monitors**.
-* Configure to show windows in **all of the workspaces** (like the built-in dash) or only in the
+It provides the following *optional* features for the dash icons:
+
+* Show windows from **all of the workspaces** (like the built-in dash) or only from the
   **current workspace**.
-
-For the dash icons:
-
-* **Highlight** the focused application with a smart backlight (a feature borrowed from the Unity
-  desktop).
+* **Highlight** the currently focused application with a color-appropriate backlight (a feature
+  borrowed from the Unity desktop).
 * Show dots for **how many** windows are open (the built-in dash only shows a line if *any* are
   open).
-* Configure the behavior of **left-click** and **middle-click** on the dash icons: raise window,
-  toggle raise/hide, or cycle windows.
-* **Wheel scroll** to cycle windows on the dash icons.
-* Show a **window list** or **window previews** when hovering over dash icons (a feature inspired by
-  Windows).
-* Configure icons to **"grab"** other windows. This solves a common annoyance with the built-in
+* Change the behavior of **left-click** and **middle-click** on the dash icons: launch (like the
+  built-in dash), launch/hide, or cycle/hide.
+* **Mouse wheel scroll** to cycle windows on the dash icons.
+* Show a **window list** or **window previews** when hovering over dash icons (a feature borrowed
+  from the Windows desktop).
+* Allow icons to **"grab"** other windows. This solves a common annoyance with the built-in
   dash, in which poorly designed applications spawn extra icons for their windows. This feature even
   works for WINE applications.
 
-For the dash icons' popup menus:
+Optional features for the dash icons' popup menus:
 
 * Show **media controls** for supported applications (MPRIS).
 * Hide the built-in **application menu** in the panel and show it in the relevant icon's popup menu

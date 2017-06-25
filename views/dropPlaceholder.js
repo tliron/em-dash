@@ -26,8 +26,9 @@ const AppUtils = Me.imports.utils.app;
 
 const log = LoggingUtils.logger('dropPlaceholder');
 
-
 const ANIMATION_TIME = 0.1;
+
+let selfDrop = false;
 
 
 /**
@@ -37,6 +38,8 @@ const DropPlaceholder = new Lang.Class({
 	Name: 'EmDash.DropPlaceholder',
 
 	_init: function(actor, after) {
+		seflDrop = false;
+
 		this.nextActor = null;
 		this.nextAfter = null;
 
@@ -83,19 +86,19 @@ const DropPlaceholder = new Lang.Class({
 		Tweener.addTween(this.actor, tween);
 	},
 
-	destroy: function(actor, after) {
+	destroy: function(immediate = false) {
 		if (this._destroying) {
 			return;
 		}
 
 		this._destroying = true;
 
-		log('destroying');
+		log(`destroying: ${immediate}`);
 
 		// Dissolve
 		let vertical = this._iconView._dashView.box.vertical;
 		let tween = {
-			time: ANIMATION_TIME,
+			time: immediate ? 0 : ANIMATION_TIME,
 			transition: 'easeOutQuad',
 			onComplete: () => {
 				this.actor.destroy();
@@ -124,28 +127,29 @@ const DropPlaceholder = new Lang.Class({
 		if ((source._modelIndex === this._modelIndex) ||
 			(source._modelIndex === this._modelIndex - 1)) {
 			log(`acceptDrop hook: ${appId} on self`);
-			return false;
+			selfDrop = true;
 		}
 		else if (source._modelIndex === undefined) {
 			// Dragged from elsewhere (likely the overview)
 			log(`acceptDrop hook: ${appId} from elsewhere to ${this._modelIndex}`);
 			let favorites = AppFavorites.getAppFavorites();
 			favorites.addFavoriteAtPos(appId, this._modelIndex);
+			selfDrop = false;
 		}
 		else {
 			// Moved within the dash
 			log(`acceptDrop hook: ${appId} from ${source._modelIndex} to ${this._modelIndex}`);
 			AppUtils.moveFavoriteToPos(appId, source._modelIndex, this._modelIndex);
+			selfDrop = false;
 		}
+		removeDropPlaceholder(); // this destroys us!
 		return true;
 	}
 });
 
-
 let _dropPlaceholder = null;
 let _dragMonitor = {
-	dragMotion: _onDragMotion,
-	dragDrop: _onDragDrop
+	dragMotion: _onDragMotion
 };
 
 
@@ -166,7 +170,7 @@ function removeDropPlaceholder() {
 	if (_dropPlaceholder !== null) {
 		_dropPlaceholder.nextActor = null;
 		_dropPlaceholder.nextAfter = null;
-		_dropPlaceholder.destroy();
+		_dropPlaceholder.destroy(selfDrop);
 	}
 }
 
@@ -175,6 +179,7 @@ function nextDropPlaceholder(nextActor, nextAfter) {
 	if ((nextActor !== null) && (nextAfter !== null)) {
 		// The old switcheroo
 		_dropPlaceholder = new DropPlaceholder(nextActor, nextAfter);
+		selfDrop = false;
 	}
 	else {
 		DND.removeDragMonitor(_dragMonitor);
@@ -192,13 +197,6 @@ function _onDragMotion(dragEvent) {
 		}
 	}
 	return DND.DragMotionResult.CONTINUE;
-}
-
-
-function _onDragDrop(dropEvent) {
-	log('dragDrop monitor hook');
-	removeDropPlaceholder();
-	return DND.DragDropResult.CONTINUE;
 }
 
 
