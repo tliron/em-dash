@@ -28,15 +28,17 @@ const log = LoggingUtils.logger('backlight');
  * The backlight color choosing algorithm was mostly ported from the C++ source of Canonical's
  * Unity 7 to JavaScript, so it more or less works the same way.
  */
-function getBacklightColor(id, pixbuf) {
+function getBacklightColor(id, pixbufGetter) {
 	let backlightColor = _backlightColorCache[id];
 
 	if (backlightColor === undefined) {
 		let rgb;
+		let pixbuf = pixbufGetter();
 		if (pixbuf !== null) {
 			rgb = calculateBacklightColor(pixbuf);
 		}
 		else {
+			log('getBacklightColor: no pixbuf');
 			rgb = {
 				r: 128,
 				g: 128,

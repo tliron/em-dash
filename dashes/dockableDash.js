@@ -78,7 +78,7 @@ const DockableDash = new Lang.Class({
 
 	_updateStyle: function(side) {
 		let actor = this._view.actor;
-		let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
+		let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 		switch (side) {
 		case Meta.Side.RIGHT:
 			if (rtl) {
@@ -128,7 +128,7 @@ const DockableDash = new Lang.Class({
 		if ((side === Meta.Side.BOTTOM) && this._dashManager.settings.get_boolean('dock-borders')) {
 			// Rotate the corner radiuses from side to top
 			let themeNode = actor.get_theme_node();
-			let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
+			let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 			let topLeft, topRight;
 			if (rtl) {
 				topLeft = themeNode.get_border_radius(St.Corner.BOTTOMLEFT);
@@ -185,7 +185,7 @@ const DockableDash = new Lang.Class({
  */
 
 function getMutterSideForLocation(location) {
-	let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
+	let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 	switch (location) {
 	case 'EDGE_NEAR':
 		return rtl ? Meta.Side.RIGHT : Meta.Side.LEFT;

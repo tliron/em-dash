@@ -20,6 +20,7 @@ const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
 const Shell = imports.gi.Shell;
 const Clutter = imports.gi.Clutter;
+const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
@@ -99,6 +100,7 @@ const IconView = new Lang.Class({
 		if (this._fixedIconSize !== null) {
 			iconSize = this._fixedIconSize;
 		}
+		// Usually creates St.Icon, but for some system windows it will be Clutter.Texture
 		return this.parent(iconSize);
 	},
 
@@ -108,11 +110,13 @@ const IconView = new Lang.Class({
 		log(`focus: ${this.app.id}`);
 		let icon = this.icon.icon;
 		if (icon !== null) {
-			// TODO: use the theme to get the pixbuf
-			//log(this._dashView.actor.get_theme());
-
-			let [name, pixbuf] = IconUtils.getStIconPixBuf(icon);
-			let backlight = BacklightUtils.getBacklightColor(name, pixbuf);
+			let backlight = BacklightUtils.getBacklightColor(this.app.id, () => {
+				if (icon instanceof St.Icon) {
+					return IconUtils.getStIconPixbuf(icon, 64);
+				}
+				log('focus: not an St.Icon');
+				return null;
+			});
 			log(`backlight: l=${backlight.lighter} o=${backlight.original} d=${backlight.darker}`);
 
 			let settings = this._dashView.modelManager.settings;
