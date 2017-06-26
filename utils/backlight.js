@@ -67,19 +67,15 @@ function reset() {
  */
 function getBacklightColor(pixbuf) {
 	let pixels = pixbuf.get_pixels();
+
 	let width = pixbuf.get_width();
 	let height = pixbuf.get_height();
 
-	let offset = 0;
-	let total  = 0;
-	let rTotal = 0;
-	let gTotal = 0;
-	let bTotal = 0;
-	let resampleY = 1;
-	let resampleX = 1;
-
 	// Improve performance by down-sampling large icons with convenient sizes
 	if ((height === 512) || (height === 256) || (width === 256) || (width === 512)) {
+		let resampleY = 1;
+		let resampleX = 1;
+
 		if (height === 512) {
 			resampleY = 8;
 		}
@@ -94,23 +90,27 @@ function getBacklightColor(pixbuf) {
 			resampleX = 4;
 		}
 
+		width /= resampleX;
+		height /= resampleY;
+
 		pixels = resamplePixels(pixbuf, pixels, resampleX, resampleY);
 	}
 
-	let limitY = height / resampleY;
-	let limitX = width / resampleX;
-
-	for (let i = 0; i < limitY; i++) {
-		for (let x = 0; x < limitX; x++) {
+	let offset = 0;
+	let total  = 0;
+	let rTotal = 0;
+	let gTotal = 0;
+	let bTotal = 0;
+	for (let i = 0; i < height; i++) {
+		for (let x = 0; x < width; x++) {
 			let r = pixels[offset];
 			let g = pixels[offset + 1];
 			let b = pixels[offset + 2];
 			let a = pixels[offset + 3];
-
 			offset += 4;
 
 			let saturation = (Math.max(r, Math.max(g, b)) - Math.min(r, Math.min(g, b))) / 255;
-			let relevance  = 0.1 + 0.9 * (a / 255.0) * saturation;
+			let relevance  = 0.1 + 0.9 * (a / 255) * saturation;
 
 			rTotal += Math.round(r * relevance);
 			gTotal += Math.round(g * relevance);
@@ -120,18 +120,21 @@ function getBacklightColor(pixbuf) {
 		}
 	}
 
-	let r = rTotal / total;
-	let g = gTotal / total;
-	let b = bTotal / total;
+	let r = (rTotal / total) * 255;
+	let g = (gTotal / total) * 255;
+	let b = (bTotal / total) * 255;
 
-	let [h, s, v] = ColorUtils.RGBtoHSV(r * 255, g * 255, b * 255);
+	let [h, s, v] = ColorUtils.toHSV(r, g, b);
 
+	// Limit saturation
 	if (s > 0.15) {
 		s = 0.65;
 	}
+
+	// Set value
 	v = 0.90;
 
-	return ColorUtils.HSVtoRGB(h, s, v);
+	return ColorUtils.fromHSV(h, s, v);
 }
 
 

@@ -80,9 +80,6 @@ const IconView = new Lang.Class({
 		}
 
 		this._signalManager = new SignalUtils.SignalManager(this);
-		let settings = this._dashView.modelManager.settings;
-		this._signalManager.connectSetting(settings, 'icons-wheel-scroll', 'boolean',
-			this._onIconsWheelScrollSettingChanged);
 	},
 
 	/**
@@ -237,16 +234,14 @@ background-gradient-end: ${backlight.dark};`;
 		return Clutter.EVENT_PROPAGATE;
 	},
 
-	_onIconsWheelScrollSettingChanged: function(settings, iconsWheelScroll) {
-		log(`"icons-wheel-scroll" setting changed signal: ${this.app.id} ${iconsWheelScroll}`);
-		if (iconsWheelScroll) {
-			if (this._signalManager.get(this._onScrollEvent) === null) {
-				this._signalManager.connect(this.actor, 'scroll-event', this._onScrollEvent);
-			}
+	_enableScroll: function() {
+		if (this._signalManager.get(this._onScrollEvent) === null) {
+			this._signalManager.connect(this.actor, 'scroll-event', this._onScrollEvent);
 		}
-		else {
-			this._signalManager.disconnect(this._onScrollEvent);
-		}
+	},
+
+	_disableScroll: function() {
+		this._signalManager.disconnect(this._onScrollEvent);
 	},
 
 	_onScrollEvent: function(actor, scrollEvent) {

@@ -15,8 +15,8 @@
 
 
 function getActorIndexOfChild(actor, child) {
-	let n_children = actor.get_n_children();
-	for (let i = 0; i < n_children; i++) {
+	let nChildren = actor.get_n_children();
+	for (let i = 0; i < nChildren; i++) {
 		let theChild = actor.get_child_at_index(i);
 		if (theChild === child) {
 			return i;

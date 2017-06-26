@@ -56,7 +56,8 @@ const DashView = new Lang.Class({
 
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this.actor, 'paint', () => {
-			// We need to wait until we're painted in order to focus app (backlight highlighting)
+			// We need to wait until we're painted in order to focus app (backlight highlighting
+			// need theme information)
 			log('"paint" signal');
 
 			this.setVertical(vertical);
@@ -76,6 +77,8 @@ const DashView = new Lang.Class({
 			this._signalManager.connectSetting(this.modelManager.settings,
 				'icons-highlight-focused-gradient', 'boolean',
 				this._onIconsHighlightFocusedGradientSettingChanged);
+			this._signalManager.connectSetting(this.modelManager.settings, 'icons-wheel-scroll',
+				'boolean', this._onIconsWheelScrollSettingChanged);
 		}, true);
 	},
 
@@ -135,6 +138,24 @@ const DashView = new Lang.Class({
 		}
 
 		this._updateFocusApp();
+
+		this._signalManager.connect(this.actor, 'paint', this._updateArrow, true);
+	},
+
+	_updateArrow: function() {
+		let height = this.box.height;
+		let allocationBox = this.box.get_allocation_box();
+		let allocatedHeight = allocationBox.y2 - allocationBox.y1;
+		log('!!!! ' + height);
+		log('!!!! ' + allocatedHeight);
+		if (height > allocatedHeight) {
+			log('!!!!!!!! too big');
+			this.actor.add_style_class_name('arrow-down');
+		}
+		else {
+			log('!!!!!!!! size ok');
+			this.actor.remove_style_class_name('arrow-down');
+		}
 	},
 
 	_updateFocusApp: function(app) {
@@ -210,4 +231,18 @@ const DashView = new Lang.Class({
 			this._focused.focus();
 		}
 	},
+
+	_onIconsWheelScrollSettingChanged: function(settings, iconsWheelScroll) {
+		log(`"icons-wheel-scroll" setting changed signal: ${iconsWheelScroll}`);
+		let nChildren = this.box.get_n_children();
+		for (let i = 0; i < nChildren; i++) {
+			let iconView = this.getIconViewAt(i);
+			if (iconsWheelScroll) {
+				iconView._enableScroll();
+			}
+			else {
+				iconView._disableScroll();
+			}
+		}
+	}
 });

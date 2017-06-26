@@ -49,9 +49,9 @@ function toHexWithLuminance(r, g, b, lum = 0) {
 
 
 /**
- * Convert HSV to RGB.
+ * Convert HSV (hue, saturation, value) to RGB (red, green, blue).
  */
-function HSVtoRGB(h, s, v) {
+function fromHSV(h, s, v) {
 	let i = Math.floor(h * 6);
 	let f = h * 6 - i;
 	let p = v * (1 - s);
@@ -97,9 +97,9 @@ function HSVtoRGB(h, s, v) {
 
 
 /**
- * Convert RGB to HSV.
+ * Convert RGB (red, green, blue) to HSV (hue, saturation, value).
  */
-function RGBtoHSV(r, g, b) {
+function toHSV(r, g, b) {
 	let max = Math.max(r, g, b);
 	let min = Math.min(r, g, b);
 	let d = max - min;

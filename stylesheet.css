@@ -63,6 +63,10 @@
 	transition-duration: 100ms;
 }
 
+#dash.arrow-down {
+	border-bottom: 5px solid red;
+}
+
 /* Optional: highlight focused app */
 
 .focused {
