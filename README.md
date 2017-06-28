@@ -9,7 +9,11 @@ An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension.
 It's primary function is to move the dash out of the overview and into the **top panel** or dock it
 on an **edge** of one of the **monitors**.
 
-It provides the following *optional* features for the dash icons:
+It supports any number of icons: when there are too many, it will let you scroll through them. (The
+built-in dash keeps shrinking the icons in order to fit more, until it reaches a minimum icon size
+and then stops showing extra icons...)
+
+Also, Em—Dash provides the following *optional* features for the icons:
 
 * Show windows from **all of the workspaces** (like the built-in dash) or only from the
   **current workspace**.
@@ -17,22 +21,22 @@ It provides the following *optional* features for the dash icons:
   borrowed from the Unity desktop).
 * Show dots for **how many** windows are open (the built-in dash only shows a line if *any* are
   open).
+* Move the **activities button** from the top panel to the dash. 
 * Change the behavior of **left-click** and **middle-click** on the dash icons: launch (like the
   built-in dash), launch/hide, or cycle/hide.
 * **Mouse wheel scroll** to cycle windows on the dash icons.
 * Show a **window list** or **window previews** when hovering over dash icons (a feature borrowed
-  from the Windows desktop).
+  from the Windows desktop; the built-in dash only shows the application name when hovering).
 * Allow icons to **"grab"** other windows. This solves a common annoyance with the built-in
   dash, in which poorly designed applications spawn extra icons for their windows. This feature even
-  works for WINE applications.
+  works for **WINE applications**.
 
 Optional features for the dash icons' popup menus:
 
 * Show **media controls** for supported applications (MPRIS).
-* Hide the built-in **application menu** in the panel and show it in the relevant icon's popup menu
-  instead.
+* Move the **application menu** from the top panel into the relevant icon's popup menu.
 
-
+t
 What does the name mean?
 ------------------------
 
