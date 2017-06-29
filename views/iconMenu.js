@@ -90,7 +90,7 @@ const IconMenu = new Lang.Class({
 		this.parent();
 
 		// Application menu
-		if (this._settings.get_boolean('icons-app-menu')) {
+		if (this._settings.get_boolean('menu-application')) {
 			let menuModel = this._source.app.menu; // Gio.DBusMenuModel
 			let actionGroup = this._source.app.action_group;
 			if ((menuModel !== null) && (actionGroup !== null)) {
@@ -100,7 +100,7 @@ const IconMenu = new Lang.Class({
 		}
 
 		// Media controls
-		if (this._settings.get_boolean('icons-media-controls') && (this._simpleName !== null)) {
+		if (this._settings.get_boolean('menu-media-controls') && (this._simpleName !== null)) {
 			this._mediaControlsMenu = new MediaControlsMenu(this._simpleName);
 			this.addMenuItem(this._mediaControlsMenu.item);
 		}

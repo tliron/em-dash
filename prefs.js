@@ -67,6 +67,11 @@ const PrefsWidget = new Lang.Class({
 		this._alignmentLeft = this._builder.get_object('alignment_left').label;
 		this._alignmentRight = this._builder.get_object('alignment_right').label;
 		this._monitorNotConnected = this._builder.get_object('monitor_not_connected').label;
+		this._applicationsButtonLeft = this._builder.get_object('applications_button_left').label;
+		this._applicationsButtonRight = this._builder.get_object('applications_button_right').label;
+		this._applicationsButtonTop = this._builder.get_object('applications_button_top').label;
+		this._applicationsButtonBottom =
+			this._builder.get_object('applications_button_bottom').label;
 
 		// Update labels according to direction
 		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
@@ -142,13 +147,13 @@ const PrefsWidget = new Lang.Class({
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('icons-app-menu',
-			this._builder.get_object('icons_move_application_menu'),
+		this._settings.bind('menu-application',
+			this._builder.get_object('menu_move_application_menu'),
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('icons-media-controls',
-			this._builder.get_object('icons_show_media_controls'),
+		this._settings.bind('menu-media-controls',
+			this._builder.get_object('menu_show_media_controls'),
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
@@ -174,6 +179,8 @@ const PrefsWidget = new Lang.Class({
 			this._onDockVisibilitySettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dash-per-workspace', 'boolean',
 			this._onDashPerWorkspaceSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'applications-button', 'string',
+			this._onApplicationsButtonSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'icons-left-click', 'string',
 			this._onIconsLeftClickSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'icons-middle-click', 'string',
@@ -196,16 +203,41 @@ const PrefsWidget = new Lang.Class({
 
 	_onDashLocationSettingChanged: function(settings, dashLocation) {
 		log(`"dash-location" setting changed signal: ${dashLocation}`);
+		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
+
+		updateApplicationsButton = (vertical) => {
+			if (vertical) {
+				this._builder.get_object('applications_button_near').label =
+					this._applicationsButtonTop;
+				this._builder.get_object('applications_button_far').label =
+					this._applicationsButtonBottom;
+			}
+			else if (rtl) {
+				this._builder.get_object('applications_button_near').label =
+					this._applicationsButtonRight;
+				this._builder.get_object('applications_button_far').label =
+					this._applicationsButtonLeft;
+			}
+			else {
+				this._builder.get_object('applications_button_near').label =
+					this._applicationsButtonLeft;
+				this._builder.get_object('applications_button_far').label =
+					this._applicationsButtonRight;
+			}
+		};
+
 		switch (dashLocation) {
 		case 'PANEL_NEAR':
 			this._builder.get_object('location_panel_near').active = true;
 			this._builder.get_object('panel_tab').sensitive = true;
 			this._builder.get_object('dock_tab').sensitive = false;
+			updateApplicationsButton(false);
 			break;
 		case 'PANEL_MIDDLE':
 			this._builder.get_object('location_panel_middle').active = true;
 			this._builder.get_object('panel_tab').sensitive = true;
 			this._builder.get_object('dock_tab').sensitive = false;
+			updateApplicationsButton(false);
 			break;
 		case 'EDGE_NEAR':
 			this._builder.get_object('location_edge_near').active = true;
@@ -213,6 +245,7 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('dock_tab').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
+			updateApplicationsButton(true);
 			break;
 		case 'EDGE_FAR':
 			this._builder.get_object('location_edge_far').active = true;
@@ -220,12 +253,12 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('dock_tab').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
+			updateApplicationsButton(true);
 			break;
 		case 'EDGE_BOTTOM':
 			this._builder.get_object('location_edge_bottom').active = true;
 			this._builder.get_object('panel_tab').sensitive = false;
 			this._builder.get_object('dock_tab').sensitive = true;
-			let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 			if (rtl) {
 				this._builder.get_object('alignment_near').label = this._alignmentRight;
 				this._builder.get_object('alignment_far').label = this._alignmentLeft;
@@ -234,41 +267,47 @@ const PrefsWidget = new Lang.Class({
 				this._builder.get_object('alignment_near').label = this._alignmentLeft;
 				this._builder.get_object('alignment_far').label = this._alignmentRight;
 			}
+			updateApplicationsButton(false);
 			break;
 		}
 	},
 
 	_onLocationPanelNearToggled: function(button) {
-		log('"location_panel_start" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"location_panel_start" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dash-location', 'PANEL_NEAR');
 		}
 	},
 
 	_onLocationPanelMiddleToggled: function(button) {
-		log('"location_panel_middle" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"location_panel_middle" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dash-location', 'PANEL_MIDDLE');
 		}
 	},
 
 	_onLocationEdgeNearToggled: function(button) {
-		log('"location_edge_start" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"location_edge_start" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_NEAR');
 		}
 	},
 
 	_onLocationEdgeFarToggled: function(button) {
-		log('"location_edge_end" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"location_edge_end" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_FAR');
 		}
 	},
 
 	_onLocationEdgeBottomToggled: function(button) {
-		log('"location_edge_bottom" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"location_edge_bottom" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_BOTTOM');
 		}
 	},
@@ -309,15 +348,17 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onPanelDefaultHeightToggled: function(button) {
-		log('"panel_default_height" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"panel_default_height" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_boolean('panel-custom-height', false);
 		}
 	},
 
 	_onPanelCustomHeightToggled: function(button) {
-		log('"panel_custom_height" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"panel_custom_height" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_boolean('panel-custom-height', true);
 		}
 	},
@@ -366,22 +407,25 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onAlignmentNearToggled: function(button) {
-		log('"alignment_near" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"alignment_near" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dock-alignment', 'NEAR');
 		}
 	},
 
 	_onAlignmentMiddleToggled: function(button) {
-		log('"alignment_middle" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"alignment_middle" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dock-alignment', 'MIDDLE');
 		}
 	},
 
 	_onAlignmentFarToggled: function(button) {
-		log('"alignment_far" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"alignment_far" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dock-alignment', 'FAR');
 		}
 	},
@@ -401,15 +445,17 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onVisibilityAlwaysVisibleToggled: function(button) {
-		log('"visibility_always_visible" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"visibility_always_visible" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dock-visibility', 'ALWAYS');
 		}
 	},
 
 	_onVisibilityTouchToRevealToggled: function(button) {
-		log('"visibility_touch_to_reveal" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"visibility_touch_to_reveal" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_string('dock-visibility', 'TOUCH_TO_REVEAL');
 		}
 	},
@@ -427,15 +473,17 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_onSingleDashToggled: function(button) {
-		log('location_single_dash radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`location_single_dash radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_boolean('dash-per-workspace', false);
 		}
 	},
 
 	_onDashPerWorkspaceToggled: function(button) {
-		log('"location_dash_per_workspace" radio button "toggled" signal');
-		if (button.active) {
+		let active = button.active;
+		log(`"location_dash_per_workspace" radio button "toggled" signal: ${active}`);
+		if (active) {
 			this._settings.set_boolean('dash-per-workspace', true);
 		}
 	},
@@ -446,6 +494,47 @@ const PrefsWidget = new Lang.Class({
 		let highlightFocused = button.active;
 		log(`"icons_highlight_focused" check button "toggled" signal: ${highlightFocused}`);
 		this._builder.get_object('icons_highlight_focused_gradient').sensitive = highlightFocused;
+	},
+
+	// Applications button radio buttons
+
+	_onApplicationsButtonSettingChanged: function(settings, applicationsButton) {
+		log(`"applications-button" setting changed signal: ${applicationsButton}`);
+		switch (applicationsButton) {
+		case 'NEAR':
+			this._builder.get_object('applications_button_near').active = true;
+			break;
+		case 'FAR':
+			this._builder.get_object('applications_button_far').active = true;
+			break;
+		case 'HIDE':
+			this._builder.get_object('applications_button_hide').active = true;
+			break;
+		}
+	},
+
+	_onApplicationsButtonNearToggled: function(button) {
+		let active = button.active;
+		log(`"applications_button_near" radio button "toggled" signal: ${active}`);
+		if (active) {
+			this._settings.set_string('applications-button', 'NEAR');
+		}
+	},
+
+	_onApplicationsButtonFarToggled: function(button) {
+		let active = button.active;
+		log(`"applications_button_far" radio button "toggled" signal: ${active}`);
+		if (active) {
+			this._settings.set_string('applications-button', 'FAR');
+		}
+	},
+
+	_onApplicationsButtonHideToggled: function(button) {
+		let active = button.active;
+		log(`"applications_button_hide" radio button "toggled" signal: ${active}`);
+		if (active) {
+			this._settings.set_string('applications-button', 'HIDE');
+		}
 	},
 
 	// Left-click combo box

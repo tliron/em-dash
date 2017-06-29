@@ -69,11 +69,16 @@ To run `make`, you might need to install these dependencies (this is for Ubuntu)
 #### Debugging
 
 It is recommended to test in a virtual machine running GNOME, so as not to break your dev
-environment while yoiu work. Note, though, that St CSS animations will not work unless you have 3D
-enabled, so you want to make sure your virtual guest supports 3D.
+environment while you work. Note, though, that St CSS animations will *not* work unless you have 3D
+enabled, so you may want to make sure your virtual guest supports 3D.
 
-See the logs with [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html).
-You can filter specifically for the extension, e.g.:
+To enable logging:
+
+	gsettings set org.gnome.shell.extensions.em-dash debug true
+
+You need to restart GNOME Shell for logs to being. See the logs with
+[journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html). You can filter
+specifically for the extension, e.g.:
 
     journalctl -f -o cat GNOME_SHELL_EXTENSION_NAME="Em-Dash"
 
@@ -89,7 +94,7 @@ Well, that's except for messages from prefs are found in the extension manager (
 
     journalctl -f _COMM=gnome-shell-ext
 
-So, in the end it might make more sense to just view all journalctl messages. Sigh.
+So, in the end it might make more sense to just view all journal messages and ignore the noise.
 
 #### Reference
 

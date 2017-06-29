@@ -67,8 +67,8 @@ const DashManager = new Lang.Class({
 			log('initialize');
 			this._signalManager.connectSetting(settings, 'dash-location', 'string',
 				this._onDashLocationChanged);
-			this._signalManager.connectSetting(settings, 'icons-app-menu', 'boolean',
-				this._onIconsAppMenuSettingChanged);
+			this._signalManager.connectSetting(settings, 'menu-application', 'boolean',
+				this._onMenuApplicationSettingChanged);
 		}, true);
     },
 
@@ -129,9 +129,9 @@ const DashManager = new Lang.Class({
 		this.dash = new DashClass(this, dashLocation);
 	},
 
-	_onIconsAppMenuSettingChanged: function(settings, iconsAppMenu) {
-		log(`"icons-app-menu" setting changed signal: ${iconsAppMenu}`);
-		if (iconsAppMenu) {
+	_onMenuApplicationSettingChanged: function(settings, menuApplication) {
+		log(`"menu-application" setting changed signal: ${menuApplication}`);
+		if (menuApplication) {
 			this.removeAppMenu();
 		}
 		else {

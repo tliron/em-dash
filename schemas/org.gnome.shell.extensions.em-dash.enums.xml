@@ -17,6 +17,11 @@
     <value value='0' nick='ALWAYS'/>
     <value value='1' nick='TOUCH_TO_REVEAL'/>
   </enum>
+  <enum id='org.gnome.shell.extensions.em-dash.applicationsButton'>
+    <value value='0' nick='NEAR'/>
+    <value value='1' nick='FAR'/>
+    <value value='2' nick='HIDE'/>
+  </enum>
   <enum id='org.gnome.shell.extensions.em-dash.click'>
     <value value='0' nick='NOTHING'/>
     <value value='1' nick='LAUNCH'/>

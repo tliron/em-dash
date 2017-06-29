@@ -15,12 +15,16 @@
 
 const Lang = imports.lang;
 const Signals = imports.signals;
+const Dash = imports.ui.dash;
+const Main = imports.ui.main;
 const Shell = imports.gi.Shell;
 const St = imports.gi.St;
+const Clutter = imports.gi.Clutter;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
+const ClutterUtils = Me.imports.utils.clutter;
 const IconView = Me.imports.views.iconView;
 
 const log = LoggingUtils.logger('dashView');
@@ -41,18 +45,28 @@ const DashView = new Lang.Class({
 		this._scalingManager = scalingManager;
 		this._iconSize = null;
 		this._focused = null;
+		this._firstIndex = 0;
 
 		// Box
 		this.box = new St.BoxLayout({
-			name: 'em-dash-view-box'
+			name: 'em-dash-view-box',
+			clip_to_allocation: true
+		});
+
+		// Arrow
+		this._arrow = new St.Widget({
+			name: 'em-dash-arrow',
+			visible: false
 		});
 
 		// Actor
-		this.actor = new St.Bin({
+		this.actor = new St.Widget({
 			name: 'dash', // will use GNOME theme
 			style_class: styleClass,
-			child: this.box
+			layout_manager: new Clutter.BinLayout()
 		});
+		this.actor.add_child(this.box);
+		this.actor.add_child(this._arrow);
 
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this.actor, 'paint', () => {
@@ -65,6 +79,8 @@ const DashView = new Lang.Class({
 
 			let appSystem = Shell.AppSystem.get_default();
 			let windowTracker = Shell.WindowTracker.get_default();
+			this._signalManager.connectProperty(this.box, 'allocation',
+				this._onBoxAllocationPropertyChanged);
 			this._signalManager.connect(this.modelManager, 'changed', this._onDashModelChanged);
 			this._signalManager.connect(appSystem, 'installed-changed',
 				this._onInstalledChanged);
@@ -77,6 +93,8 @@ const DashView = new Lang.Class({
 			this._signalManager.connectSetting(this.modelManager.settings,
 				'icons-highlight-focused-gradient', 'boolean',
 				this._onIconsHighlightFocusedGradientSettingChanged);
+			this._signalManager.connectSetting(this.modelManager.settings,
+				'applications-button', 'string', this._onApplicationsButtonSettingChanged);
 			this._signalManager.connectSetting(this.modelManager.settings, 'icons-wheel-scroll',
 				'boolean', this._onIconsWheelScrollSettingChanged);
 		}, true);
@@ -89,8 +107,14 @@ const DashView = new Lang.Class({
 	},
 
 	getIconViewAt: function(index) {
-		let actor = this.box.get_child_at_index(index);
-		return actor !== null ? actor._delegate : null;
+		let actor = this.box.get_child_at_index(this._firstIndex + index);
+		if (actor !== null) {
+			let delegate = actor._delegate;
+			if (delegate instanceof IconView.IconView) {
+				return delegate;
+			}
+		}
+		return null;
 	},
 
 	setVertical: function(vertical) {
@@ -137,24 +161,59 @@ const DashView = new Lang.Class({
 			this.box.add_child(iconView.actor);
 		}
 
-		this._updateFocusApp();
+		let applicationsButton = this.modelManager.settings.get_string('applications-button');
+		if (applicationsButton !== 'HIDE') {
+			let showAppsIcon = new ShowAppsIcon(physicalIconSize);
+			if (applicationsButton === 'FAR') {
+				this.box.add_child(showAppsIcon);
+				this._firstIndex = 0;
+			}
+			else { // NEAR
+				this.box.insert_child_at_index(showAppsIcon, 0);
+				this._firstIndex = 1;
+			}
+		}
+		else {
+			this._firstIndex = 0;
+		}
 
-		this._signalManager.connect(this.actor, 'paint', this._updateArrow, true);
+		this._updateFocusApp();
+		this._updateWheelScrolling();
 	},
 
 	_updateArrow: function() {
-		let height = this.box.height;
-		let allocationBox = this.box.get_allocation_box();
-		let allocatedHeight = allocationBox.y2 - allocationBox.y1;
-		log('!!!! ' + height);
-		log('!!!! ' + allocatedHeight);
-		if (height > allocatedHeight) {
-			log('!!!!!!!! too big');
-			this.actor.add_style_class_name('arrow-down');
+		let desiredHeight = ClutterUtils.getMiniumHeight(this.box);
+		let actualHeight = this.box.height;
+		if (desiredHeight > actualHeight) {
+			log('!!!!!!!! doesn\'t fit');
+			let padding = this.actor.get_theme_node().get_padding(St.Side.BOTTOM);
+			let x = this.actor.width / 2;
+			let y = this.box.allocation.y2 - padding - 20;
+			this._arrow.move_anchor_point_from_gravity(Clutter.Gravity.SOUTH);
+			this._arrow.set_position(x, y);
+			this._arrow.show();
 		}
 		else {
-			log('!!!!!!!! size ok');
-			this.actor.remove_style_class_name('arrow-down');
+			log('!!!!!!!! fits');
+			this._arrow.hide();
+		}
+	},
+
+	_updateWheelScrolling: function(iconsWheelScroll) {
+		if (iconsWheelScroll === undefined) {
+			iconsWheelScroll = this.modelManager.settings.get_boolean('icons-wheel-scroll');
+		}
+		let nChildren = this.box.get_n_children();
+		for (let i = 0; i < nChildren; i++) {
+			let iconView = this.getIconViewAt(i);
+			if (iconView !== null) {
+				if (iconsWheelScroll) {
+					iconView.enableWheelScrolling();
+				}
+				else {
+					iconView.disableWheelScrolling();
+				}
+			}
 		}
 	},
 
@@ -188,6 +247,11 @@ const DashView = new Lang.Class({
 			this._focused.unfocus();
 			this._focused = null;
 		}
+	},
+
+	_onBoxAllocationPropertyChanged: function(actor, allocation) {
+		log('box "allocation" property changed signal');
+		this._updateArrow();
 	},
 
 	_onDashModelChanged: function(modelManager) {
@@ -232,17 +296,54 @@ const DashView = new Lang.Class({
 		}
 	},
 
+	_onApplicationsButtonSettingChanged: function(settings, applicationsButton) {
+		log(`"applications-button" setting changed signal: ${applicationsButton}`);
+		this.refresh();
+	},
+
 	_onIconsWheelScrollSettingChanged: function(settings, iconsWheelScroll) {
 		log(`"icons-wheel-scroll" setting changed signal: ${iconsWheelScroll}`);
-		let nChildren = this.box.get_n_children();
-		for (let i = 0; i < nChildren; i++) {
-			let iconView = this.getIconViewAt(i);
-			if (iconsWheelScroll) {
-				iconView._enableScroll();
-			}
-			else {
-				iconView._disableScroll();
-			}
+		this._updateWheelScrolling(iconsWheelScroll);
+	}
+});
+
+
+/**
+ * Our version of ShowAppsIcon will activate/deactivate the overview.
+ *
+ * Note that this is a GObject class!
+ */
+const ShowAppsIcon = new Lang.Class({
+	Name: 'EmDash-ShowAppsIcon', // can't use "." with GObject classes
+	Extends: Dash.ShowAppsIcon,
+
+	_init: function(iconSize) {
+		this.parent();
+
+		this.childScale = 1;
+		this.childOpacity = 255;
+		this.icon.setIconSize(iconSize);
+
+		this._signalManager = new SignalUtils.SignalManager(this);
+		this._signalManager.connectProperty(this.toggleButton, 'checked',
+			this._onButtonCheckedChanged);
+
+		this.child.add_style_class_name('show-apps-em-dash');
+	},
+
+	destroy: function() {
+		this._signalManager.destroy();
+		this.parent();
+	},
+
+	_onButtonCheckedChanged: function(button, checked) {
+		log(`ShowAppsIcon "checked" property changed signal: ${checked}`);
+		Main.overview.viewSelector._showAppsButton.checked = checked;
+		if (checked) {
+			Main.overview.show();
+		}
+		else {
+			Main.overview.hide();
 		}
 	}
 });

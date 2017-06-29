@@ -118,15 +118,14 @@ const SignalConnection = new Lang.Class({
 		this.blockedReturn = null;
 	},
 
-	call: function() {
+	call: function(...args) {
 		if (this.blocked) {
 			return this.blockedReturn;
 		}
-		let r = this.callback.apply(this.manager.self, arguments);
 		if (this.single) {
 			this.disconnect();
 		}
-		return r;
+		return this.callback.apply(this.manager.self, args);
 	},
 
 	connect: function() {

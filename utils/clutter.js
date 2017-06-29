@@ -26,6 +26,18 @@ function getActorIndexOfChild(actor, child) {
 }
 
 
+function getMinimumWidth(actor, height = -1) {
+	let [minimum,] = actor.get_preferred_width(height);
+	return minimum;
+}
+
+
+function getMiniumHeight(actor, width = -1) {
+	let [minimum,] = actor.get_preferred_height(width);
+	return minimum;
+}
+
+
 function getNaturalWidth(actor, height = -1) {
 	let [, natural] = actor.get_preferred_width(height);
 	return natural;

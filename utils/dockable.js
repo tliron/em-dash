@@ -59,7 +59,6 @@ const Dockable = new Lang.Class({
 			y_fill: true,
 			reactive: true // for tracking hover
 		});
-		//this.actor.set_clip_to_allocation(true);
 
 		// Hide to make sure a strut is not created when added to the chrome
 		this.actor.hide();

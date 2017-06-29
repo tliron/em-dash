@@ -48,7 +48,7 @@ const DropPlaceholder = new Lang.Class({
 		this._destroying = false;
 		log(`_init: ${this._iconView.app.id}${after?' after':''}`);
 
-		let vertical = this._iconView._dashView.box.vertical;
+		let vertical = this._iconView.dashView.box.vertical;
 
 		this.actor = new St.Widget({
 			name: 'em-dash-placeholder',
@@ -59,16 +59,16 @@ const DropPlaceholder = new Lang.Class({
 		this.actor._delegate = this; // hook for DND
 
 		// Before or after actor?
-		let container = this._iconView._dashView.box;
+		let container = this._iconView.dashView.box;
 		let index = ClutterUtils.getActorIndexOfChild(container, actor);
 		if (after) {
 			this._neighbor = container.get_child_at_index(index + 1);
-			this._modelIndex = this._iconView._modelIndex + 1;
+			this.modelIndex = this._iconView.modelIndex + 1;
 			container.insert_child_at_index(this.actor, index + 1);
 		}
 		else {
 			this._neighbor = actor;
-			this._modelIndex = this._iconView._modelIndex;
+			this.modelIndex = this._iconView.modelIndex;
 			container.insert_child_at_index(this.actor, index);
 		}
 
@@ -96,7 +96,7 @@ const DropPlaceholder = new Lang.Class({
 		log(`destroying: ${immediate?'immediate':'animated'}`);
 
 		// Dissolve
-		let vertical = this._iconView._dashView.box.vertical;
+		let vertical = this._iconView.dashView.box.vertical;
 		let tween = {
 			time: immediate ? 0 : ANIMATION_TIME,
 			transition: 'easeOutQuad',
@@ -124,22 +124,22 @@ const DropPlaceholder = new Lang.Class({
 	acceptDrop: function(source, actor, x, y, time) {
 		// Hooked from DND using our actor._delegate
 		let appId = source.app.id;
-		if ((source._modelIndex === this._modelIndex) ||
-			(source._modelIndex === this._modelIndex - 1)) {
+		if ((source.modelIndex === this.modelIndex) ||
+			(source.modelIndex === this.modelIndex - 1)) {
 			log(`acceptDrop hook: ${appId} on self`);
 			selfDrop = true;
 		}
-		else if (source._modelIndex === undefined) {
+		else if (source.modelIndex === undefined) {
 			// Dragged from elsewhere (likely the overview)
-			log(`acceptDrop hook: ${appId} from elsewhere to ${this._modelIndex}`);
+			log(`acceptDrop hook: ${appId} from elsewhere to ${this.modelIndex}`);
 			let favorites = AppFavorites.getAppFavorites();
-			favorites.addFavoriteAtPos(appId, this._modelIndex);
+			favorites.addFavoriteAtPos(appId, this.modelIndex);
 			selfDrop = false;
 		}
 		else {
 			// Moved within the dash
-			log(`acceptDrop hook: ${appId} from ${source._modelIndex} to ${this._modelIndex}`);
-			AppUtils.moveFavoriteToPos(appId, source._modelIndex, this._modelIndex);
+			log(`acceptDrop hook: ${appId} from ${source.modelIndex} to ${this.modelIndex}`);
+			AppUtils.moveFavoriteToPos(appId, source.modelIndex, this.modelIndex);
 			selfDrop = false;
 		}
 		removeDropPlaceholder(); // this destroys us!
@@ -191,7 +191,7 @@ function nextDropPlaceholder(nextActor, nextAfter) {
 function _onDragMotion(dragEvent) {
 	if (_dropPlaceholder !== null) {
 		// Remove placeholder if we've moved out of the dash view box
-		if (!isDescendent(dragEvent.targetActor, _dropPlaceholder._iconView._dashView.box)) {
+		if (!isDescendent(dragEvent.targetActor, _dropPlaceholder._iconView.dashView.box)) {
 			//log('dragMotion monitor hook: not in our area');
 			removeDropPlaceholder();
 		}

@@ -10,7 +10,7 @@
 	margin-bottom: 0;
 }
 
-#dash.panel > StBoxLayout {
+#dash.panel #em-dash-view-box {
 	spacing: 3px; /* special property for St.BoxLayout */
 }
 
@@ -24,11 +24,11 @@
 
 /* Improve appearance when docked */
 
-#dash.dock > StBoxLayout {
+#dash.dock #em-dash-view-box {
 	spacing: 5px; /* special property for St.BoxLayout */
 }
 
-#dash.dock > StBoxLayout.vertical {
+#dash.dock #em-dash-view-box.vertical {
 	padding-left: 5px;
 	padding-right: 5px;
 }
@@ -53,8 +53,8 @@
 	transition-duration: 200ms;
 }
 
-/* Themes do not usually expect a dark background for the icons, so the default highlight is barely
-   visible. We'll make it more visible. */
+/* Themes do not usually expect a dark background for the icons, so the built-in highlight is
+   barely visible. We'll make it more visible. */
 
 #dash.merge .app-well-app:hover .overview-icon,
 #dash.merge .app-well-app:focus .overview-icon,
@@ -63,14 +63,35 @@
 	transition-duration: 100ms;
 }
 
-#dash.arrow-down {
-	border-bottom: 5px solid red;
-}
-
 /* Optional: highlight focused app */
 
 .focused {
 	border-radius: 5px;
-	/*box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);*/
 	/* background is set dynamically */
+	/*box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);*/
+}
+
+/* The built-in show apps button has unnecessary padding. */
+
+.show-apps-em-dash {
+	padding: 0 0;
+}
+
+
+
+
+
+
+#dash.arrow-down {
+	border-bottom: 5px solid red;
+}
+
+
+#em-dash-arrow {
+  	width: 30px;
+	height: 20px;
+	border-color: red;
+	border-style: solid;
+	border-width: 0 5px 5px 5px;
+	background-color: green;
 }

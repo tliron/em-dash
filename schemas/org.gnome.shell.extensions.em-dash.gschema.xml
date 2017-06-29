@@ -62,6 +62,11 @@
       <summary>Dock visibility</summary>
       <description>When to show the dock.</description>
     </key>
+    <key name="applications-button" enum="org.gnome.shell.extensions.em-dash.applicationsButton">
+      <default>'FAR'</default>
+      <summary>Applications button</summary>
+      <description>Whether and where to show the applications button.</description>
+    </key>
     <key name="icons-highlight-focused" type="b">
       <default>false</default>
       <summary>Icon highlight</summary>
@@ -77,15 +82,15 @@
       <summary>Icon dots</summary>
       <description>Whether to show dots for the number of open windows for each icon.</description>
     </key>
-    <key name="icons-app-menu" type="b">
+    <key name="menu-application" type="b">
       <default>false</default>
       <summary>Application menu in icon menu</summary>
-      <description>Hide the built-in application menu and show it in the relevant icon menu instead.</description>
+      <description>Hide the built-in application menu and show it in the relevant icon's popup menu instead.</description>
     </key>
-    <key name="icons-media-controls" type="b">
+    <key name="menu-media-controls" type="b">
       <default>true</default>
       <summary>Media controls in icon menu</summary>
-      <description>Whether to show media controls in the menu if supported by the application.</description>
+      <description>Whether to show media controls in the popup menu if supported by the application.</description>
     </key>
     <key name="icons-left-click" enum="org.gnome.shell.extensions.em-dash.click">
       <default>'LAUNCH_OR_SHOW'</default>

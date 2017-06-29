@@ -48,14 +48,17 @@ const IconView = new Lang.Class({
 
 	_init: function(dashView, model, modelIndex) {
 		log(`_init: ${model.app.id}`);
-		this._dashView = dashView;
-		this._model = model;
-		this._modelIndex = modelIndex;
+		this.dashView = dashView;
+		this.model = model;
+		this.modelIndex = modelIndex;
+
 		this._fixedIconSize = null;
 		this._originalX = null;
 		this._originalY = null;
 		this._originalWidth = null;
 		this._originalHeight = null;
+		this._originalStyleClass = null;
+		this._originalStyle = null;
 
 		this.parent(model.app, {
 			showLabel: false,
@@ -122,7 +125,7 @@ const IconView = new Lang.Class({
 			});
 			log(`backlight: l=${backlight.light} n=${backlight.normal} d=${backlight.dark}`);
 
-			let settings = this._dashView.modelManager.settings;
+			let settings = this.dashView.modelManager.settings;
 			if (settings.get_boolean('icons-highlight-focused-gradient')) {
 				this.actor.style = `
 background-gradient-direction: vertical;
@@ -132,7 +135,7 @@ background-gradient-end: ${backlight.dark};`;
 			else {
 				this.actor.style = `background-color: ${backlight.dark};`;
 			}
-			// Assumes dot on botton
+			// Assumes dot on botton (TODO: we can check _dot.y_align for Clutter.ActorAlign.END)
 			this._dot.style = `background-color: ${backlight.normal};`;
 		}
 		this.actor.add_style_class_name('focused');
@@ -159,7 +162,7 @@ background-gradient-end: ${backlight.dark};`;
 		}
 		if (!this._menu) {
 			this._menu = new IconMenu.IconMenu(this, this._simpleName,
-				this._dashView.modelManager.settings);
+				this.dashView.modelManager.settings);
 			this._menu.connect('activate-window', (menu, window) => {
 				this.activateWindow(window);
 			});
@@ -194,7 +197,7 @@ background-gradient-end: ${backlight.dark};`;
 	 * Override to support our custom left-click actions.
 	 */
 	activate: function(button) {
-		let settings = this._dashView.modelManager.settings;
+		let settings = this.dashView.modelManager.settings;
 		let iconsLeftClick = settings.get_string('icons-left-click');
 
 		// CTRL forces launch
@@ -220,7 +223,7 @@ background-gradient-end: ${backlight.dark};`;
 			this._setPopupTimeout();
 			break;
 		case 2:
-			let settings = this._dashView.modelManager.settings;
+			let settings = this.dashView.modelManager.settings;
 			let iconsMiddleClick = settings.get_string('icons-middle-click');
 			if (iconsMiddleClick !== 'NOTHING') {
 				this._clickAction(iconsMiddleClick);
@@ -234,13 +237,13 @@ background-gradient-end: ${backlight.dark};`;
 		return Clutter.EVENT_PROPAGATE;
 	},
 
-	_enableScroll: function() {
+	enableWheelScrolling: function() {
 		if (this._signalManager.get(this._onScrollEvent) === null) {
 			this._signalManager.connect(this.actor, 'scroll-event', this._onScrollEvent);
 		}
 	},
 
-	_disableScroll: function() {
+	disableWheelScrolling: function() {
 		this._signalManager.disconnect(this._onScrollEvent);
 	},
 
@@ -248,11 +251,11 @@ background-gradient-end: ${backlight.dark};`;
 		switch (scrollEvent.get_scroll_direction()) {
 		case Clutter.ScrollDirection.UP:
 			log(`actor "scroll-event" signal: ${this.app.id} up`);
-			this._model.cycleFocus(this._workspaceIndex, false);
+			this.model.cycleFocus(this._workspaceIndex, false);
 			break;
 		case Clutter.ScrollDirection.DOWN:
 			log(`actor "scroll-event" signal: ${this.app.id} down`);
-			this._model.cycleFocus(this._workspaceIndex, true);
+			this.model.cycleFocus(this._workspaceIndex, true);
 			break;
 		default:
 			log(`actor "scroll-event" signal: ${this.app.id}`);
@@ -265,22 +268,22 @@ background-gradient-end: ${backlight.dark};`;
 		Main.overview.hide();
 		switch (action) {
 		case 'LAUNCH':
-			this._launch();
+			this.launch();
 			break;
 		case 'LAUNCH_OR_SHOW':
-			this._launchOrShow();
+			this.launchOrShow();
 			break;
 		case 'LAUNCH_OR_TOGGLE':
-			this._launchOrToggle();
+			this.launchOrToggle();
 			break;
 		case 'LAUNCH_OR_CYCLE':
-			this._launchOrCycle();
+			this.launchOrCycle();
 			break;
 		}
 	},
 
-	_launch: function() {
-		log(`_launch: ${this.app.id}`);
+	launch: function() {
+		log(`launch: ${this.app.id}`);
 		if (this.app.state === Shell.AppState.STOPPED) {
 			this.animateLaunch();
 		}
@@ -295,32 +298,32 @@ background-gradient-end: ${backlight.dark};`;
 		}
 	},
 
-	_launchOrShow: function() {
-		log(`_launchOrShow: ${this.app.id}`);
+	launchOrShow: function() {
+		log(`launchOrShow: ${this.app.id}`);
 		if (this.app.state === Shell.AppState.STOPPED) {
 			this.animateLaunch();
 		}
 		this.app.activate();
 	},
 
-	_launchOrToggle: function() {
-		log(`_launchOrToggle: ${this.app.id}`);
-		if (!this._activateIfStopped() && !this._model.hideIfHasFocus(this._workspaceIndex)) {
+	launchOrToggle: function() {
+		log(`launchOrToggle: ${this.app.id}`);
+		if (!this._activateIfStopped() && !this.model.hideIfHasFocus(this._workspaceIndex)) {
 			// If we get here we should be already running, so this would not launch, only raise the
 			// primary window
 			this.app.activate();
 		}
 	},
 
-	_launchOrCycle: function() {
-		log(`_launchOrCycle: ${this.app.id}`);
+	launchOrCycle: function() {
+		log(`launchOrCycle: ${this.app.id}`);
 		if (!this._activateIfStopped()) {
-			this._model.cycleFocus(this._workspaceIndex, true, true);
+			this.model.cycleFocus(this._workspaceIndex, true, true);
 		}
 	},
 
 	get _workspaceIndex() {
-		let settings = this._dashView.modelManager.settings;
+		let settings = this.dashView.modelManager.settings;
 		if (settings.get_boolean('dash-per-workspace')) {
 			return global.screen.get_active_workspace().index();
 		}
@@ -445,15 +448,15 @@ background-gradient-end: ${backlight.dark};`;
 			return DND.DragMotionResult.NO_DROP;
 		}
 
-		let vertical = this._dashView.box.vertical;
+		let vertical = this.dashView.box.vertical;
 		let after = vertical ? y > this.actor.height / 2 : x > this.actor.width / 2;
 
 		let app = null;
-		if (after || (this._modelIndex === 0)) {
+		if (after || (this.modelIndex === 0)) {
 			app = this.app;
 		}
 		else {
-			let iconView = this._dashView.getIconViewAt(this._modelIndex - 1);
+			let iconView = this.dashView.getIconViewAt(this.modelIndex - 1);
 			if (iconView !== null) {
 				app = iconView.app;
 			}
