@@ -45,11 +45,10 @@ const DockableDash = new Lang.Class({
 		this.parent(dashManager, 'dock', vertical, dashManager.settings.get_uint('dock-icon-size'),
 			false);
 
-		this._updateStyle(side);
+		this._dockable = new DockableUtils.Dockable(this._view.actor, this._view.dash,
+			side, align, stretch, toggle);
 
-		this._dockable = new DockableUtils.Dockable(this._view.actor, side, align, stretch, toggle);
-
-		this._signalManager.connect(this._view.actor, 'style-changed', this._onStyleChanged);
+		this._signalManager.connect(this._view.dash, 'style-changed', this._onStyleChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-icon-size', 'uint',
 			this._onDockIconSizeSettingChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-stretch', 'boolean',
@@ -61,6 +60,8 @@ const DockableDash = new Lang.Class({
 		this._signalManager.connectSetting(dashManager.settings, 'dock-visibility', 'string',
 			this._onDockVisibilitySettingChanged);
 		this._signalManager.connect(dashManager.scalingManager, 'changed', this._onScalingChanged);
+
+		this._updateStyle(side);
 	},
 
     destroy: function() {
@@ -77,7 +78,7 @@ const DockableDash = new Lang.Class({
 	},
 
 	_updateStyle: function(side) {
-		let actor = this._view.actor;
+		let actor = this._view.dash;
 		let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 		switch (side) {
 		case Meta.Side.RIGHT:
@@ -115,7 +116,7 @@ const DockableDash = new Lang.Class({
 	},
 
 	_onStyleChanged: function(actor) {
-		log('dash view "style-changed" signal');
+		log('dash "style-changed" signal');
 
 		// Block the signal while changing the style
 		let connection = this._signalManager.get(this._onStyleChanged);

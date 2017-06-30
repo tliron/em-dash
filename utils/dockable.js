@@ -25,6 +25,7 @@ const St = imports.gi.St;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
+const ClutterUtils = Me.imports.utils.clutter;
 
 const log = LoggingUtils.logger('dockable');
 
@@ -35,9 +36,10 @@ const log = LoggingUtils.logger('dockable');
 const Dockable = new Lang.Class({
 	Name: 'EmDash.Dockable',
 
-	_init: function(child, side, align, stretch, toggle) {
+	_init: function(child, alignChild, side, align, stretch, toggle) {
 		log('_init');
 
+		this._alignChild = alignChild;
 		this._align = align;
 		this._side = side;
 		this._stretch = stretch;
@@ -102,7 +104,7 @@ const Dockable = new Lang.Class({
 	setSide: function(side) {
 		if (this._side !== side) {
 			this._side = side;
-			this.actor.set_size(0, 0); // will trigger 'workareas-changed' signal
+			this.actor.set_size(0, 0); // will change struts and trigger 'workareas-changed' signal
 		}
 	},
 
@@ -123,88 +125,86 @@ const Dockable = new Lang.Class({
 	setToggle: function(toggle) {
 		if (this._toggle !== toggle) {
 			this._collapsed = this._toggle = toggle;
-			Main.layoutManager._untrackActor(this.actor);
-			Main.layoutManager._trackActor(this.actor, {
-				affectsStruts: !this._toggle,
-				trackFullscreen: true
-			});
-			this._reinitialize();
+			this._reinitialize(); // will also refresh tracking
 		}
-	},
-
-	get _child() {
-		return this.actor.get_first_child();
 	},
 
 	_reinitialize: function() {
 		log('_reinitialize');
 
-		let bounds = {}, barrier = {};
+		let x, y, width = -1, height = -1, translationX = 0, translationY = 0, barrier = {};
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
 		let monitor = Main.layoutManager.monitors[this._monitorIndex];
 
+		// Let's do our changes without affecting struts
+		this._untrack();
+
+		// So we can read the natural widths and heights
+		this.actor.set_size(-1, -1);
+
 		if ((this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT)) {
-			bounds = {
-				y: workArea.y,
-				width: -1,
-				height: workArea.height,
-			};
-			barrier = {
-				y1: bounds.y,
-				y2: bounds.y + workArea.height
-			};
+			y = workArea.y;
+			height = workArea.height;
+			barrier.y1 = y;
+			barrier.y2 = y + workArea.height;
 
 			if (this._side === Meta.Side.LEFT) {
-				bounds.anchor = Clutter.Gravity.NORTH_WEST;
-				bounds.x = monitor.x;
-				barrier.x1 = barrier.x2 = bounds.x + this._collapsedSize;
+				x = monitor.x;
+				// deprecated: anchor = Clutter.Gravity.NORTH_WEST;
+				barrier.x1 = barrier.x2 = x + this._collapsedSize;
 				barrier.directions = Meta.BarrierDirection.POSITIVE_X;
 			}
 			else { // RIGHT
-				bounds.anchor = Clutter.Gravity.NORTH_EAST;
-				bounds.x = monitor.x + monitor.width;
-				barrier.x1 = barrier.x2 = bounds.x - this._collapsedSize;
+				x = monitor.x + monitor.width;
+				translationX = -this.actor.width;
+				// deprecated: anchor = Clutter.Gravity.NORTH_EAST;
+				barrier.x1 = barrier.x2 = x - this._collapsedSize;
 				barrier.directions = Meta.BarrierDirection.NEGATIVE_X;
 			}
 		}
 		else { // TOP || BOTTOM
-			bounds = {
-				x: workArea.x,
-				width: workArea.width,
-				height: -1,
-			};
-			barrier = {
-				x1: bounds.x,
-				x2: bounds.x + workArea.width
-			};
+			x = workArea.x;
+			width = workArea.width;
+			barrier.x1 = x;
+			barrier.x2 = x + workArea.width;
 
 			if (this._side === Meta.Side.TOP) {
-				bounds.anchor = Clutter.Gravity.NORTH_WEST;
-				bounds.y = monitor.y;
-				barrier.y1 = barrier.y2 = bounds.y + this._collapsedSize;
+				y = monitor.y;
+				// deprecated: anchor = Clutter.Gravity.NORTH_WEST;
+				barrier.y1 = barrier.y2 = y + this._collapsedSize;
 				barrier.directions = Meta.BarrierDirection.POSITIVE_Y;
 			}
 			else { // BOTTOM
-				bounds.anchor = Clutter.Gravity.SOUTH_WEST;
-				bounds.y = monitor.y + monitor.height;
-				barrier.y1 = barrier.y2 = bounds.y - this._collapsedSize;
+				y = monitor.y + monitor.height;
+				translationY = -this.actor.height;
+				// deprecated: anchor = Clutter.Gravity.SOUTH_WEST;
+				barrier.y1 = barrier.y2 = y - this._collapsedSize;
 				barrier.directions = Meta.BarrierDirection.NEGATIVE_Y;
 			}
 		}
 
-		let child = this._child;
+		let child = this.actor.child;
 		if (this._collapsed) {
 			child.hide();
 			this._setPressureBarrier(barrier);
 		}
 		else {
-			child.show();
 			this._destroyPressureBarrier();
+			child.show();
 		}
 
 		this._refreshAlign();
 		this._refreshRoundedCorners();
-		this._setBounds(bounds);
+
+		log(`_reinitialize: x=${x} y=${y} w=${width} h=${height}`);
+		this.actor.set_position(x, y);
+		this.actor.set_translation(translationX, translationY, 0);
+		this.actor.set_size(width, height);
+
+		// Note: gravity and anchors are deprecated, so we are using fixed translation instead.
+		// this.actor.move_anchor_point_from_gravity(anchor);
+
+		this._track();
 
 		// If our bounds have changed, the chrome layout tracker will recreate our strut, which will
 		// trigger a call to _onWorkAreasChanged, which in turn might call _reinitialize *again* for
@@ -215,16 +215,18 @@ const Dockable = new Lang.Class({
 		// otherwise there is no other averse effect, and we avoid an endless loop.
 	},
 
-	_setBounds: function(bounds) {
-		log(`_setBounds: x=${bounds.x} y=${bounds.y} w=${bounds.width} h=${bounds.height}`);
-		this.actor.move_anchor_point_from_gravity(bounds.anchor);
-		this.actor.set_position(bounds.x, bounds.y);
-		this.actor.set_size(bounds.width, bounds.height);
+	_untrack: function() {
+		Main.layoutManager._untrackActor(this.actor);
+	},
+
+	_track: function() {
+		Main.layoutManager._trackActor(this.actor, {
+			affectsStruts: !this._toggle,
+			trackFullscreen: true
+		});
 	},
 
 	_refreshAlign: function() {
-		let child = this._child;
-
 		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine.
 
 		let vertical = (this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT);
@@ -232,15 +234,15 @@ const Dockable = new Lang.Class({
 		if (this._stretch) {
 			if (vertical) {
 				// St
-				child.y_align = this._align;
+				this._alignChild.y_align = this._align;
 				// Clutter
-				child.set_y_align(Clutter.ActorAlign.FILL);
+				this._alignChild.set_y_align(Clutter.ActorAlign.FILL);
 			}
 			else {
 				// St
-				child.x_align = this._align;
+				this._alignChild.x_align = this._align;
 				// Clutter
-				child.set_x_align(Clutter.ActorAlign.FILL);
+				this._alignChild.set_x_align(Clutter.ActorAlign.FILL);
 			}
 		}
 		else {
@@ -258,10 +260,10 @@ const Dockable = new Lang.Class({
 				break;
 			}
 			if (vertical) {
-				child.set_y_align(align);
+				this._alignChild.set_y_align(align);
 			}
 			else {
-				child.set_x_align(align);
+				this._alignChild.set_x_align(align);
 			}
 		}
 	},

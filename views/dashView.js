@@ -47,25 +47,32 @@ const DashView = new Lang.Class({
 		this._focused = null;
 		this._firstIndex = 0;
 
-		// Box
+		// Actor: contains dash and arrow
+		this.actor = new St.Widget({
+			style_class: styleClass,
+			layout_manager: new Clutter.BinLayout()
+		});
+
+		// Icon box
 		this.box = new St.BoxLayout({
-			name: 'em-dash-view-box',
+			name: 'em-dash-box',
 			clip_to_allocation: true
 		});
+
+		// Dash
+		this.dash = new St.Bin({
+			name: 'dash', // will use GNOME theme
+			child: this.box,
+			x_expand: true,
+			y_expand: true
+		});
+		this.actor.add_child(this.dash);
 
 		// Arrow
 		this._arrow = new St.Widget({
 			name: 'em-dash-arrow',
 			visible: false
 		});
-
-		// Actor
-		this.actor = new St.Widget({
-			name: 'dash', // will use GNOME theme
-			style_class: styleClass,
-			layout_manager: new Clutter.BinLayout()
-		});
-		this.actor.add_child(this.box);
 		this.actor.add_child(this._arrow);
 
 		this._signalManager = new SignalUtils.SignalManager(this);
@@ -188,8 +195,8 @@ const DashView = new Lang.Class({
 			log('!!!!!!!! doesn\'t fit');
 			let padding = this.actor.get_theme_node().get_padding(St.Side.BOTTOM);
 			let x = this.actor.width / 2;
-			let y = this.box.allocation.y2 - padding - 20;
-			this._arrow.move_anchor_point_from_gravity(Clutter.Gravity.SOUTH);
+			let y = this.box.allocation.y2 - padding;
+			this._arrow.move_anchor_point_from_gravity(Clutter.Gravity.NORTH);
 			this._arrow.set_position(x, y);
 			this._arrow.show();
 		}

@@ -439,7 +439,7 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('visibility_always_visible').active = true;
 			break;
 		case 'TOUCH_TO_REVEAL':
-			this._builder.get_object('visibility_touch_reveal').active = true;
+			this._builder.get_object('visibility_touch_to_reveal').active = true;
 			break;
 		}
 	},

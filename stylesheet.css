@@ -10,7 +10,7 @@
 	margin-bottom: 0;
 }
 
-#dash.panel #em-dash-view-box {
+#dash.panel #em-dash-box {
 	spacing: 3px; /* special property for St.BoxLayout */
 }
 
@@ -24,11 +24,12 @@
 
 /* Improve appearance when docked */
 
-#dash.dock #em-dash-view-box {
+#dash.dock #em-dash-box {
 	spacing: 5px; /* special property for St.BoxLayout */
+	background-color:red;
 }
 
-#dash.dock #em-dash-view-box.vertical {
+#dash.dock #em-dash-box.vertical {
 	padding-left: 5px;
 	padding-right: 5px;
 }
@@ -92,6 +93,6 @@
 	height: 20px;
 	border-color: red;
 	border-style: solid;
-	border-width: 0 5px 5px 5px;
+	border-width: 1px;
 	background-color: green;
 }
