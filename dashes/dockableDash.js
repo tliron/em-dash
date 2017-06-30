@@ -27,7 +27,7 @@ const log = LoggingUtils.logger('dockableDash');
 
 
 /**
- * Dash implementation that can be docked to the sides of the screen.
+ * Dash implementation that can be docked to the sides of a monitor.
  */
 const DockableDash = new Lang.Class({
 	Name: 'EmDash.DockableDash',
@@ -73,6 +73,7 @@ const DockableDash = new Lang.Class({
 	setLocation: function(location) {
 		let side = getMutterSideForLocation(location);
 		this._view.setVertical((side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
+		this._view.refresh();
 		this._dockable.setSide(side);
 		this._updateStyle(side);
 	},
@@ -148,7 +149,7 @@ const DockableDash = new Lang.Class({
 
 	_onDockIconSizeSettingChanged: function(setting, dockIconSize) {
 		log(`"dock-icon-size" setting changed signal: ${dockIconSize}`);
-		this._view.setSize(dockIconSize);
+		this._view.setIconSize(dockIconSize);
 	},
 
 	_onDockStretchSettingChanged: function(setting, dockStretch) {

@@ -37,6 +37,8 @@ const PanelDash = new Lang.Class({
     	this.parent(dashManager, 'panel', false,
     		dashManager.scalingManager.toLogical(Main.panel.actor.height), false);
 
+    	this._view.dash.x_expand = false;
+
 		this._signalManager.connectSetting(dashManager.settings, 'panel-appearance-merge',
 			'boolean', this._onPanelAppearanceMergeSettingChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'panel-custom-height', 'boolean',
@@ -81,10 +83,10 @@ const PanelDash = new Lang.Class({
 
 	_updateStyle: function(panelAppearanceMerge) {
 		if (panelAppearanceMerge) {
-			this._view.actor.add_style_class_name('merge');
+			this._view.dash.add_style_class_name('merge');
 		}
 		else {
-			this._view.actor.remove_style_class_name('merge');
+			this._view.dash.remove_style_class_name('merge');
 		}
 	},
 
@@ -120,6 +122,6 @@ const PanelDash = new Lang.Class({
 
 	_onPanelHeightChanged: function(actor, height) {
 		log(`panel "height" property changed signal: ${height}`);
-		this._view.setSize(this._dashManager.scalingManager.toLogical(height));
+		this._view.setIconSize(this._dashManager.scalingManager.toLogical(height));
 	}
 });

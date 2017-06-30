@@ -32,9 +32,10 @@ const log = LoggingUtils.logger('icon');
 /**
  * Gets a GdkPixbuf from an St.Icon.
  *
- * See st_texture_cache_load_gicon and load_texture_async in st-texture-cache.c.
+ * See st_texture_cache_load_gicon and load_texture_async in
+ * https://github.com/GNOME/gnome-shell/tree/master/src/st/st-texture-cache.c.
  */
-function getStIconPixbuf(stIcon, physicalSize) {
+function getStIconPixbuf(stIcon, physicalSize = 64) {
 	let gIcon = stIcon.gicon;
 	if (gIcon === null) {
 		log('getStIconPixbuf: no GIcon');
@@ -77,7 +78,7 @@ function getStIconPixbuf(stIcon, physicalSize) {
  *
  * We are not using this function, but it's here for reference.
  *
- * See st_icon_update in st-icon.c.
+ * See st_icon_update in https://github.com/GNOME/gnome-shell/tree/master/src/st/st-icon.c.
  */
 function getStIconClutterTexture(stIcon, physicalSize) {
 	let themeNode = stIcon.get_theme_node();

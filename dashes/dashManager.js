@@ -62,6 +62,7 @@ const DashManager = new Lang.Class({
 
 		this._signalManager = new SignalUtils.SignalManager(this);
 
+		// TODO: Main.initializeDeferredWork
 		this._signalManager.connect(this.scalingManager, 'initialized', () => {
 			// Initialize only when we have scaling info
 			log('initialize');

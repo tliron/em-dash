@@ -36,7 +36,7 @@ Optional features for the dash icons' popup menus:
 * Show **media controls** for supported applications (MPRIS).
 * Move the **application menu** from the top panel into the relevant icon's popup menu.
 
-t
+
 What does the name mean?
 ------------------------
 
@@ -136,13 +136,12 @@ reference material:
 TODO
 ----
 
-* Scrollable if there are too many icons
 * In touch-to-show, make sure it is shown in overview! Also on all monitors!
 * Allow dragging to after all other favorites
 * Window previews/lists on hover
 * Dragging on empty dash
-* Add applications button
 * Wobbly drag and drop in panel
 * Dock with borders seems to keep moving its strut by a pixel or two as app focus changes
-* Restarting with bottom dock -- doesn't rotate corners
 * Reset backcolor cache if icon theme changes
+* Support scrolling in smaller increments
+

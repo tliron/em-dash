@@ -106,7 +106,7 @@ const IconView = new Lang.Class({
 		if (this._fixedIconSize !== null) {
 			iconSize = this._fixedIconSize;
 		}
-		// Usually creates St.Icon, but for some system windows it will be Clutter.Texture
+		// Usually creates St.Icon, but for some system windows it could be Clutter.Texture
 		return this.parent(iconSize);
 	},
 
@@ -118,7 +118,7 @@ const IconView = new Lang.Class({
 		if (icon !== null) {
 			let backlight = BacklightUtils.getBacklight(this.app.id, () => {
 				if (icon instanceof St.Icon) {
-					return IconUtils.getStIconPixbuf(icon, 64);
+					return IconUtils.getStIconPixbuf(icon);
 				}
 				log('focus: not an St.Icon');
 				return null;
@@ -135,7 +135,7 @@ background-gradient-end: ${backlight.dark};`;
 			else {
 				this.actor.style = `background-color: ${backlight.dark};`;
 			}
-			// Assumes dot on botton (TODO: we can check _dot.y_align for Clutter.ActorAlign.END)
+			// Assumes dot on bottom (TODO: we can check _dot.y_align for Clutter.ActorAlign.END)
 			this._dot.style = `background-color: ${backlight.normal};`;
 		}
 		this.actor.add_style_class_name('focused');
@@ -375,7 +375,7 @@ background-gradient-end: ${backlight.dark};`;
 		// Hooked from EmDash.Draggable using our actor._delegate
 		// Called as soon as the mouse button is released
 		log(`handleDragCancelling hook: ${this.app.id}`);
-		// Note: handleDragEnd may be called *before* the reappear animation is complete
+		// Note: handleDragEnd may be called *before* the appear animation is complete
 		this._appear();
 	},
 

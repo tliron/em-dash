@@ -48,7 +48,7 @@ const IconMenu = new Lang.Class({
 		this._mediaControlsMenu = null;
 		this._settings = settings;
 
-//		// See: panelMenu.js
+//		// See: https://github.com/GNOME/gnome-shell/blob/master/js/ui/panelMenu.js
 //		let Main = imports.ui.main;
 //		let St = imports.gi.St;
 //		let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);

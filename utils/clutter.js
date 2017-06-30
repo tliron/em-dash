@@ -13,6 +13,8 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
+const Clutter = imports.gi.Clutter;
+
 
 function getActorIndexOfChild(actor, child) {
 	let nChildren = actor.get_n_children();
@@ -23,6 +25,14 @@ function getActorIndexOfChild(actor, child) {
 		}
 	}
 	return -1;
+}
+
+
+function newRect(x, y, width, height) {
+	return new Clutter.Rect({
+		origin: new Clutter.Point({x: x, y: y}),
+		size: new Clutter.Size({width: width, height: height})
+	});
 }
 
 
