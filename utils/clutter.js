@@ -37,13 +37,13 @@ function newRect(x, y, width, height) {
 
 
 function getMinimumWidth(actor, height = -1) {
-	let [minimum,] = actor.get_preferred_width(height);
+	let [minimum] = actor.get_preferred_width(height);
 	return minimum;
 }
 
 
 function getMiniumHeight(actor, width = -1) {
-	let [minimum,] = actor.get_preferred_height(width);
+	let [minimum] = actor.get_preferred_height(width);
 	return minimum;
 }
 

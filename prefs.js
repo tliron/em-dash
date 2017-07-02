@@ -58,8 +58,6 @@ const PrefsWidget = new Lang.Class({
 		this.widget = this._builder.get_object('prefs');
 
 		// Strings (we keep them as loose labels in the UI to make it easier for translators)
-		this._locationPanelLeft = this._builder.get_object('location_panel_left').label;
-		this._locationPanelRight = this._builder.get_object('location_panel_right').label;
 		this._locationEdgeLeft = this._builder.get_object('location_edge_left').label;
 		this._locationEdgeRight = this._builder.get_object('location_edge_right').label;
 		this._alignmentTop = this._builder.get_object('alignment_top').label;
@@ -76,12 +74,10 @@ const PrefsWidget = new Lang.Class({
 		// Update labels according to direction
 		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 		if (rtl) {
-			this._builder.get_object('location_panel_near').label = this._locationPanelRight;
 			this._builder.get_object('location_edge_near').label = this._locationEdgeRight;
 			this._builder.get_object('location_edge_far').label = this._locationEdgeLeft;
 		}
 		else {
-			this._builder.get_object('location_panel_near').label = this._locationPanelLeft;
 			this._builder.get_object('location_edge_near').label = this._locationEdgeLeft;
 			this._builder.get_object('location_edge_far').label = this._locationEdgeRight;
 		}
@@ -95,7 +91,7 @@ const PrefsWidget = new Lang.Class({
 			scale.add_mark(96, Gtk.PositionType.BOTTOM, '96');
 			scale.add_mark(128, Gtk.PositionType.BOTTOM, '128');
 		}
-		addMarks(this._builder.get_object('panel_height'));
+		addMarks(this._builder.get_object('top_bar_height'));
 		addMarks(this._builder.get_object('dock_icon_size'));
 
 		// Update version
@@ -117,8 +113,13 @@ const PrefsWidget = new Lang.Class({
 	},
 
 	_bindSettings: function() {
-		this._settings.bind('panel-appearance-merge',
-			this._builder.get_object('panel_merge'),
+		this._settings.bind('top-bar-appearance-merge',
+			this._builder.get_object('top_bar_merge'),
+			'active',
+			Gio.SettingsBindFlags.DEFAULT);
+
+		this._settings.bind('top-bar-move-center',
+			this._builder.get_object('top_bar_move_center'),
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
@@ -167,10 +168,10 @@ const PrefsWidget = new Lang.Class({
 			this._onDashLocationSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dash-location-monitor', 'uint',
 			this._onDashLocationMonitorSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'panel-custom-height', 'boolean',
-			this._onPanelCustomHeightSettingChanged);
-		this._signalManager.connectSetting(this._settings, 'panel-height', 'uint',
-			this._onPanelHeightSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'top-bar-custom-height', 'boolean',
+			this._onTopBarCustomHeightSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'top-bar-height', 'uint',
+			this._onTopBarHeightSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dock-icon-size', 'uint',
 			this._onDockIconSizeSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'dock-alignment', 'string',
@@ -227,21 +228,15 @@ const PrefsWidget = new Lang.Class({
 		};
 
 		switch (dashLocation) {
-		case 'PANEL_NEAR':
-			this._builder.get_object('location_panel_near').active = true;
-			this._builder.get_object('panel_tab').sensitive = true;
-			this._builder.get_object('dock_tab').sensitive = false;
-			updateApplicationsButton(false);
-			break;
-		case 'PANEL_MIDDLE':
-			this._builder.get_object('location_panel_middle').active = true;
-			this._builder.get_object('panel_tab').sensitive = true;
+		case 'TOP_BAR':
+			this._builder.get_object('location_top_bar').active = true;
+			this._builder.get_object('top_bar_tab').sensitive = true;
 			this._builder.get_object('dock_tab').sensitive = false;
 			updateApplicationsButton(false);
 			break;
 		case 'EDGE_NEAR':
 			this._builder.get_object('location_edge_near').active = true;
-			this._builder.get_object('panel_tab').sensitive = false;
+			this._builder.get_object('top_bar_tab').sensitive = false;
 			this._builder.get_object('dock_tab').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
@@ -249,7 +244,7 @@ const PrefsWidget = new Lang.Class({
 			break;
 		case 'EDGE_FAR':
 			this._builder.get_object('location_edge_far').active = true;
-			this._builder.get_object('panel_tab').sensitive = false;
+			this._builder.get_object('top_bar_tab').sensitive = false;
 			this._builder.get_object('dock_tab').sensitive = true;
 			this._builder.get_object('alignment_near').label = this._alignmentTop;
 			this._builder.get_object('alignment_far').label = this._alignmentBottom;
@@ -257,7 +252,7 @@ const PrefsWidget = new Lang.Class({
 			break;
 		case 'EDGE_BOTTOM':
 			this._builder.get_object('location_edge_bottom').active = true;
-			this._builder.get_object('panel_tab').sensitive = false;
+			this._builder.get_object('top_bar_tab').sensitive = false;
 			this._builder.get_object('dock_tab').sensitive = true;
 			if (rtl) {
 				this._builder.get_object('alignment_near').label = this._alignmentRight;
@@ -272,19 +267,11 @@ const PrefsWidget = new Lang.Class({
 		}
 	},
 
-	_onLocationPanelNearToggled: function(button) {
+	_onLocationTopBarToggled: function(button) {
 		let active = button.active;
-		log(`"location_panel_start" radio button "toggled" signal: ${active}`);
+		log(`"location_top_bar" radio button "toggled" signal: ${active}`);
 		if (active) {
-			this._settings.set_string('dash-location', 'PANEL_NEAR');
-		}
-	},
-
-	_onLocationPanelMiddleToggled: function(button) {
-		let active = button.active;
-		log(`"location_panel_middle" radio button "toggled" signal: ${active}`);
-		if (active) {
-			this._settings.set_string('dash-location', 'PANEL_MIDDLE');
+			this._settings.set_string('dash-location', 'TOP_BAR');
 		}
 	},
 
@@ -335,45 +322,45 @@ const PrefsWidget = new Lang.Class({
 
 	// Custom height radio buttons
 
-	_onPanelCustomHeightSettingChanged: function(settings, panelCustomHeight) {
-		log(`"panel-custom-height" setting changed signal: ${panelCustomHeight}`);
+	_onTopBarCustomHeightSettingChanged: function(settings, panelCustomHeight) {
+		log(`"top-bar-custom-height" setting changed signal: ${panelCustomHeight}`);
 		if (panelCustomHeight) {
-			this._builder.get_object('panel_custom_height').active = true;
-			this._builder.get_object('panel_height').sensitive = true;
+			this._builder.get_object('top_bar_custom_height').active = true;
+			this._builder.get_object('top_bar_height').sensitive = true;
 		}
 		else {
-			this._builder.get_object('panel_default_height').active = true;
-			this._builder.get_object('panel_height').sensitive = false;
+			this._builder.get_object('top_bar_default_height').active = true;
+			this._builder.get_object('top_bar_height').sensitive = false;
 		}
 	},
 
-	_onPanelDefaultHeightToggled: function(button) {
+	_onTopBarDefaultHeightToggled: function(button) {
 		let active = button.active;
-		log(`"panel_default_height" radio button "toggled" signal: ${active}`);
+		log(`"top_bar_default_height" radio button "toggled" signal: ${active}`);
 		if (active) {
-			this._settings.set_boolean('panel-custom-height', false);
+			this._settings.set_boolean('top-bar-custom-height', false);
 		}
 	},
 
-	_onPanelCustomHeightToggled: function(button) {
+	_onTopBarCustomHeightToggled: function(button) {
 		let active = button.active;
-		log(`"panel_custom_height" radio button "toggled" signal: ${active}`);
+		log(`"top_bar_custom_height" radio button "toggled" signal: ${active}`);
 		if (active) {
-			this._settings.set_boolean('panel-custom-height', true);
+			this._settings.set_boolean('top-bar-custom-height', true);
 		}
 	},
 
 	// Height scale
 
-	_onPanelHeightSettingChanged: function(settings, panelHeight) {
-		log(`"panel-height" setting changed signal: ${panelHeight}`);
-		this._builder.get_object('panel_height').set_value(panelHeight);
+	_onTopBarHeightSettingChanged: function(settings, panelHeight) {
+		log(`"top-bar-height" setting changed signal: ${panelHeight}`);
+		this._builder.get_object('top_bar_height').set_value(panelHeight);
 	},
 
-	_onPanelHeightValueChanged: function(scale) {
+	_onTopBarHeightValueChanged: function(scale) {
 		let panelHeight = scale.get_value();
-		log(`"panel_height" scale value changed signal: ${panelHeight}`);
-		this._settings.set_uint('panel-height', panelHeight);
+		log(`"top_bar_height" scale value changed signal: ${panelHeight}`);
+		this._settings.set_uint('top-bar-height', panelHeight);
 	},
 
 	// Icon size combo box

@@ -2,11 +2,10 @@
 <!DOCTYPE gschema SYSTEM "/usr/share/glib-2.0/schemas/gschema.dtd">
 <schemalist>
   <enum id='org.gnome.shell.extensions.em-dash.location'>
-    <value value='0' nick='PANEL_NEAR'/>
-    <value value='1' nick='PANEL_MIDDLE'/>
-    <value value='2' nick='EDGE_NEAR'/>
-    <value value='3' nick='EDGE_FAR'/>
-    <value value='4' nick='EDGE_BOTTOM'/>
+    <value value='0' nick='TOP_BAR'/>
+    <value value='1' nick='EDGE_NEAR'/>
+    <value value='2' nick='EDGE_FAR'/>
+    <value value='3' nick='EDGE_BOTTOM'/>
   </enum>
   <enum id='org.gnome.shell.extensions.em-dash.alignment'>
     <value value='0' nick='NEAR'/>

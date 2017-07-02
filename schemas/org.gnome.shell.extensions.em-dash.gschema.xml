@@ -22,20 +22,25 @@
       <summary>Dash per workspace</summary>
       <description>Whether to show only windows of the current workspace.</description>
     </key>
-    <key name="panel-appearance-merge" type="b">
+    <key name="top-bar-appearance-merge" type="b">
       <default>true</default>
-      <summary>Merge panel appearance</summary>
-      <description>Whether to use a custom theme for the panel dash that allows it to visually blend into the panel.</description>
+      <summary>Merge top bar appearance</summary>
+      <description>Whether to use a custom theme for the dash that allows it to visually blend into the top bar.</description>
     </key>
-    <key name="panel-custom-height" type="b">
+    <key name="top-bar-move-center" type="b">
       <default>false</default>
-      <summary>Panel custom height</summary>
-      <description>Whether to set a custom height for the panel.</description>
+      <summary>Top bar move center box</summary>
+      <description>Whether to the top bar's center box to the right.</description>
     </key>
-    <key name="panel-height" type="u">
+    <key name="top-bar-custom-height" type="b">
+      <default>false</default>
+      <summary>Top bar custom height</summary>
+      <description>Whether to set a custom height for the top bar.</description>
+    </key>
+    <key name="top-bar-height" type="u">
       <default>32</default>
-      <summary>Panel height</summary>
-      <description>Custom height for the panel.</description>
+      <summary>Top bar height</summary>
+      <description>Custom height for the top bar.</description>
     </key>
     <key name="dock-icon-size" type="u">
       <default>64</default>
@@ -85,7 +90,7 @@
     <key name="menu-application" type="b">
       <default>false</default>
       <summary>Application menu in icon menu</summary>
-      <description>Hide the built-in application menu and show it in the relevant icon's popup menu instead.</description>
+      <description>Hide the top bar application menu and show it in the relevant icon's popup menu instead.</description>
     </key>
     <key name="menu-media-controls" type="b">
       <default>true</default>

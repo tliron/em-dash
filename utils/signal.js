@@ -101,7 +101,7 @@ const SignalManager = new Lang.Class({
 
 
 /**
- * Single signal connection.
+ * A signal connection.
  */
 const SignalConnection = new Lang.Class({
 	Name: 'EmDash.SignalConnection',
