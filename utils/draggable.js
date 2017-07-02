@@ -19,6 +19,7 @@ const DND = imports.ui.dnd;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
+const PatchUtils = Me.imports.utils.patch;
 
 const log = LoggingUtils.logger('draggable');
 
@@ -37,11 +38,11 @@ const Draggable = new Lang.Class({
 		this._draggable = DND.makeDraggable(actor);
 
 		// Monkey patches
-		this._originalCancelDrag = this._draggable._cancelDrag;
-		this._draggable._cancelDrag = Lang.bind(this, this._cancelDrag);
-		this._originalGetRestoreLocation = this._draggable._getRestoreLocation;
-		this._draggable._getRestoreLocation = Lang.bind(this, this._getRestoreLocation);
+		this._patchManager = new PatchUtils.PatchManager(this);
+		this._patchManager.patch(this._draggable, '_cancelDrag', this._cancelDrag);
+		this._patchManager.patch(this._draggable, '_getRestoreLocation', this._getRestoreLocation);
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this._draggable, 'drag-begin', this._onDragBegan);
 		this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCancelled);
@@ -51,6 +52,7 @@ const Draggable = new Lang.Class({
 	destroy: function() {
 		log('destroy');
 		this._signalManager.destroy();
+		this._patchManager.destroy();
 	},
 
 	fakeRelease: function() {
@@ -63,18 +65,18 @@ const Draggable = new Lang.Class({
 		}
 	},
 
-	_cancelDrag: function(eventTime) {
+	_cancelDrag: function(original, eventTime) {
 		if (this.actor._delegate && this.actor._delegate.handleDragCancelling) {
 			this.actor._delegate.handleDragCancelling();
 		}
-		this._originalCancelDrag.call(this._draggable, eventTime);
+		original(eventTime);
 	},
 
-	_getRestoreLocation: function() {
+	_getRestoreLocation: function(original) {
 		if (this.actor._delegate && this.actor._delegate.getDragRestoreLocation) {
 			return this.actor._delegate.getDragRestoreLocation();
 		}
-		return this._originalGetRestoreLocation.call(this._draggable);
+		original();
 	},
 
 	_onDragCancelled: function(draggable, time) {

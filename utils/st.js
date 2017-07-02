@@ -24,9 +24,9 @@ const log = LoggingUtils.logger('st');
 
 
 /**
- * An St container for a single child to which you can assign a preferred size.
+ * An St container for a single child to which you can assign a fixed preferred size.
  *
- * Note that's not actually a subclass of St.Bin, but it behaves similarly.
+ * Note that though it's not a subclass of St.Bin, it behaves similarly.
  *
  * Note also that this is a GObject class!
  */
@@ -60,6 +60,7 @@ const FlexBin = new Lang.Class({
 			this.add_child(child);
 		}
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this, 'destroy', this._onDestroy);
 		this._signalManager.connect(this, 'allocate', this._onAllocate);

@@ -40,6 +40,7 @@ const ShowAppsIcon = new Lang.Class({
 		this.childOpacity = 255;
 		this.icon.setIconSize(logicalIconSize);
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connectProperty(this.toggleButton, 'checked',
 			this._onButtonCheckedChanged);

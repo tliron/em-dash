@@ -78,6 +78,7 @@ const DashView = new Lang.Class({
 		});
 		this.actor.add_child(this._fader);
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this.actor, 'paint', () => {
 			// We need to wait until we're painted in order to focus app (backlight highlighting

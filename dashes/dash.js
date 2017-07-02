@@ -25,14 +25,14 @@ const DashView = Me.imports.views.dashView;
  * Base class for dash implementations, such as PanelDash and DockableDash.
  */
 const Dash = new Lang.Class({
-    Name: 'EmDash.Dash',
+	Name: 'EmDash.Dash',
 
-    _init: function(dashManager, styleClass, vertical, iconSize, quantize) {
+	_init: function(dashManager, styleClass, vertical, iconSize, quantize) {
 		this._dashManager = dashManager;
-    	this._view = new DashView.DashView(dashManager.modelManager, dashManager.scalingManager,
-    		styleClass, vertical, iconSize, quantize);
+		this._view = new DashView.DashView(dashManager.modelManager, dashManager.scalingManager,
+			styleClass, vertical, iconSize, quantize);
 		this._signalManager = new SignalUtils.SignalManager(this);
-    },
+	},
 
 	destroy: function() {
 		this._signalManager.destroy();

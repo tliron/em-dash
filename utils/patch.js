@@ -30,21 +30,6 @@ const PatchManager = new Lang.Class({
 		this._patches = [];
 	},
 
-	get: function(site, name) {
-		for (let i = 0; i < this._patches.length; i++) {
-			let patch = this._patches[i];
-			if ((patch.site === site) && (patch.name === name)) {
-				return patch;
-			}
-		}
-		return null;
-	},
-
-	callOriginal: function(site, name, ...args) {
-		let patch = this.get(site, name);
-		return patch.original(...args);
-	},
-
 	destroy: function() {
 		while (this._patches.length > 0) {
 			let patch = this._patches.pop();
@@ -54,6 +39,21 @@ const PatchManager = new Lang.Class({
 
 	patch(site, name, fn) {
 		this._patches.push(new Patch(this, site, name, fn));
+	},
+
+	callOriginal: function(site, name, ...args) {
+		let patch = this.get(site, name);
+		return patch.callOriginal(...args);
+	},
+
+	get: function(site, name) {
+		for (let i = 0; i < this._patches.length; i++) {
+			let patch = this._patches[i];
+			if ((patch.site === site) && (patch.name === name)) {
+				return patch;
+			}
+		}
+		return null;
 	}
 });
 
@@ -71,7 +71,7 @@ const Patch = new Lang.Class({
 		this.fn = fn;
 
 		this.originalFn = site[name];
-		this.original = Lang.bind(this.site, this.originalFn);
+		this.callOriginal = Lang.bind(this.site, this.originalFn);
 		site[name] = Lang.bind(this, this.call);
 	},
 
@@ -80,7 +80,7 @@ const Patch = new Lang.Class({
 	},
 
 	call: function(...args) {
-		args.unshift(this.original);
+		args.unshift(this.callOriginal);
 		return this.fn.apply(this.manager.self, args);
 	}
 });

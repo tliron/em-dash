@@ -119,8 +119,9 @@ const ScalingManager = new Lang.Class({
 
 		this._laterManager = new MutterUtils.LaterManager(this);
 
-		let themeContext = St.ThemeContext.get_for_stage(global.stage);
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
+		let themeContext = St.ThemeContext.get_for_stage(global.stage);
 		this._signalManager.connectProperty(themeContext, 'scale-factor',
 			this._onStThemeContextScaleFactorChanged);
 		this._signalManager.connectSetting(this._interfaceSettings, 'scaling-factor', 'uint',

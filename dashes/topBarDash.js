@@ -16,7 +16,6 @@
 const Lang = imports.lang;
 const Main = imports.ui.main;
 const St = imports.gi.St;
-
 const Clutter = imports.gi.Clutter;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -39,25 +38,27 @@ const TopBarDash = new Lang.Class({
 	_init: function(dashManager, location) {
 		log('_init');
 
-    	this.parent(dashManager, 'panel', false,
-    		dashManager.scalingManager.toLogical(Main.panel.actor.height), false);
+		this.parent(dashManager, 'panel', false,
+			dashManager.scalingManager.toLogical(Main.panel.actor.height), false);
 
-    	this._view.dash.x_align = St.Align.START;
-    	this._view.dash.set_x_align(Clutter.ActorAlign.START);
+		this._view.dash.x_align = St.Align.START;
+		this._view.dash.set_x_align(Clutter.ActorAlign.START);
 		this.bin = new StUtils.FlexBin({
 			child: this._view.actor,
 			preferred_width: Main.panel.actor.width
-			// (the actual width of the bin would shrink to fit in the leftbox)
+			// (the actual width of the bin would shrink to fit in the left box)
 		});
 
 		this._moveCenter = false;
 
-		// We cannot patch Main.panel._allocate, but we can patch the children's allocates
+		// Monkey patches
+		// (we cannot patch Main.panel._allocate, but we can patch the children's allocates)
 		this._patchManager = new PatchUtils.PatchManager(this);
 		this._patchManager.patch(Main.panel._leftBox, 'allocate', this._leftBoxAllocate);
 		this._patchManager.patch(Main.panel._centerBox, 'allocate', this._centerBoxAllocate);
 		this._patchManager.patch(Main.panel._rightBox, 'allocate', this._rightBoxAllocate);
 
+		// Signals
 		this._signalManager.connectSetting(dashManager.settings, 'top-bar-appearance-merge',
 			'boolean', this._onTopBarAppearanceMergeSettingChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'top-bar-move-center',
@@ -70,7 +71,7 @@ const TopBarDash = new Lang.Class({
 		this._signalManager.connectProperty(Main.panel.actor, 'width', this._onPanelWidthChanged);
 		this._signalManager.connectProperty(Main.panel.actor, 'height', this._onPanelHeightChanged);
 
-    	this.setLocation(location);
+		this.setLocation(location);
 	},
 
 	destroy: function() {
@@ -106,29 +107,35 @@ const TopBarDash = new Lang.Class({
 		// else we will postpone until _rightBoxAllocate
 	},
 
-	_rightBoxAllocate: function(original, childBox, flags) {
-		original(childBox, flags);
+	_rightBoxAllocate: function(original, rightChildBox, flags) {
+		original(rightChildBox, flags);
 
 		// TODO: rtl?
 		if (this._moveCenter) {
-			// OK, now we can finally allocate the other oxes the way we want them
+			// Our trick works like this: because we can't monkey patch Panel's _allocate, we
+			// instead patch left, center, and right boxes' allocate. The right box allocate is the
+			// last to be called in the original _allocate, so we postpone the previous two and do
+			// the actual allocation of left and center boxes here as we want them.
 
 			let centerWidth = ClutterUtils.getNaturalWidth(Main.panel._centerBox);
-			let actorBox = new Clutter.ActorBox();
+			let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 
 			// Left box extends to left edge of center box
-			actorBox.x1 = 0;
-			actorBox.x2 = childBox.x1 - centerWidth;
-			actorBox.y1 = childBox.y1;
-			actorBox.y2 = childBox.y2;
-			this._patchManager.callOriginal(Main.panel._leftBox, 'allocate', actorBox, flags);
+			let leftChildBox = new Clutter.ActorBox();
+			leftChildBox.x1 = 0;
+			leftChildBox.x2 = rightChildBox.x1 - centerWidth;
+			leftChildBox.y1 = rightChildBox.y1;
+			leftChildBox.y2 = rightChildBox.y2;
+			this._patchManager.callOriginal(Main.panel._leftBox, 'allocate', leftChildBox, flags);
 
 			// Center box pushed all the way to right box
-			actorBox.x1 = actorBox.x2;
-			actorBox.x2 = childBox.x1;
-			actorBox.y1 = childBox.y1;
-			actorBox.y2 = childBox.y2;
-			this._patchManager.callOriginal(Main.panel._centerBox, 'allocate', actorBox, flags);
+			let centerChildBox = new Clutter.ActorBox();
+			centerChildBox.x1 = leftChildBox.x2;
+			centerChildBox.x2 = rightChildBox.x1;
+			centerChildBox.y1 = rightChildBox.y1;
+			centerChildBox.y2 = rightChildBox.y2;
+			this._patchManager.callOriginal(Main.panel._centerBox, 'allocate', centerChildBox,
+				flags);
 		}
 	},
 
@@ -159,7 +166,7 @@ const TopBarDash = new Lang.Class({
 	_onTopBarMoveCenterSettingChanged: function(settings, moveCenter) {
 		log(`"top-bar-move-center" setting changed signal: ${moveCenter}`);
 		this._moveCenter = moveCenter;
-		Main.panel.actor.queue_relayout();
+		Main.panel.actor.queue_relayout(); // causes allocation to be called
 	},
 
 	_onTopBarCustomHeightSettingChanged: function(settings, customHeight) {

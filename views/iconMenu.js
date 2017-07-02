@@ -308,6 +308,7 @@ const MediaControlsMenu = new Lang.Class({
 		this.item = new PopupMenu.PopupMenuSection();
 		this._mpris = new MPRIS.MPRIS(simpleName);
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this._mpris, 'initialize', this._onInitialized);
 	},

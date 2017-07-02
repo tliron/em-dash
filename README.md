@@ -145,4 +145,5 @@ TODO
 * Dock with borders seems to keep moving its strut by a pixel or two as app focus changes
 * Reset backcolor cache if icon theme changes
 * Support scrolling in smaller increments
+* Bottom dash on overview might cover some UI
 

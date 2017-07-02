@@ -81,6 +81,7 @@ const Dockable = new Lang.Class({
 				Main.layoutManager.modalDialogGroup);
 		}
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover);

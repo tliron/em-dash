@@ -51,6 +51,7 @@ const ModelManager = new Lang.Class({
 		this.settings = settings;
 		this.single = null;
 
+		// Signals
 		let appFavorites = AppFavorites.getAppFavorites();
 		let appSystem = Shell.AppSystem.get_default();
 		this._signalManager = new SignalUtils.SignalManager(this);

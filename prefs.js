@@ -101,6 +101,7 @@ const PrefsWidget = new Lang.Class({
 		}
 		this._builder.get_object('about_version').label = version;
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._builder.connect_signals_full(Lang.bind(this, this._onConnectBuilderSignal));
 		this._bindSettings();

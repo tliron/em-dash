@@ -102,6 +102,9 @@ const SignalManager = new Lang.Class({
 
 /**
  * A signal connection.
+ *
+ * Set "blocked" to true to temporarily block the connection, and "blockedReturn" to return a
+ * specific value while blocked.
  */
 const SignalConnection = new Lang.Class({
 	Name: 'EmDash.SignalConnection',
@@ -116,6 +119,7 @@ const SignalConnection = new Lang.Class({
 		this.id = 0;
 		this.blocked = false;
 		this.blockedReturn = null;
+		this.boundCall = Lang.bind(this, this.call);
 	},
 
 	call: function(...args) {
@@ -130,7 +134,7 @@ const SignalConnection = new Lang.Class({
 
 	connect: function() {
 		if (this.mode === 'after') {
-			this.id = this.site.connect_after(this.name, Lang.bind(this, this.call));
+			this.id = this.site.connect_after(this.name, this.boundCall);
 		}
 		else if (this.mode === 'property') {
 			this.id = this.site.connect(`notify::${this.name}`, (site, paramSpec) => {
@@ -149,7 +153,7 @@ const SignalConnection = new Lang.Class({
 			this.site.emit(signalName, this.name);
 		}
 		else {
-			this.id = this.site.connect(this.name, Lang.bind(this, this.call));
+			this.id = this.site.connect(this.name, this.boundCall);
 		}
 
 		if (this.id != 0) {

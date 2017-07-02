@@ -31,22 +31,22 @@ const log = LoggingUtils.logger('dashManager');
  * "location" setting.
  */
 const DashManager = new Lang.Class({
-    Name: 'EmDash.DashManager',
+	Name: 'EmDash.DashManager',
 
-    _init: function(settings, dashClasses) {
-    	log('_init');
+	_init: function(settings, dashClasses) {
+		log('_init');
 
-    	this.dash = null;
-    	this.settings = settings;
-    	this.modelManager = new ModelManager.ModelManager(settings);
+		this.dash = null;
+		this.settings = settings;
+		this.modelManager = new ModelManager.ModelManager(settings);
 		this.scalingManager = new Scaling.ScalingManager();
 
-    	this._dashClasses = dashClasses;
-    	this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
+		this._dashClasses = dashClasses;
+		this._overlayDashWasVisible = Main.overview._controls.dash.actor.visible;
 
 		this.removeBuiltInDash();
 
-    	// Remember original location of app menu
+		// Remember original location of app menu
 		let appMenu = Main.panel.statusArea.appMenu.container;
 		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
 		this._appMenuParent = null;
@@ -54,15 +54,16 @@ const DashManager = new Lang.Class({
 			this._appMenuParent = Main.panel._leftBox;
 		}
 		else {
-    		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._rightBox, appMenu);
+			this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._rightBox, appMenu);
 			if (this._appMenuIndex !== -1) {
 				this._appMenuParent = Main.panel._rightBox;
 			}
 		}
 
-		this._signalManager = new SignalUtils.SignalManager(this);
+		// TODO: Main.initializeDeferredWork?
 
-		// TODO: Main.initializeDeferredWork
+		// Signals
+		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this.scalingManager, 'initialized', () => {
 			// Initialize only when we have scaling info
 			log('initialize');
@@ -71,10 +72,10 @@ const DashManager = new Lang.Class({
 			this._signalManager.connectSetting(settings, 'menu-application', 'boolean',
 				this._onMenuApplicationSettingChanged);
 		}, true);
-    },
+	},
 
 	destroy: function() {
-    	log('destroy');
+		log('destroy');
 		this._signalManager.destroy();
 		if (this.dash !== null) {
 			this.dash.destroy();
@@ -86,15 +87,15 @@ const DashManager = new Lang.Class({
 	},
 
 	removeBuiltInDash: function() {
-    	if (this._overlayDashWasVisible) {
-    		Main.overview._controls.dash.actor.hide();
-    	}
+		if (this._overlayDashWasVisible) {
+			Main.overview._controls.dash.actor.hide();
+		}
 	},
 
 	restoreBuiltInDash: function() {
-    	if (this._overlayDashWasVisible) {
-    		Main.overview._controls.dash.actor.show();
-    	}
+		if (this._overlayDashWasVisible) {
+			Main.overview._controls.dash.actor.show();
+		}
 	},
 
 	removeAppMenu: function() {

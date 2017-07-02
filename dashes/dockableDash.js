@@ -48,6 +48,7 @@ const DockableDash = new Lang.Class({
 		this._dockable = new DockableUtils.Dockable(this._view.actor, this._view.dash,
 			side, align, stretch, toggle);
 
+		// Signals
 		this._signalManager.connect(this._view.dash, 'style-changed', this._onStyleChanged);
 		this._signalManager.connectSetting(dashManager.settings, 'dock-icon-size', 'uint',
 			this._onDockIconSizeSettingChanged);
@@ -64,11 +65,11 @@ const DockableDash = new Lang.Class({
 		this._updateStyle(side);
 	},
 
-    destroy: function() {
+	destroy: function() {
 		log('destroy');
-    	this._dockable.destroy();
-    	this.parent();
-    },
+		this._dockable.destroy();
+		this.parent();
+	},
 
 	setLocation: function(location) {
 		let side = getMutterSideForLocation(location);
