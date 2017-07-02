@@ -25,7 +25,8 @@ function isFavoriteApp(app) {
 
 /**
  * The built-in favorites.moveFavoriteToPos is broken. It does does not decrement the new position
- * when necessary, nor does it verify that no change is needed.
+ * when necessary, nor does it verify that no change is needed, and annoyingly it emits two
+ * "changed" signals for what should be a single change.
  */
 function moveFavoriteToPos(appId, fromPos, toPos) {
 	if (fromPos < toPos) {
@@ -34,8 +35,10 @@ function moveFavoriteToPos(appId, fromPos, toPos) {
 	if (fromPos === toPos) {
 		return;
 	}
+
 	let favorites = AppFavorites.getAppFavorites();
-	favorites._removeFavorite(appId);
+	delete favorites._favorites[appId];
+//	favorites._removeFavorite(appId);
 	favorites._addFavorite(appId, toPos);
 }
 

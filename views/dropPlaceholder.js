@@ -28,7 +28,7 @@ const log = LoggingUtils.logger('dropPlaceholder');
 
 const ANIMATION_TIME = 0.1;
 
-let selfDrop = false;
+let dropped = false;
 
 
 /**
@@ -38,7 +38,7 @@ const DropPlaceholder = new Lang.Class({
 	Name: 'EmDash.DropPlaceholder',
 
 	_init: function(actor, after) {
-		seflDrop = false;
+		dropped = false;
 
 		this.nextActor = null;
 		this.nextAfter = null;
@@ -115,10 +115,6 @@ const DropPlaceholder = new Lang.Class({
 		Tweener.addTween(this.actor, tween);
 	},
 
-	isFor: function(actor, after) {
-		return (this._iconView.actor === actor) && (this._after === after);
-	},
-
 	// Dropping on us
 
 	acceptDrop: function(source, actor, x, y, time) {
@@ -127,20 +123,21 @@ const DropPlaceholder = new Lang.Class({
 		if ((source.modelIndex === this.modelIndex) ||
 			(source.modelIndex === this.modelIndex - 1)) {
 			log(`acceptDrop hook: ${appId} on self`);
-			selfDrop = true;
+			dropped = true;
 		}
 		else if (!('modelIndex' in source)) {
 			// Dragged from elsewhere (likely the overview)
 			log(`acceptDrop hook: ${appId} from elsewhere to ${this.modelIndex}`);
+			dropped = true;
 			let favorites = AppFavorites.getAppFavorites();
 			favorites.addFavoriteAtPos(appId, this.modelIndex);
-			selfDrop = false;
 		}
 		else {
 			// Moved within the dash
 			log(`acceptDrop hook: ${appId} from ${source.modelIndex} to ${this.modelIndex}`);
-			AppUtils.moveFavoriteToPos(appId, source.modelIndex, this.modelIndex);
-			selfDrop = false;
+			dropped = true;
+			let sourceModelIndex = source.modelIndex;
+			AppUtils.moveFavoriteToPos(appId, sourceModelIndex, this.modelIndex);
 		}
 		removeDropPlaceholder(); // this destroys us!
 		return true;
@@ -170,7 +167,7 @@ function removeDropPlaceholder() {
 	if (_dropPlaceholder !== null) {
 		_dropPlaceholder.nextActor = null;
 		_dropPlaceholder.nextAfter = null;
-		_dropPlaceholder.destroy(selfDrop);
+		_dropPlaceholder.destroy(dropped);
 	}
 }
 
@@ -179,7 +176,6 @@ function nextDropPlaceholder(nextActor, nextAfter) {
 	if ((nextActor !== null) && (nextAfter !== null)) {
 		// The old switcheroo
 		_dropPlaceholder = new DropPlaceholder(nextActor, nextAfter);
-		selfDrop = false;
 	}
 	else {
 		DND.removeDragMonitor(_dragMonitor);

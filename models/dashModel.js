@@ -43,7 +43,7 @@ const DashModel = new Lang.Class({
 	 * Check if we have an icon representing the application.
 	 */
 	isRepresenting: function(app) {
-		return this.getIndexOfRepresenting(app) !== null;
+		return this.getIndexOfRepresenting(app) !== -1;
 	},
 
 	/**
@@ -56,7 +56,7 @@ const DashModel = new Lang.Class({
 				return i;
 			}
 		}
-		return null;
+		return -1;
 	},
 
 

@@ -171,8 +171,8 @@ const ModelManager = new Lang.Class({
 
 	log: function() {
 		if (this.single) {
-			if (SINGLE_WORKSPACE_INDEX in this._dashModels) {
-				let dashModel = this._dashModels[SINGLE_WORKSPACE_INDEX];
+			if (this._dashModels.has(SINGLE_WORKSPACE_INDEX)) {
+				let dashModel = this._dashModels.get(SINGLE_WORKSPACE_INDEX);
 				log(`single: ${dashModel}`);
 			}
 		}

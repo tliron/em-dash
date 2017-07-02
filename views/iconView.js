@@ -49,13 +49,15 @@ const IconView = new Lang.Class({
 	Name: 'EmDash.IconView',
 	Extends: AppDisplay.AppIcon,
 
-	_init: function(dashView, model, modelIndex) {
-		log(`_init: ${model.app.id}`);
+	_init: function(dashView, model, modelIndex, physicalActorHeight, logicalIconSize) {
+		log(`_init: ${modelIndex} ${model.app.id}`);
 		this.dashView = dashView;
 		this.model = model;
 		this.modelIndex = modelIndex;
+		this.dissolving = false;
 
-		this._fixedIconSize = null;
+		this._appearing = false;
+		this._logicalIconSize = logicalIconSize;
 		this._originalX = null;
 		this._originalY = null;
 		this._originalWidth = null;
@@ -68,24 +70,102 @@ const IconView = new Lang.Class({
 			isDraggable: false // we will handle draggable ourselves
 		});
 
+		this.actor.height = physicalActorHeight;
+
 		// Can we extract a simple name?
+		this._simpleName = null;
 		let id = model.app.id;
 		if (id.endsWith('.desktop')) {
 			this._simpleName = id.substring(0, id.length - '.desktop'.length);
 		}
-		else {
-			this._simpleName = null;
-		}
 
 		// Draggable?
+		this._draggable = null;
 		if (global.settings.is_writable('favorite-apps') && AppUtils.isFavoriteApp(model.app)) {
 			this._draggable = new DraggableUtils.Draggable(this.actor);
 		}
-		else {
-			this._draggable = null;
-		}
 
 		this._signalManager = new SignalUtils.SignalManager(this);
+	},
+
+	// Animations
+
+	dissolve: function() {
+		this.dissolving = true;
+		this._dissolve(true);
+	},
+
+	appear: function() {
+		if (this._appearing) {
+			return;
+		}
+		this._appearing = true;
+		let originalWidth = this.actor.width;
+		let originalHeight = this.actor.height;
+		this.actor.set_size(0, 0);
+		Tweener.addTween(this.actor, {
+			time: ANIMATION_TIME,
+			transition: 'easeOutQuad',
+			width: originalWidth,
+			height: originalHeight,
+			onComplete: () => {
+				this._appearing = false;
+			}
+		});
+	},
+
+	_dissolve: function(destroy = false) {
+		log(`_dissolve: ${this.app.id}`);
+		let position = this.icon.icon.get_transformed_position();
+		this._originalX = position[0];
+		this._originalY = position[1];
+		this._originalWidth = this.actor.width;
+		this._originalHeight = this.actor.height;
+		this._originalStyleClass = this.actor.style_class;
+		this._originalStyle = this.actor.style;
+
+		// Become an empty space
+		this.actor.child.hide();
+		this._dot.hide();
+		this.actor.style_class = null;
+		this.actor.style = null;
+
+		// Shrink
+		Tweener.addTween(this.actor, {
+			time: ANIMATION_TIME,
+			transition: 'easeOutQuad',
+			width: 0,
+			height: 0,
+			onComplete: () => {
+				if (destroy) {
+					this.actor.destroy();
+				}
+				else {
+					this.actor.hide();
+				}
+			}
+		});
+	},
+
+	_appear: function(immediate = false) {
+		if (this._appearing) {
+			return;
+		}
+		this._appearing = true;
+		log(`_appear: ${this.app.id} ${immediate?'immediate':'animated'}`);
+		this.actor.show();
+		Tweener.addTween(this.actor, {
+			time: immediate ? 0 : ANIMATION_TIME,
+			transition: 'easeOutQuad',
+			width: this._originalWidth,
+			height: this._originalHeight,
+			onComplete: () => {
+				this._appearing = false;
+				this._dot.show();
+				this.actor.style_class = this._originalStyleClass;
+				this.actor.style = this._originalStyle;
+			}
+		});
 	},
 
 	/**
@@ -106,8 +186,8 @@ const IconView = new Lang.Class({
 	 * Override to use fixed icon size
 	 */
 	_createIcon: function(iconSize) {
-		if (this._fixedIconSize !== null) {
-			iconSize = this._fixedIconSize;
+		if (this._logicalIconSize !== null) {
+			iconSize = this._logicalIconSize;
 		}
 		// Usually creates St.Icon, but for some system windows it could be Clutter.Texture
 		return this.parent(iconSize);
@@ -163,6 +243,7 @@ background-gradient-end: ${backlight.dark};`;
 		if (this._draggable) {
 			this._draggable.fakeRelease(); // Em-Dash note: our draggable has this method, too
 		}
+
 		if (!this._menu) {
 			this._menu = new IconMenu.IconMenu(this, this._simpleName,
 				this.dashView.modelManager.settings);
@@ -389,52 +470,8 @@ background-gradient-end: ${backlight.dark};`;
 		this.actor.child.show();
 		if (dropped) {
 			// If cancelled, then the animation was already started in handleDragCancelling
-			this._appear(DropPlaceholder.selfDrop);
+			this._appear(DropPlaceholder.dropped);
 		}
-	},
-
-	_dissolve: function() {
-		log(`_dissolve: ${this.app.id}`);
-		let position = this.icon.icon.get_transformed_position();
-		this._originalX = position[0];
-		this._originalY = position[1];
-		this._originalWidth = this.actor.width;
-		this._originalHeight = this.actor.height;
-		this._originalStyleClass = this.actor.style_class;
-		this._originalStyle = this.actor.style;
-
-		// Become an empty space
-		this.actor.child.hide();
-		this._dot.hide();
-		this.actor.style_class = null;
-		this.actor.style = null;
-
-		// Shrink
-		Tweener.addTween(this.actor, {
-			time: ANIMATION_TIME,
-			transition: 'easeOutQuad',
-			width: 0,
-			height: 0,
-			onComplete: () => {
-				this.actor.hide();
-			}
-		});
-	},
-
-	_appear: function(immediate = false) {
-		log(`_appear: ${this.app.id} ${immediate?'immediate':'animated'}`);
-		this.actor.show();
-		Tweener.addTween(this.actor, {
-			time: immediate ? 0 : ANIMATION_TIME,
-			transition: 'easeOutQuad',
-			width: this._originalWidth,
-			height: this._originalHeight,
-			onComplete: () => {
-				this._dot.show();
-				this.actor.style_class = this._originalStyleClass;
-				this.actor.style = this._originalStyle;
-			}
-		});
 	},
 
 	// Dragging over us
@@ -459,7 +496,7 @@ background-gradient-end: ${backlight.dark};`;
 			app = this.app;
 		}
 		else {
-			let iconView = this.dashView.getIconViewAt(this.modelIndex - 1);
+			let iconView = this.dashView.getIconViewForModelIndex(this.modelIndex - 1);
 			if (iconView !== null) {
 				app = iconView.app;
 			}

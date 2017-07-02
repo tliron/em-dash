@@ -142,9 +142,9 @@ TODO
 * Allow dragging to after all other favorites
 * Window previews/lists on hover
 * Dragging on empty dash
-* Wobbly drag and drop in panel
 * Dock with borders seems to keep moving its strut by a pixel or two as app focus changes
 * Reset backcolor cache if icon theme changes
 * Support scrolling in smaller increments
 * Bottom dash on overview might cover some UI
-
+* Can't scroll during drag and drop
+* Drag and drop mangles clipping

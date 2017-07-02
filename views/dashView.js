@@ -50,7 +50,6 @@ const DashView = new Lang.Class({
 		this._scalingManager = scalingManager;
 		this._logicalIconSize = null;
 		this._focused = null;
-		this._firstIndex = 0;
 		this._scrollTranslation = 0;
 
 		// Actor: contains dash and arrow
@@ -121,15 +120,54 @@ const DashView = new Lang.Class({
 		this.actor.destroy();
 	},
 
-	getIconViewAt: function(index) {
-		let actor = this.box.get_child_at_index(this._firstIndex + index);
-		if (actor !== null) {
-			let delegate = actor._delegate;
-			if (delegate instanceof IconView.IconView) {
-				return delegate;
+	getIconViewForModelIndex: function(modelIndex) {
+		for (let actor of this.box.get_children()) {
+			let iconView = actor._delegate;
+			if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
+				(iconView.modelIndex == modelIndex)) {
+				return iconView;
 			}
 		}
 		return null;
+	},
+
+	getIconViewForApp: function(app) {
+		let id = app.id;
+		for (let actor of this.box.get_children()) {
+			let iconView = actor._delegate;
+			if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
+				(iconView.app.id === id)) {
+				return iconView;
+			}
+		}
+		return null;
+	},
+
+	getChildIndexForModelIndex: function(modelIndex) {
+		let lastGoodChildIndex = 0;
+		let nChildren = this.box.get_n_children();
+		for (let i = 0; i < nChildren; i++) {
+			let actor = this.box.get_child_at_index(i);
+
+			// Skip ShowAppIcons
+			if (actor instanceof ShowAppsIcon.ShowAppsIcon) {
+				lastGoodChildIndex = i + 1;
+				continue;
+			}
+
+			let iconView = actor._delegate;
+			if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
+				if (modelIndex === iconView.modelIndex) {
+					return i;
+				}
+				else if (iconView.modelIndex > modelIndex) {
+					// Went too far, so before this one
+					return i - 1;
+				}
+				lastGoodChildIndex = i + 1;
+			}
+		}
+		return lastGoodChildIndex;
 	},
 
 	setVertical: function(vertical) {
@@ -147,58 +185,131 @@ const DashView = new Lang.Class({
 	setIconSize: function(logicalIconSize) {
 		if (this._logicalIconSize !== logicalIconSize) {
 			this._logicalIconSize = logicalIconSize;
-			this.refresh();
+			this.refresh(true);
 		}
 	},
 
-	refresh: function(workspaceIndex) {
+	refresh: function(force = false, workspaceIndex) {
 		if (workspaceIndex === undefined) {
 			workspaceIndex = global.screen.get_active_workspace().index();
 		}
-		this.modelManager.log();
 		let dashModel = this.modelManager.getDashModel(workspaceIndex);
-		this._refresh(dashModel);
+		this._refresh(force, dashModel);
 	},
 
-	_refresh: function(dashModel) {
-		let physicalActorSize = this._scalingManager.toPhysical(this._logicalIconSize);
-		let physicalIconSize = physicalActorSize * 0.75;
+	_refresh: function(force, dashModel) {
+		this.modelManager.log();
+
+		let physicalActorHeight = this._scalingManager.toPhysical(this._logicalIconSize);
+		let physicalIconSize = physicalActorHeight * 0.75;
 		if (this.quantize) {
 			physicalIconSize = this._scalingManager.getSafeIconSize(physicalIconSize);
 		}
 		let logicalIconSize = this._scalingManager.toLogical(physicalIconSize);
-		log(`_refresh: actor=${physicalActorSize} icon=${physicalIconSize}`);
+		log(`_refresh: height=${physicalActorHeight} icon=${physicalIconSize}`);
 
-		this.box.set_translation(0, 0, 0);
+		//this.box.set_translation(0, 0, 0);
 
-		this.box.remove_all_children();
-		for (let i = 0; i < dashModel.icons.length; i++) {
-			let iconModel = dashModel.icons[i];
-			let iconView = new IconView.IconView(this, iconModel, i);
-			iconView.actor.height = physicalActorSize;
-			iconView._fixedIconSize = logicalIconSize;
-			this.box.add_child(iconView.actor);
-		}
-
-		let applicationsButton = this.modelManager.settings.get_string('applications-button');
-		if (applicationsButton !== 'HIDE') {
-			let showAppsIcon = new ShowAppsIcon.ShowAppsIcon(logicalIconSize);
-			if (applicationsButton === 'FAR') {
-				this.box.add_child(showAppsIcon);
-				this._firstIndex = 0;
-			}
-			else { // NEAR
-				this.box.insert_child_at_index(showAppsIcon, 0);
-				this._firstIndex = 1;
-			}
+		if (force) {
+			this.box.remove_all_children();
 		}
 		else {
-			this._firstIndex = 0;
+			// Remove icons that don't exist anymore
+			for (let actor of this.box.get_children()) {
+				let iconView = actor._delegate;
+				if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
+					(dashModel.getIndexOfRepresenting(iconView.app) === -1)) {
+					log(`removed: ${iconView.app.id}`);
+					iconView.dissolve();
+				}
+			}
+
+			// Move icons
+			let moved = false;
+			for (let modelIndex = 0; modelIndex < dashModel.icons.length; modelIndex++) {
+				let iconModel = dashModel.icons[modelIndex];
+				let iconView = this.getIconViewForApp(iconModel.app);
+				if ((iconView !== null) && !iconView.dissolving &&
+					(iconView.modelIndex !== modelIndex)) {
+					log(`moved: ${iconView.app.id} to ${modelIndex}`);
+					iconView.modelIndex = modelIndex;
+					moved = true;
+				}
+			}
+
+			// Sort icons after moving them
+			if (moved) {
+				let actors = [];
+				for (let actor of this.box.get_children()) {
+					let iconView = actor._delegate;
+					if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
+						this.box.remove_child(actor);
+						actors.push(actor);
+					}
+				}
+				actors.sort((a, b) => a._delegate.modelIndex - b._delegate.modelIndex);
+				let index = this.getChildIndexForModelIndex(0);
+				for (let actor of actors) {
+					this.box.insert_child_at_index(actor, index++);
+				}
+			}
 		}
 
+		// Additions
+		for (let modelIndex = 0; modelIndex < dashModel.icons.length; modelIndex++) {
+			let iconModel = dashModel.icons[modelIndex];
+			if (this.getIconViewForApp(iconModel.app) !== null) {
+				// Already have it
+				continue;
+			}
+
+			iconView = new IconView.IconView(this, iconModel, modelIndex,
+				physicalActorHeight, logicalIconSize);
+
+			let childIndex = this.getChildIndexForModelIndex(modelIndex);
+			this.box.insert_child_at_index(iconView.actor, childIndex);
+
+			if (!force) {
+				iconView.appear();
+			}
+		}
+
+		this._updateApplicationsButton(logicalIconSize);
 		this._updateFader();
 		this._updateFocusApp();
 		this._updateWheelScrolling();
+	},
+
+	_updateApplicationsButton: function(logicalIconSize) {
+		let applicationsButton = this.modelManager.settings.get_string('applications-button');
+		if (applicationsButton === 'HIDE') {
+			this._removeApplicationsButton();
+		}
+		else {
+			if (applicationsButton === 'NEAR') {
+				if (!(this.box.get_first_child() instanceof ShowAppsIcon.ShowAppsIcon)) {
+					this._removeApplicationsButton();
+					let showAppsIcon = new ShowAppsIcon.ShowAppsIcon(logicalIconSize);
+					this.box.insert_child_at_index(showAppsIcon, 0);
+				}
+			}
+			else { // FAR
+				if (!(this.box.get_last_child() instanceof ShowAppsIcon.ShowAppsIcon)) {
+					this._removeApplicationsButton();
+					let showAppsIcon = new ShowAppsIcon.ShowAppsIcon(logicalIconSize);
+					this.box.add_child(showAppsIcon);
+				}
+			}
+		}
+	},
+
+	_removeApplicationsButton: function() {
+		for (let actor of this.box.get_children()) {
+			if (actor instanceof ShowAppsIcon.ShowAppsIcon) {
+				this.box.remove_child(actor);
+				return;
+			}
+		}
 	},
 
 	_updateClip: function() {
@@ -307,10 +418,9 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		if (iconsWheelScroll === undefined) {
 			iconsWheelScroll = this.modelManager.settings.get_boolean('icons-wheel-scroll');
 		}
-		let nChildren = this.box.get_n_children();
-		for (let i = 0; i < nChildren; i++) {
-			let iconView = this.getIconViewAt(i);
-			if (iconView !== null) {
+		for (let actor of this.box.get_children()) {
+			let iconView = actor._delegate;
+			if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
 				if (iconsWheelScroll) {
 					iconView.enableWheelScrolling();
 				}
@@ -329,9 +439,9 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			if (app !== null) {
 				let workspaceIndex = global.screen.get_active_workspace().index();
 				let dashModel = this.modelManager.getDashModel(workspaceIndex);
-				let index = dashModel.getIndexOfRepresenting(app);
-				if (index !== null) {
-					let iconView = this.getIconViewAt(index);
+				let modelIndex = dashModel.getIndexOfRepresenting(app);
+				if (modelIndex !== -1) {
+					let iconView = this.getIconViewForModelIndex(modelIndex);
 					if (iconView !== null) {
 						if (this._focused !== iconView) {
 							this._removeFocusApp();
@@ -399,7 +509,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
 		log(`screen "workspace-switched" signal: from ${oldWorkspaceIndex} to ${newWorkspaceIndex} (${direction})`);
 		if (!this.modelManager.single) {
-			this.refresh(newWorkspaceIndex);
+			this.refresh(true, newWorkspaceIndex);
 		}
 	},
 
