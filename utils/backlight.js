@@ -34,22 +34,22 @@ const DEFAULT_BACKLIGHT = ColorUtils.getVariationsAsHex(180, 180, 180);
  * Gets backlight color variations based on relative weight of colors, or uses a cached value.
  */
 function getBacklight(id, pixbufGetter) {
-	let backlight = _backlightCache[id];
-
-	if (backlight === undefined) {
-		let pixbuf = pixbufGetter();
-		if (pixbuf !== null) {
-			let [r, g, b] = getBacklightColor(pixbuf);
-			backlight = ColorUtils.getVariationsAsHex(r, g, b);
-		}
-		else {
-			log(`getBacklight: no pixbuf for ${id}`);
-			backlight = DEFAULT_BACKLIGHT;
-		}
-
-		_backlightCache[id] = backlight;
+	if (id in _backlightCache) {
+		return _backlightCache[id];
 	}
 
+	let backlight;
+	let pixbuf = pixbufGetter();
+	if (pixbuf !== null) {
+		let [r, g, b] = getBacklightColor(pixbuf);
+		backlight = ColorUtils.getVariationsAsHex(r, g, b);
+	}
+	else {
+		log(`getBacklight: no pixbuf for ${id}`);
+		backlight = DEFAULT_BACKLIGHT;
+	}
+
+	_backlightCache[id] = backlight;
 	return backlight;
 }
 

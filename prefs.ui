@@ -162,7 +162,7 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">In top panel</property>
+                <property name="label" translatable="yes">In top bar</property>
               </object>
             </child>
           </object>
@@ -574,7 +574,7 @@
       <object class="GtkLabel">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Panel</property>
+        <property name="label" translatable="yes">_Top Bar</property>
         <property name="use_underline">True</property>
       </object>
       <packing>

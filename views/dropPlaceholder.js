@@ -129,7 +129,7 @@ const DropPlaceholder = new Lang.Class({
 			log(`acceptDrop hook: ${appId} on self`);
 			selfDrop = true;
 		}
-		else if (source.modelIndex === undefined) {
+		else if (!('modelIndex' in source)) {
 			// Dragged from elsewhere (likely the overview)
 			log(`acceptDrop hook: ${appId} from elsewhere to ${this.modelIndex}`);
 			let favorites = AppFavorites.getAppFavorites();

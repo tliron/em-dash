@@ -17,8 +17,12 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 const St = imports.gi.St;
 
+const Meta = imports.gi.Meta;
+const Clutter = imports.gi.Clutter;
+
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
+const StUtils = Me.imports.utils.st;
 const Dash = Me.imports.dashes.dash;
 
 const log = LoggingUtils.logger('panelDash');
@@ -37,7 +41,12 @@ const PanelDash = new Lang.Class({
     	this.parent(dashManager, 'panel', false,
     		dashManager.scalingManager.toLogical(Main.panel.actor.height), false);
 
-    	this._view.dash.x_expand = false;
+    	this._view.dash.x_align = St.Align.START;
+		this.bin = new StUtils.FlexBin({
+			child: this._view.actor,
+			preferred_width: Main.panel.actor.width
+			// (the actual width of the bin would shrink to fit in the leftbox)
+		});
 
 		this._signalManager.connectSetting(dashManager.settings, 'panel-appearance-merge',
 			'boolean', this._onPanelAppearanceMergeSettingChanged);
@@ -46,6 +55,8 @@ const PanelDash = new Lang.Class({
 		this._signalManager.connectSetting(dashManager.settings, 'panel-height', 'uint',
 			this._onPanelHeightSettingChanged);
 		this._signalManager.connect(dashManager.scalingManager, 'changed', this._onScalingChanged);
+		this._signalManager.connectProperty(Main.panel.actor, 'width',
+			this._onPanelWidthChanged);
 		this._signalManager.connectProperty(Main.panel.actor, 'height',
 			this._onPanelHeightChanged);
 
@@ -59,23 +70,22 @@ const PanelDash = new Lang.Class({
 	},
 
 	setLocation: function(location) {
-		// Note: in RTL, the _leftBox actually appears on the right :)
-		let actor = this._view.actor;
+		// Note: in RTL, the poorly named "_leftBox" actually appears on the right :)
 		switch (location) {
 		case 'PANEL_NEAR':
-			if (Main.panel._centerBox.contains(actor)) {
-				Main.panel._centerBox.remove_child(actor);
+			if (Main.panel._centerBox.contains(this.bin)) {
+				Main.panel._centerBox.remove_child(this.bin);
 			}
-			if (!Main.panel._leftBox.contains(actor)) {
-				Main.panel._leftBox.add_child(actor);
+			if (!Main.panel._leftBox.contains(this.bin)) {
+				Main.panel._leftBox.add_child(this.bin);
 			}
 			break;
 		case 'PANEL_MIDDLE':
-			if (Main.panel._leftBox.contains(actor)) {
-				Main.panel._leftBox.remove_child(actor);
+			if (Main.panel._leftBox.contains(this.bin)) {
+				Main.panel._leftBox.remove_child(this.bin);
 			}
-			if (!Main.panel._centerBox.contains(actor)) {
-				Main.panel._centerBox.add_child(actor);
+			if (!Main.panel._centerBox.contains(this.bin)) {
+				Main.panel._centerBox.add_child(this.bin);
 			}
 			break;
 		}
@@ -118,6 +128,12 @@ const PanelDash = new Lang.Class({
 	_onScalingChanged: function(scaling, factor) {
 		log(`scaling "changed" signal: ${factor}`);
 		this._updatePanelHeight();
+	},
+
+	_onPanelWidthChanged: function(actor, width) {
+		log(`panel "width" property changed signal: ${width}`);
+		this.bin.preferred_width = width;
+		// (the actual width of the bin would shrink to fit in the leftbox)
 	},
 
 	_onPanelHeightChanged: function(actor, height) {

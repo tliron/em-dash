@@ -11,10 +11,6 @@
  *
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <http://www.gnu.org/licenses/>.
- *
- * This file contains code from:
- *
- * https://github.com/JasonLG1979/gnome-shell-extensions-mediaplayer/blob/master/src/dbus.js
  */
 
 const Lang = imports.lang;

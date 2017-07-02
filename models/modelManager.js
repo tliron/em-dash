@@ -76,16 +76,16 @@ const ModelManager = new Lang.Class({
 		if (this.single) {
 			workspaceIndex = SINGLE_WORKSPACE_INDEX;
 		}
-		let dashModel = this._dashModels[workspaceIndex];
-		if (dashModel === undefined) {
-			dashModel = this._dashModels[workspaceIndex] = new DashModel.DashModel();
-			dashModel.addFavorites();
-			if (workspaceIndex === SINGLE_WORKSPACE_INDEX) {
-				dashModel.addRunning();
-			}
-			else {
-				dashModel.addRunning(workspaceIndex);
-			}
+		if (workspaceIndex in this._dashModels) {
+			return this._dashModels[workspaceIndex];
+		}
+		let dashModel = this._dashModels[workspaceIndex] = new DashModel.DashModel();
+		dashModel.addFavorites();
+		if (workspaceIndex === SINGLE_WORKSPACE_INDEX) {
+			dashModel.addRunning();
+		}
+		else {
+			dashModel.addRunning(workspaceIndex);
 		}
 		return dashModel;
 	},
@@ -170,8 +170,8 @@ const ModelManager = new Lang.Class({
 
 	log: function() {
 		if (this.single) {
-			let dashModel = this._dashModels[SINGLE_WORKSPACE_INDEX];
-			if (dashModel !== undefined) {
+			if (SINGLE_WORKSPACE_INDEX in this._dashModels) {
+				let dashModel = this._dashModels[SINGLE_WORKSPACE_INDEX];
 				log(`single: ${dashModel}`);
 			}
 		}

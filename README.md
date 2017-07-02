@@ -127,7 +127,8 @@ reference material:
     `imports.gi.Gio`. You'll also see some documentation there for the XML format for the
     `/schemas/` files. The `type` fields use GLib's
     [GVariant format](https://developer.gnome.org/glib/stable/gvariant-format-strings.html).
-* Learn about [tweeners](http://hosted.zeh.com.br/tweener/docs/en-us/).
+* Though Clutter supports animations, the GNOME Shell code tends to prefer
+  [tweeners](http://hosted.zeh.com.br/tweener/docs/en-us/) instead.
 * The preferences page is quite different from all the above, as it's actually a GTK+ widget. The
   [Glade designer](https://glade.gnome.org/) can be used to edit the `prefs.ui` file used by the
   GTK+ builder.
