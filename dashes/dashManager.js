@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -27,8 +27,7 @@ const log = LoggingUtils.logger('dashManager');
 
 
 /**
- * Manages several dash implementations, switching between them according to changed to the
- * "location" setting.
+ * Manages and switches between dash implementations.
  */
 const DashManager = new Lang.Class({
 	Name: 'EmDash.DashManager',

@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -20,8 +20,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 
-const log = LoggingUtils.logger('st');
-
 
 /**
  * An St container for a single child to which you can assign a fixed preferred size.
@@ -41,6 +39,7 @@ const FlexBin = new Lang.Class({
 		this.preferred_height = 0;
 		let child = null;
 
+		// Parse/remove our extra params
 		if ('preferred_width' in params) {
 			this.preferred_width = params['preferred_width'];
 			delete params['preferred_width'];
@@ -82,12 +81,10 @@ const FlexBin = new Lang.Class({
 	_onGetPreferredWidth: function(actor, forHeight, alloc) {
 		alloc.min_size = 0;
 		alloc.natural_size = this.preferred_width;
-		log(`_onGetPreferredWidth: ${this.preferred_width}`);
 	},
 
 	_onGetPreferredHeight: function(actor, forWidth, alloc) {
 		alloc.min_size = 0;
 		alloc.natural_size = this.preferred_height;
-		log(`_onGetPreferredHeight: ${this.preferred_height}`);
 	}
 });

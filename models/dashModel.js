@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -77,8 +77,7 @@ const DashModel = new Lang.Class({
 	addFavorites: function() {
 		let changed = false;
 		let favorites = AppFavorites.getAppFavorites().getFavorites();
-		for (let i = 0; i < favorites.length; i++) {
-			let app = favorites[i];
+		for (let app of favorites) {
 			if (this.add(app)) {
 				changed = true;
 			}
@@ -94,8 +93,7 @@ const DashModel = new Lang.Class({
 		let changed = false;
 		let appSystem = Shell.AppSystem.get_default();
 		let running = appSystem.get_running(); // will be empty when the shell is restarted
-		for (let i = 0; i < running.length; i++) {
-			let app = running[i];
+		for (let app of running) {
 			if (workspaceIndex === undefined) {
 				if (this.add(app)) {
 					changed = true;
@@ -131,11 +129,10 @@ const DashModel = new Lang.Class({
 	 * Removes an icon.
 	 */
 	removeIcon: function(icon) {
-		for (let i = 0; i < this.icons.length; i++) {
-			if (this.icons[i] === icon) {
-				this.icons.splice(i, 1);
-				return true;
-			}
+		let i = this.icons.indexOf(icon);
+		if (i !== -1) {
+			this.icons.splice(i, 1);
+			return true;
 		}
 		return false;
 	},
@@ -145,15 +142,14 @@ const DashModel = new Lang.Class({
 	 */
 	prune: function() {
 		let prunables = [];
-		for (let i = 0; i < this.icons.length; i++) {
-			let icon = this.icons[i];
+		for (let icon of this.icons) {
 			if (icon.isPrunable) {
 				prunables.push(icon);
 			}
 		}
 		let changed = false;
-		for (let i = 0; i < prunables.length; i++) {
-			if (this.removeIcon(prunables[i])) {
+		for (let icon of prunables) {
+			if (this.removeIcon(icon)) {
 				changed = true;
 			}
 		}
@@ -162,8 +158,7 @@ const DashModel = new Lang.Class({
 
 	toString: function(workspaceIndex) {
 		let iconStrings = [];
-		for (let i = 0; i < this.icons.length; i++) {
-			let icon = this.icons[i];
+		for (let icon of this.icons) {
 			iconStrings.push(icon.toString(workspaceIndex));
 		}
 		return iconStrings.join(', ');

@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -34,8 +34,8 @@ const DEFAULT_BACKLIGHT = ColorUtils.getVariationsAsHex(180, 180, 180);
  * Gets backlight color variations based on relative weight of colors, or uses a cached value.
  */
 function getBacklight(id, pixbufGetter) {
-	if (id in _backlightCache) {
-		return _backlightCache[id];
+	if (_backlightCache.has(id)) {
+		return _backlightCache.get(id);
 	}
 
 	let backlight;
@@ -49,7 +49,8 @@ function getBacklight(id, pixbufGetter) {
 		backlight = DEFAULT_BACKLIGHT;
 	}
 
-	_backlightCache[id] = backlight;
+	_backlightCache.set(id, backlight);
+
 	return backlight;
 }
 
@@ -58,7 +59,7 @@ function getBacklight(id, pixbufGetter) {
  * Resets the backlight cache.
  */
 function reset() {
-	_backlightCache = {};
+	_backlightCache.clear();
 }
 
 
@@ -157,4 +158,4 @@ function resamplePixels(pixbuf, pixels, resampleX, resampleY) {
 }
 
 
-let _backlightCache = {};
+let _backlightCache = new Map();

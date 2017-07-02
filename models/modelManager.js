@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -51,6 +51,8 @@ const ModelManager = new Lang.Class({
 		this.settings = settings;
 		this.single = null;
 
+		this._dashModels = new Map();
+
 		// Signals
 		let appFavorites = AppFavorites.getAppFavorites();
 		let appSystem = Shell.AppSystem.get_default();
@@ -77,10 +79,11 @@ const ModelManager = new Lang.Class({
 		if (this.single) {
 			workspaceIndex = SINGLE_WORKSPACE_INDEX;
 		}
-		if (workspaceIndex in this._dashModels) {
-			return this._dashModels[workspaceIndex];
+		if (this._dashModels.has(workspaceIndex)) {
+			return this._dashModels.get(workspaceIndex);
 		}
-		let dashModel = this._dashModels[workspaceIndex] = new DashModel.DashModel();
+		let dashModel = new DashModel.DashModel();
+		this._dashModels.set(workspaceIndex, dashModel);
 		dashModel.addFavorites();
 		if (workspaceIndex === SINGLE_WORKSPACE_INDEX) {
 			dashModel.addRunning();
@@ -92,7 +95,7 @@ const ModelManager = new Lang.Class({
 	},
 
 	removeDashModel: function(workspaceIndex) {
-		delete this._dashModels[workspaceIndex];
+		this._dashModels.delete(workspaceIndex);
 	},
 
 	/**
@@ -131,8 +134,7 @@ const ModelManager = new Lang.Class({
 		}
 		let changed = false;
 		let workspaceIndexes = AppUtils.getWorkspacesForApp(app);
-		for (let i = 0; i < workspaceIndexes.length; i++) {
-			let workspaceIndex = workspaceIndexes[i];
+		for (let workspaceIndex of workspaceIndexes) {
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
 			}
@@ -146,8 +148,7 @@ const ModelManager = new Lang.Class({
 	 */
 	remove: function(app) {
 		let changed = false;
-		for (let workspaceIndex in this._dashModels) {
-			let dashModel = this._dashModels[workspaceIndex];
+		for (let dashModel of this._dashModels.values()) {
 			if (dashModel.remove(app)) {
 				changed = true;
 			}
@@ -160,8 +161,7 @@ const ModelManager = new Lang.Class({
 	 */
 	prune: function() {
 		let changed = false;
-		for (let workspaceIndex in this._dashModels) {
-			let dashModel = this._dashModels[workspaceIndex];
+		for (let dashModel of this._dashModels.values()) {
 			if (dashModel.prune()) {
 				changed = true;
 			}
@@ -177,15 +177,14 @@ const ModelManager = new Lang.Class({
 			}
 		}
 		else {
-			for (let workspaceIndex in this._dashModels) {
-				let dashModel = this._dashModels[workspaceIndex];
+			for (let dashModel of this._dashModels.values()) {
 				log(`workspace ${workspaceIndex}: ${dashModel.toString(workspaceIndex)}`);
 			}
 		}
 	},
 
 	_reset: function() {
-		this._dashModels = {};
+		this._dashModels.clear();
 	},
 
 	_onDashPerWorkspaceSettingChanged: function(settings, dashPerWorkspace) {

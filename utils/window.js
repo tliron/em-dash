@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -28,8 +28,7 @@ function getFocusedWindowIndex(windows) {
 
 
 function hideWindows(windows) {
-	for (let i = 0; i < windows.length; i++) {
-		let window = windows[i];
+	for (let window of windows) {
 		window.minimize();
 	}
 }

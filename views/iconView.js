@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -40,7 +40,10 @@ const ANIMATION_TIME = 0.1;
 /**
  * UI representation of a dash icon.
  *
- * See: https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
+ * For the sake of as much compatibility as possible with other parts of GNOME Shell, we are
+ * inheriting from AppIcon:
+ *
+ *   https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
  */
 const IconView = new Lang.Class({
 	Name: 'EmDash.IconView',

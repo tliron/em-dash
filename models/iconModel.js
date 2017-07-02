@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -19,7 +19,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const AppUtils = Me.imports.utils.app;
 const WindowUtils = Me.imports.utils.window;
-const CollectionUtils = Me.imports.utils.collection;
 
 const log = LoggingUtils.logger('iconModel');
 
@@ -76,8 +75,7 @@ const IconModel = new Lang.Class({
 			if (windows.length === 0) {
 				return false;
 			}
-			for (let i = 0; i < windows.length; i++) {
-				let window = windows[i];
+			for (let window of windows) {
 				if (!this.isGrabbing(window)) {
 					return false;
 				}
@@ -92,8 +90,7 @@ const IconModel = new Lang.Class({
 	 * Checks if we are grabbing a window.
 	 */
 	isGrabbing: function(window) {
-		for (let i = 0; i < this._matchers.length; i++) {
-			let matcher = this._matchers[i];
+		for (let matcher of this._matchers) {
 			if (matcher.matches(window)) {
 				return true;
 			}
@@ -116,8 +113,7 @@ const IconModel = new Lang.Class({
 
 		// App windows
 		let appWindows = this.app.get_windows();
-		for (let i = 0; i < appWindows.length; i++) {
-			let window = appWindows[i];
+		for (let window of appWindows) {
 			if ((workspaceIndex !== undefined) &&
 				(window.get_workspace().index() != workspaceIndex)) {
 				continue;
@@ -135,10 +131,8 @@ const IconModel = new Lang.Class({
 				}
 				let workspace = global.screen.get_workspace_by_index(theWorkspaceIndex);
 				let workspaceWindows = workspace.list_windows();
-				for (let i = 0; i < workspaceWindows.length; i++) {
-					let window = workspaceWindows[i];
-					if (this.isGrabbing(window) &&
-						!CollectionUtils.arrayIncludes(windows, window)) {
+				for (let window of workspaceWindows) {
+					if (this.isGrabbing(window) && (windows.indexOf(window) == -1)) {
 						windows.push(window);
 					}
 				}
@@ -242,8 +236,7 @@ const IconModel = new Lang.Class({
 		let windows = this.getWindows(workspaceIndex);
 		if (windows.length > 0) {
 			let window_strings = [];
-			for (let i = 0; i < windows.length; i++) {
-				let window = windows[i];
+			for (let window of windows) {
 				window_strings.push(window.get_wm_class_instance());
 			}
 			s += '[' + window_strings.join(',') + ']';

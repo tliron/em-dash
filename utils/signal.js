@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -29,19 +29,18 @@ const SignalManager = new Lang.Class({
 
 	_init: function(self) {
 		this.self = self;
-		this._connections = [];
+		this._connections = new Set();
 	},
 
 	destroy: function() {
-		while (this._connections.length > 0) {
-			let connection = this._connections.pop();
+		for (let connection of this._connections) {
 			connection.disconnect(false);
 		}
+		this._connections.clear();
 	},
 
 	get: function(callback) {
-		for (let i = 0; i < this._connections.length; i++) {
-			let connection = this._connections[i];
+		for (let connection of this._connections) {
 			if (connection.callback === callback) {
 				return connection;
 			}
@@ -75,15 +74,13 @@ const SignalManager = new Lang.Class({
 	},
 
 	block: function() {
-		for (let i = 0; i < this._connections.length; i++) {
-			let connection = this._connections[i];
+		for (let connection of this._connections) {
 			connection.block = true;
 		}
 	},
 
 	unblock: function() {
-		for (let i = 0; i < this._connections.length; i++) {
-			let connection = this._connections[i];
+		for (let connection of this._connections) {
 			connection.block = false;
 		}
 	},
@@ -157,7 +154,7 @@ const SignalConnection = new Lang.Class({
 		}
 
 		if (this.id != 0) {
-			this.manager._connections.push(this);
+			this.manager._connections.add(this);
 			return true;
 		}
 		return false;
@@ -169,13 +166,7 @@ const SignalConnection = new Lang.Class({
 			this.id = 0;
 		}
 		if (remove) {
-			for (let i = 0; i < this.manager._connections.length; i++) {
-				let connection = this.manager._connections[i];
-				if (connection === this) {
-					this.manager._connections.splice(i, 1);
-					break;
-				}
-			}
+			this.manager._connections.delete(this);
 		}
 	}
 });

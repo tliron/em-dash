@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -34,6 +34,9 @@ const ANIMATION_TIME = 0.2;
 
 /**
  * UI representation of a dash model.
+ *
+ * Note that it is a complete re-implementation, and does not inherit from GNOME Shell's built-in
+ * dash (though our IconView does inherit from AppIcon).
  */
 const DashView = new Lang.Class({
 	Name: 'EmDash.DashView',
@@ -82,7 +85,7 @@ const DashView = new Lang.Class({
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this.actor, 'paint', () => {
 			// We need to wait until we're painted in order to focus app (backlight highlighting
-			// need theme information)
+			// needs theme information)
 			log('"paint" signal');
 
 			this.setVertical(vertical);
@@ -152,6 +155,7 @@ const DashView = new Lang.Class({
 		if (workspaceIndex === undefined) {
 			workspaceIndex = global.screen.get_active_workspace().index();
 		}
+		this.modelManager.log();
 		let dashModel = this.modelManager.getDashModel(workspaceIndex);
 		this._refresh(dashModel);
 	},
@@ -227,7 +231,7 @@ const DashView = new Lang.Class({
 		if (delta > 0) {
 			// Size
 			let physicalIconSize = this._scalingManager.toPhysical(this._logicalIconSize);
-			let size = physicalIconSize * 2; // looks nice
+			let size = physicalIconSize * 2; // arbitrary multiplier for comfort
 
 			// Gradient
 			let themeNode = this.dash.get_theme_node();

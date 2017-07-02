@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -25,7 +25,16 @@ const LaterManager = new Lang.Class({
 
 	_init: function(self) {
 		this._self = self;
-		this._laters = [];
+		this._laters = new Set();
+	},
+
+	destroy: function() {
+		// Forgetting to cancel these can result in crashes if the user enables and disables the
+		// extension very quickly...
+		for (let later of this._laters) {
+			later.destroy();
+		}
+		this._laters.clear();
 	},
 
 	/**
@@ -49,31 +58,21 @@ const LaterManager = new Lang.Class({
 	later: function(callback, type = Meta.LaterType.BEFORE_REDRAW) {
 		let later = new Later(this._self, callback, type);
 		if (later.initialize()) {
-			this._laters.push(later);
+			this._laters.add(later);
 			return true;
 		}
 		return false;
 	},
 
 	cancel: function(callback) {
-		for (let i  = 0; i < this._laters.length; i++) {
-			let later = this._laters[i];
+		for (let later of this._laters) {
 			if (later.callback === callback) {
 				later.destroy();
-				this._laters.splice(i, 1);
+				this._laters.delete(later);
 				return true;
 			}
 		}
 		return false;
-	},
-
-	destroy: function() {
-		// Forgetting to cancel these can result in crashes if the user enables and disables the
-		// extension very quickly...
-		while (this._laters.length > 0) {
-			let later = this._laters.pop();
-			later.cancel();
-		}
 	}
 });
 
@@ -91,16 +90,12 @@ const Later = new Lang.Class({
 		this.id = 0;
 	},
 
-	call: function() {
-		this.callback.apply(this.self);
-	},
-
 	initialize: function() {
-		this.id = Meta.later_add(this.type, Lang.bind(this, this.call));
+		this.id = Meta.later_add(this.type, Lang.bind(this.self, this.callback));
 		return this.id != 0;
 	},
 
-	cancel: function() {
+	destroy: function() {
 		if (this.id != 0) {
 			Meta.later_remove(this.id);
 			this.id = 0;

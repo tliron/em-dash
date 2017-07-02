@@ -1,5 +1,5 @@
 /*
- * This file is part of the Em-Dash extension for GNOME.
+ * This file is part of the Em-Dash extension for GNOME Shell.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 2 of the
@@ -27,18 +27,18 @@ const PatchManager = new Lang.Class({
 
 	_init: function(self) {
 		this.self = self;
-		this._patches = [];
+		this._patches = new Set();
 	},
 
 	destroy: function() {
-		while (this._patches.length > 0) {
-			let patch = this._patches.pop();
+		for (let patch of this._patches) {
 			patch.destroy();
 		}
+		this._patches.clear();
 	},
 
 	patch(site, name, fn) {
-		this._patches.push(new Patch(this, site, name, fn));
+		this._patches.add(new Patch(this.self, site, name, fn));
 	},
 
 	callOriginal: function(site, name, ...args) {
@@ -47,8 +47,7 @@ const PatchManager = new Lang.Class({
 	},
 
 	get: function(site, name) {
-		for (let i = 0; i < this._patches.length; i++) {
-			let patch = this._patches[i];
+		for (let patch of this._patches) {
 			if ((patch.site === site) && (patch.name === name)) {
 				return patch;
 			}
@@ -64,14 +63,14 @@ const PatchManager = new Lang.Class({
 const Patch = new Lang.Class({
 	Name: 'EmDash.Patch',
 
-	_init: function(manager, site, name, fn) {
-		this.manager = manager;
+	_init: function(self, site, name, fn) {
+		this.self = self;
 		this.site = site;
 		this.name = name;
 		this.fn = fn;
 
 		this.originalFn = site[name];
-		this.callOriginal = Lang.bind(this.site, this.originalFn);
+		this.callOriginal = Lang.bind(site, this.originalFn);
 		site[name] = Lang.bind(this, this.call);
 	},
 
@@ -81,6 +80,6 @@ const Patch = new Lang.Class({
 
 	call: function(...args) {
 		args.unshift(this.callOriginal);
-		return this.fn.apply(this.manager.self, args);
+		return this.fn.apply(this.self, args);
 	}
 });
