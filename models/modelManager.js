@@ -177,7 +177,7 @@ const ModelManager = new Lang.Class({
 			}
 		}
 		else {
-			for (let dashModel of this._dashModels.values()) {
+			for (let [workspaceIndex, dashModel] of this._dashModels) {
 				log(`workspace ${workspaceIndex}: ${dashModel.toString(workspaceIndex)}`);
 			}
 		}
