@@ -467,10 +467,11 @@ background-gradient-end: ${backlight.dark};`;
 		// Hooked from EmDash.Draggable using our actor._delegate
 		// When cancelling, called when the draggable *finishes* "snapping back"
 		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
+		DropPlaceholder.remove();
 		this.actor.child.show();
 		if (dropped) {
 			// If cancelled, then the animation was already started in handleDragCancelling
-			this._appear(DropPlaceholder.dropped);
+			this._appear(true);
 		}
 	},
 
@@ -489,7 +490,7 @@ background-gradient-end: ${backlight.dark};`;
 		}
 
 		let vertical = this.dashView.box.vertical;
-		let after = vertical ? y > this.actor.height / 2 : x > this.actor.width / 2;
+		let after = vertical ? (y > this.actor.height / 2) : (x > this.actor.width / 2);
 
 		let app = null;
 		if (after || (this.modelIndex === 0)) {
@@ -507,7 +508,7 @@ background-gradient-end: ${backlight.dark};`;
 		}
 
 		log(`handleDragOver hook: ${this.app.id} x=${Math.round(x)} y=${Math.round(y)}`);
-		DropPlaceholder.addDropPlaceholder(this.actor, after);
+		DropPlaceholder.add(this.actor, after);
 		return DND.DragMotionResult.MOVE_DROP;
 	}
 });

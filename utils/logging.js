@@ -24,3 +24,12 @@ function logger(name) {
 		}
 	};
 }
+
+
+/*
+ * Why not use globals vars here, and instead put our global values in the extension object?
+ * Because we found global vars to be weirdly unreliable. A bug somewhere in the import mechanism
+ * causes the globals to sometimes *not* be shared. Our extension.js would enable logging, but some
+ * imported modules failed to log, while others logged just fine. We could not find a way to
+ * reproduce the bug reliably.
+ */

@@ -28,8 +28,6 @@ const log = LoggingUtils.logger('dropPlaceholder');
 
 const ANIMATION_TIME = 0.1;
 
-let dropped = false;
-
 
 /**
  * Drop hovering placeholder singleton.
@@ -38,15 +36,15 @@ const DropPlaceholder = new Lang.Class({
 	Name: 'EmDash.DropPlaceholder',
 
 	_init: function(actor, after) {
-		dropped = false;
-
-		this.nextActor = null;
-		this.nextAfter = null;
-
 		this._iconView = actor._delegate;
 		this._after = after;
-		this._destroying = false;
 		log(`_init: ${this._iconView.app.id}${after?' after':''}`);
+
+		this._dropped = false;
+
+		this.destroying = false;
+		this.nextActor = null;
+		this.nextAfter = null;
 
 		let vertical = this._iconView.dashView.box.vertical;
 
@@ -72,6 +70,11 @@ const DropPlaceholder = new Lang.Class({
 			container.insert_child_at_index(this.actor, index);
 		}
 
+		this._dragMonitor = {
+			dragMotion: Lang.bind(this, this._onDragMotion)
+		};
+		DND.addDragMonitor(this._dragMonitor);
+
 		// Appear
 		let tween = {
 			time: ANIMATION_TIME,
@@ -86,24 +89,32 @@ const DropPlaceholder = new Lang.Class({
 		Tweener.addTween(this.actor, tween);
 	},
 
-	destroy: function(immediate = false) {
-		if (this._destroying) {
+	destroy: function() {
+		if (this.destroying) {
 			return;
 		}
+		this.destroying = true;
 
-		this._destroying = true;
+		log(`destroying: ${this._dropped?'immediate':'animated'}`);
 
-		log(`destroying: ${immediate?'immediate':'animated'}`);
+		DND.removeDragMonitor(this._dragMonitor);
 
 		// Dissolve
 		let vertical = this._iconView.dashView.box.vertical;
 		let tween = {
-			time: immediate ? 0 : ANIMATION_TIME,
+			time: this._dropped ? 0 : ANIMATION_TIME,
 			transition: 'easeOutQuad',
 			onComplete: () => {
-				this.actor.destroy();
 				log('destroyed');
-				nextDropPlaceholder(this.nextActor, this.nextAfter);
+				this.actor.destroy();
+
+				if ((this.nextActor !== null) && (this.nextAfter !== null)) {
+					// The old switcheroo
+					_dropPlaceholder = new DropPlaceholder(this.nextActor, this.nextAfter);
+				}
+				else {
+					_dropPlaceholder = null;
+				}
 			}
 		};
 		if (vertical) {
@@ -115,47 +126,56 @@ const DropPlaceholder = new Lang.Class({
 		Tweener.addTween(this.actor, tween);
 	},
 
+	isFor: function(actor, after) {
+		return (actor === this._iconView.actor) && (after == this._after);
+	},
+
 	// Dropping on us
 
 	acceptDrop: function(source, actor, x, y, time) {
 		// Hooked from DND using our actor._delegate
+		this._dropped = true;
 		let appId = source.app.id;
 		if ((source.modelIndex === this.modelIndex) ||
 			(source.modelIndex === this.modelIndex - 1)) {
 			log(`acceptDrop hook: ${appId} on self`);
-			dropped = true;
 		}
 		else if (!('modelIndex' in source)) {
 			// Dragged from elsewhere (likely the overview)
 			log(`acceptDrop hook: ${appId} from elsewhere to ${this.modelIndex}`);
-			dropped = true;
 			let favorites = AppFavorites.getAppFavorites();
 			favorites.addFavoriteAtPos(appId, this.modelIndex);
 		}
 		else {
 			// Moved within the dash
 			log(`acceptDrop hook: ${appId} from ${source.modelIndex} to ${this.modelIndex}`);
-			dropped = true;
 			let sourceModelIndex = source.modelIndex;
 			AppUtils.moveFavoriteToPos(appId, sourceModelIndex, this.modelIndex);
 		}
-		removeDropPlaceholder(); // this destroys us!
+		remove(); // this destroys us!
 		return true;
+	},
+
+	_onDragMotion: function(dragEvent) {
+		// Remove placeholder if we've moved out of the dash view box
+		if (!isDescendent(dragEvent.targetActor, this._iconView.dashView.box)) {
+			log('dragMotion monitor hook: not in our area');
+			remove();
+			return DND.DragMotionResult.NO_DROP;
+		}
+		return DND.DragMotionResult.CONTINUE;
 	}
 });
 
+
 let _dropPlaceholder = null;
-let _dragMonitor = {
-	dragMotion: _onDragMotion
-};
 
 
-function addDropPlaceholder(actor, after) {
+function add(actor, after) {
 	if (_dropPlaceholder === null) {
 		_dropPlaceholder = new DropPlaceholder(actor, after);
-		DND.addDragMonitor(_dragMonitor);
 	}
-	else {
+	else if (!_dropPlaceholder.isFor(actor, after)) {
 		_dropPlaceholder.nextActor = actor;
 		_dropPlaceholder.nextAfter = after;
 		_dropPlaceholder.destroy();
@@ -163,38 +183,13 @@ function addDropPlaceholder(actor, after) {
 }
 
 
-function removeDropPlaceholder() {
+function remove() {
 	if (_dropPlaceholder !== null) {
 		_dropPlaceholder.nextActor = null;
 		_dropPlaceholder.nextAfter = null;
-		_dropPlaceholder.destroy(dropped);
+		_dropPlaceholder.destroy();
 	}
 }
-
-
-function nextDropPlaceholder(nextActor, nextAfter) {
-	if ((nextActor !== null) && (nextAfter !== null)) {
-		// The old switcheroo
-		_dropPlaceholder = new DropPlaceholder(nextActor, nextAfter);
-	}
-	else {
-		DND.removeDragMonitor(_dragMonitor);
-		_dropPlaceholder = null;
-	}
-}
-
-
-function _onDragMotion(dragEvent) {
-	if (_dropPlaceholder !== null) {
-		// Remove placeholder if we've moved out of the dash view box
-		if (!isDescendent(dragEvent.targetActor, _dropPlaceholder._iconView.dashView.box)) {
-			//log('dragMotion monitor hook: not in our area');
-			removeDropPlaceholder();
-		}
-	}
-	return DND.DragMotionResult.CONTINUE;
-}
-
 
 
 /*
