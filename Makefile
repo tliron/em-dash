@@ -54,7 +54,7 @@ zip-file: _deploy
 	mv "./_build/$(ZIP)" ./
 	-rm -fR ./_build
 
-.PHONY: all clean install zip-file update-translations _deploy register-schema unregister-schema link
+.PHONY: all clean install zip-file update-translations _deploy register-schema unregister-schema link unlink
 
 # GSchemas
 
@@ -113,6 +113,9 @@ unregister-schema:
 	sudo rm -f "$(SCHEMAS)/org.gnome.shell.extensions.$(SCHEMA)."*.xml
 	sudo glib-compile-schemas "$(SCHEMAS)"
 
-link:
+link: all
 	mkdir -p "$(HOME)/.local/share/gnome-shell/extensions/"
 	ln -sf "$(CURDIR)" "$(HOME)/.local/share/gnome-shell/extensions/${UUID}"
+
+unlink:
+	rm -f "$(HOME)/.local/share/gnome-shell/extensions/${UUID}"

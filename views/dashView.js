@@ -15,6 +15,7 @@
 
 const Lang = imports.lang;
 const Signals = imports.signals;
+const Main = imports.ui.main;
 const Tweener = imports.ui.tweener;
 const Shell = imports.gi.Shell;
 const St = imports.gi.St;
@@ -23,6 +24,7 @@ const Clutter = imports.gi.Clutter;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
+const TimeoutUtils = Me.imports.utils.timeout;
 const ClutterUtils = Me.imports.utils.clutter;
 const IconView = Me.imports.views.iconView;
 const ShowAppsIcon = Me.imports.views.showAppsIcon;
@@ -30,6 +32,7 @@ const ShowAppsIcon = Me.imports.views.showAppsIcon;
 const log = LoggingUtils.logger('dashView');
 
 const ANIMATION_TIME = 0.2;
+const HOVER_TIMEOUT = 300;
 
 
 /**
@@ -80,6 +83,15 @@ const DashView = new Lang.Class({
 		});
 		this.actor.add_child(this._fader);
 
+		// Tooltip
+		this._tooltip = new St.Label({
+			style_class: 'dash-label',
+			visible: false
+		});
+		Main.layoutManager.addChrome(this._tooltip);
+
+		this._timeoutManager = new TimeoutUtils.TimeoutManager(this);
+
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this.actor, 'paint', () => {
@@ -116,7 +128,9 @@ const DashView = new Lang.Class({
 
 	destroy: function() {
 		log('destroy');
+		this._timeoutManager.destroy();
 		this._signalManager.destroy();
+		Main.layoutManager.removeChrome(this._tooltip);
 		this.actor.destroy();
 	},
 
@@ -197,6 +211,69 @@ const DashView = new Lang.Class({
 		this._refresh(force, dashModel);
 	},
 
+	updateTooltip: function(enable, iconView) {
+		if (enable) {
+			let hover = this.modelManager.settings.get_string('icons-hover');
+			if (hover === 'NOTHING') {
+				return;
+			}
+
+			this._timeoutManager.cancelAndAdd(HOVER_TIMEOUT, 'DashView.updateTooltip', () => {
+				let margin = 6;
+				let x, y;
+				let actor = iconView.actor;
+				let [iconX, iconY] = actor.get_transformed_position();
+				let [dashX, dashY] = this.actor.get_transformed_position();
+
+				this._tooltip.text = iconView.app.get_name();
+				if (this.box.vertical) {
+					y = iconY + actor.height / 2 - this._tooltip.height / 2;
+
+					// Try on left side
+					x = dashX - this._tooltip.width - margin;
+					if (x < 0) {
+						// Right side
+						x = dashX + this.actor.width + margin;
+					}
+
+				}
+				else {
+					x = iconX + actor.width / 2 - this._tooltip.width / 2;
+
+					// Try on top
+					y = dashY - this._tooltip.height - margin;
+					if (y < 0) {
+						// Bottom
+						y = dashY + this.actor.height + margin;
+					}
+				}
+
+				this._tooltip.set_position(x, y);
+
+				this._tooltip.opacity = 0;
+				this._tooltip.show();
+				Tweener.addTween(this._tooltip, {
+					time: ANIMATION_TIME,
+					transition: 'easeOutQuad',
+					opacity: 255
+				});
+			});
+		}
+		else {
+			this._timeoutManager.cancel('DashView.updateTooltip');
+			if (this._tooltip.visible) {
+				Tweener.addTween(this._tooltip, {
+					time: ANIMATION_TIME,
+					transition: 'easeOutQuad',
+					opacity: 0,
+					onComplete: () => {
+						this._tooltip.hide();
+					}
+				});
+			}
+		}
+	},
+
 	_refresh: function(force, dashModel) {
 		this.modelManager.log();
 
@@ -268,6 +345,10 @@ const DashView = new Lang.Class({
 
 			let childIndex = this.getChildIndexForModelIndex(modelIndex);
 			this.box.insert_child_at_index(iconView.actor, childIndex);
+
+			// We will *not* use the signal manager for this connection, because we don't want to
+			// keep them from being garbage-collected if we remove them on subsequent refreshes
+			iconView.connect('sync-tooltip', Lang.bind(this, this._onSyncTooltip));
 
 			if (!force) {
 				iconView.appear();
@@ -545,5 +626,9 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 	_onIconsWheelScrollSettingChanged: function(settings, iconsWheelScroll) {
 		log(`"icons-wheel-scroll" setting changed signal: ${iconsWheelScroll}`);
 		this._updateWheelScrolling(iconsWheelScroll);
+	},
+
+	_onSyncTooltip: function(iconView) {
+		log(`"sync-tooltip" signal: ${iconView.app.id}`);
 	}
 });

@@ -67,8 +67,8 @@ const LaterManager = new Lang.Class({
 	cancel: function(callback) {
 		for (let later of this._laters) {
 			if (later.callback === callback) {
-				later.destroy();
 				this._laters.delete(later);
+				later.destroy();
 				return true;
 			}
 		}

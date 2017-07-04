@@ -44,6 +44,27 @@ The [em dash](https://en.wikipedia.org/wiki/Dash#Em_dash) is the longest version
 dash. Hilariously, the "Em—Dash" name is stylized with an em dash inside of it.  
 
 
+Help Testing
+------------
+
+Dependencies for Debian/Ubuntu:
+
+	sudo apt install git make
+
+You can install the extension for the current user like so:
+
+	git clone https://github.com/tliron/em-dash.git
+	cd em-dash
+	make link
+
+You will then need to restart GNOME Shell and enable the extension via GNOME Tweak.
+
+To update the extension to the latest, run `git pull` in the `em-dash` directory and restart GNOME
+Shell.
+
+To uninstall, run `make unlink` in the `em-dash` directory and restart GNOME Shell.
+
+
 Developers
 ----------
 
@@ -138,13 +159,29 @@ reference material:
 TODO
 ----
 
-* In touch-to-show, make sure it is shown in overview! Also on all monitors!
-* Allow dragging to after all other favorites
-* Window previews/lists on hover
-* Dragging on empty dash
+#### Dock
+
+* Support dock on different monitors
 * Dock with borders seems to keep moving its strut by a pixel or two as app focus changes
-* Reset backcolor cache if icon theme changes
-* Support scrolling in smaller increments
+
+#### Overview
+
+* In touch-to-show, make sure it is shown in overview
 * Bottom dash on overview might cover some UI
-* Can't scroll during drag and drop
+
+#### DND
+
+* Dragging on empty dash
 * Drag and drop mangles clipping
+* Can't scroll during drag and drop
+* Support scrolling in smaller increments
+
+### Tooltip
+
+* Window list
+* Window previews
+
+#### Misc
+
+* Reset backcolor cache if icon theme changes
+* Popup menu can be too big to fit small screens

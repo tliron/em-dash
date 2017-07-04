@@ -85,7 +85,9 @@ const IconView = new Lang.Class({
 			this._draggable = new DraggableUtils.Draggable(this.actor);
 		}
 
+		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
+		this._signalManager.connectProperty(this.actor, 'hover', this._onHoverPropertyChanged);
 	},
 
 	// Animations
@@ -346,6 +348,11 @@ background-gradient-end: ${backlight.dark};`;
 			return false;
 		}
 		return true;
+	},
+
+	_onHoverPropertyChanged: function(actor, hover) {
+		log(`"hover" property changed signal: ${this.app.id} ${hover}`);
+		this.dashView.updateTooltip(hover, this);
 	},
 
 	_clickAction: function(action) {

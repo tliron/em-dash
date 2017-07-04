@@ -23,6 +23,9 @@ const Lang = imports.lang;
  *
  * You can get individual connections, block them temporarily, or disconnect and then reconnect
  * them.
+ *
+ * WARNING: The signal manager *will* keep references to the objects to which you connect, so
+ * it will keep them from being garbage-collected.
  */
 const SignalManager = new Lang.Class({
 	Name: 'EmDash.SignalManager',
@@ -71,6 +74,14 @@ const SignalManager = new Lang.Class({
 			return connection;
 		}
 		return null;
+	},
+
+	disconnectFor: function(site) {
+		for (let connection of this._connections) {
+			if (connection.site === site) {
+				connection.disconnect();
+			}
+		}
 	},
 
 	block: function() {
@@ -161,12 +172,12 @@ const SignalConnection = new Lang.Class({
 	},
 
 	disconnect: function(remove = true) {
+		if (remove) {
+			this.manager._connections.delete(this);
+		}
 		if (this.id != 0) {
 			this.site.disconnect(this.id);
 			this.id = 0;
-		}
-		if (remove) {
-			this.manager._connections.delete(this);
 		}
 	}
 });
