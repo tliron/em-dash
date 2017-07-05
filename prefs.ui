@@ -71,6 +71,12 @@
     <property name="step_increment">1</property>
     <property name="page_increment">16</property>
   </object>
+  <object class="GtkTreeStore" id="window_grabbing_store">
+    <columns>
+      <!-- column-name textcol -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkNotebook" id="prefs">
     <property name="visible">True</property>
     <property name="can_focus">True</property>
@@ -1372,6 +1378,53 @@
       </packing>
     </child>
     <child>
+      <object class="GtkScrolledWindow">
+        <property name="can_focus">False</property>
+        <child>
+          <object class="GtkTreeView" id="window_grabbing">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="margin_left">6</property>
+            <property name="margin_right">6</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
+            <property name="model">window_grabbing_store</property>
+            <property name="headers_visible">False</property>
+            <property name="enable_tree_lines">True</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="textcol">
+                <property name="sizing">autosize</property>
+                <child>
+                  <object class="GtkCellRendererText"/>
+                  <attributes>
+                    <attribute name="markup">0</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="position">5</property>
+      </packing>
+    </child>
+    <child type="tab">
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Window _Grabbing</property>
+        <property name="use_underline">True</property>
+      </object>
+      <packing>
+        <property name="position">5</property>
+        <property name="tab_fill">False</property>
+      </packing>
+    </child>
+    <child>
       <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -1502,7 +1555,7 @@
         </child>
       </object>
       <packing>
-        <property name="position">5</property>
+        <property name="position">6</property>
       </packing>
     </child>
     <child type="tab">
@@ -1513,7 +1566,7 @@
         <property name="use_underline">True</property>
       </object>
       <packing>
-        <property name="position">5</property>
+        <property name="position">6</property>
         <property name="tab_fill">False</property>
       </packing>
     </child>

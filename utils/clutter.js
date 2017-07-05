@@ -16,7 +16,17 @@
 const Clutter = imports.gi.Clutter;
 
 
-function getActorIndexOfChild(actor, child) {
+function isDescendent(actor, ancestor) {
+	for (; actor !== null; actor = actor.get_parent()) {
+		if (actor === ancestor) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+function getIndexOfChild(actor, child) {
 	let nChildren = actor.get_n_children();
 	for (let i = 0; i < nChildren; i++) {
 		let theChild = actor.get_child_at_index(i);

@@ -35,7 +35,8 @@ const log = LoggingUtils.logger('dashModel');
 const DashModel = new Lang.Class({
 	Name: 'EmDash.DashModel',
 
-	_init: function() {
+	_init: function(modelManager) {
+		this.modelManager = modelManager;
 		this.icons = [];
 	},
 
@@ -65,7 +66,7 @@ const DashModel = new Lang.Class({
 	 */
 	add: function(app) {
 		if (!this.isRepresenting(app)) {
-			this.icons.push(new IconModel.IconModel(app));
+			this.icons.push(new IconModel.IconModel(this, app));
 			return true;
 		}
 		return false;

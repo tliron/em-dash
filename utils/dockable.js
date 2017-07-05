@@ -131,8 +131,6 @@ const Dockable = new Lang.Class({
 	},
 
 	_reinitialize: function() {
-		log('_reinitialize');
-
 		let x, y, width = -1, height = -1, translationX = 0, translationY = 0, barrier = {};
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
 		let monitor = Main.layoutManager.monitors[this._monitorIndex];

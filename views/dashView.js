@@ -340,7 +340,7 @@ const DashView = new Lang.Class({
 				continue;
 			}
 
-			iconView = new IconView.IconView(this, iconModel, modelIndex,
+			let iconView = new IconView.IconView(this, iconModel, modelIndex,
 				physicalActorHeight, logicalIconSize);
 
 			let childIndex = this.getChildIndexForModelIndex(modelIndex);

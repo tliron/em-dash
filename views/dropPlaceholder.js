@@ -58,7 +58,7 @@ const DropPlaceholder = new Lang.Class({
 
 		// Before or after actor?
 		let container = this._iconView.dashView.box;
-		let index = ClutterUtils.getActorIndexOfChild(container, actor);
+		let index = ClutterUtils.getIndexOfChild(container, actor);
 		if (after) {
 			this._neighbor = container.get_child_at_index(index + 1);
 			this.modelIndex = this._iconView.modelIndex + 1;
@@ -158,7 +158,7 @@ const DropPlaceholder = new Lang.Class({
 
 	_onDragMotion: function(dragEvent) {
 		// Remove placeholder if we've moved out of the dash view box
-		if (!isDescendent(dragEvent.targetActor, this._iconView.dashView.box)) {
+		if (!ClutterUtils.isDescendent(dragEvent.targetActor, this._iconView.dashView.box)) {
 			log('dragMotion monitor hook: not in our area');
 			remove();
 			return DND.DragMotionResult.NO_DROP;
@@ -189,18 +189,4 @@ function remove() {
 		_dropPlaceholder.nextAfter = null;
 		_dropPlaceholder.destroy();
 	}
-}
-
-
-/*
- * Utils
- */
-
-function isDescendent(actor, ancestor) {
-	for (; actor !== null; actor = actor.get_parent()) {
-		if (actor === ancestor) {
-			return true;
-		}
-	}
-	return false;
 }

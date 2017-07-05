@@ -47,13 +47,13 @@ const DashManager = new Lang.Class({
 
 		// Remember original location of app menu
 		let appMenu = Main.panel.statusArea.appMenu.container;
-		this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._leftBox, appMenu);
+		this._appMenuIndex = ClutterUtils.getIndexOfChild(Main.panel._leftBox, appMenu);
 		this._appMenuParent = null;
 		if (this._appMenuIndex !== -1) {
 			this._appMenuParent = Main.panel._leftBox;
 		}
 		else {
-			this._appMenuIndex = ClutterUtils.getActorIndexOfChild(Main.panel._rightBox, appMenu);
+			this._appMenuIndex = ClutterUtils.getIndexOfChild(Main.panel._rightBox, appMenu);
 			if (this._appMenuIndex !== -1) {
 				this._appMenuParent = Main.panel._rightBox;
 			}

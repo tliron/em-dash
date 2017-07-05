@@ -52,17 +52,22 @@ const ModelManager = new Lang.Class({
 		this.single = null;
 
 		this._dashModels = new Map();
+		this._initialized = false;
 
 		// Signals
 		let appFavorites = AppFavorites.getAppFavorites();
 		let appSystem = Shell.AppSystem.get_default();
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connectSetting(settings, 'dash-per-workspace', 'boolean',
-			this._onDashPerWorkspaceSettingChanged); // triggers a refresh immediately
+			this._onDashPerWorkspaceSettingChanged);
+		this._signalManager.connectSetting(settings, 'icons-window-matchers', 'value',
+			this._onIconsWindowMatchersSettingChanged);
 		this._signalManager.connect(appSystem, 'app-state-changed', this._onStateChanged);
 		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);
 		this._signalManager.connect(global.screen, 'workspace-added', this._onWorkspaceAdded);
 		this._signalManager.connect(global.screen, 'workspace-removed', this._onWorkspaceRemoved);
+
+		this._initialized = true;
 	},
 
 	destroy: function() {
@@ -72,7 +77,9 @@ const ModelManager = new Lang.Class({
 
 	refresh: function() {
 		this._reset();
-		this.emit('changed');
+		if (this._initialized) {
+			this.emit('changed');
+		}
 	},
 
 	getDashModel: function(workspaceIndex) {
@@ -82,7 +89,7 @@ const ModelManager = new Lang.Class({
 		if (this._dashModels.has(workspaceIndex)) {
 			return this._dashModels.get(workspaceIndex);
 		}
-		let dashModel = new DashModel.DashModel();
+		let dashModel = new DashModel.DashModel(this);
 		this._dashModels.set(workspaceIndex, dashModel);
 		dashModel.addFavorites();
 		if (workspaceIndex === SINGLE_WORKSPACE_INDEX) {
@@ -194,6 +201,11 @@ const ModelManager = new Lang.Class({
 			this.single = single;
 			this.refresh();
 		}
+	},
+
+	_onIconsWindowMatchersSettingChanged: function(settings, windowMatchers) {
+		log('"icons-window-matchers" setting changed signal');
+		this.refresh();
 	},
 
 	_onStateChanged: function(appSystem, app) {

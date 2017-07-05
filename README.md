@@ -64,17 +64,15 @@ Shell.
 
 To uninstall, run `make unlink` in the `em-dash` directory and restart GNOME Shell.
 
+Found a bug? Please [report the issue](https://github.com/tliron/em-dash/issues) immediately!
+
 
 Developers
 ----------
 
-Em—Dash has a deliberately extensible and reusable architecture. If you have your own idea for a
-new kind of dash implementation, you can extend the `Dash` class, or even use the `EntryManager`
-directly. Would you also kindly contribute it to Em—Dash?
-
-And if you want to use some of the UI features, you might enjoy `Dockable`, a generic class that can
-be used to dock any St actor to a monitor edge. Also, our Icon class can be used independently in
-your own dash-like extension.
+Em—Dash has a deliberately extensible model-view architecture, and the
+[utils](https://github.com/tliron/em-dash/tree/master/utils) package as a lot of general-purpose
+code that can be reused in other GNOME Shell extensions.
 
 We owe a debt to the developers of [Dash-to-Dock](https://github.com/micheleg/dash-to-dock) and
 [Dash-to-Panel](https://github.com/jderose9/dash-to-panel). There was much to learn from their code.
@@ -153,7 +151,7 @@ reference material:
   [this API](http://hosted.zeh.com.br/tweener/docs/en-us/)).
 * The preferences page is quite different from all the above, as it's actually a GTK+ widget. The
   [Glade designer](https://glade.gnome.org/) can be used to edit the `prefs.ui` file used by the
-  GTK+ builder.
+  GTK+ builder. [This documentation](http://lazka.github.io/pgi-docs/Gtk-3.0) is useful.
 
 
 TODO

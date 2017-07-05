@@ -36,20 +36,24 @@ const log = LoggingUtils.logger('iconModel');
 const IconModel = new Lang.Class({
 	Name: 'EmDash.IconModel',
 
-	_init: function(app) {
+	_init: function(dashModel, app) {
 		this.app = app;
 		this._matchers = [];
 		this._favorite = AppUtils.isFavoriteApp(app);
 
-		// HACK
-		if (app.id === 'riot-web.desktop') {
-			this._matchers.push(new Matcher('Riot'));
-		}
-		else if (app.id === 'cxmenu-cxoffice-4305e7ff-7a64-406d-8e9c-2e4e7ecf84ea-0483fdc-Steam.desktop') {
-			this._matchers.push(new Matcher('Wine', 'Steam.exe'));
-		}
-		else if (app.id == 'org.gnome.Terminal.desktop') {
-			this._matchers.push(new Matcher('Gnome-control-center'));
+		let settings = dashModel.modelManager.settings;
+		let windowMatchers = settings.get_value('icons-window-matchers');
+		windowMatchers = windowMatchers.deep_unpack();
+		if (app.id in windowMatchers) {
+			windowMatchers = windowMatchers[app.id];
+			for (let i in windowMatchers) {
+				let windowMatcher = windowMatchers[i];
+				if (windowMatcher.length > 2) {
+					log(`WARNING: window matcher for ${app.id} has more than two strings: ${windowMatcher.join(', ')}`);
+					continue;
+				}
+				this._matchers.push(new Matcher(...windowMatcher));
+			}
 		}
 	},
 
@@ -252,7 +256,7 @@ const IconModel = new Lang.Class({
 const Matcher = new Lang.Class({
 	Name: 'EmDash.Matcher',
 
-	_init: function(wmClass, wmClassInstance) {
+	_init: function(wmClass, wmClassInstance = null) {
 		this._wmClass = wmClass;
 		this._wmClassInstance = wmClassInstance || null;
 	},

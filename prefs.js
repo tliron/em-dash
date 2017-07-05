@@ -17,6 +17,7 @@ const Lang = imports.lang;
 const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
+const GObject = imports.gi.GObject;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
@@ -82,7 +83,7 @@ const PrefsWidget = new Lang.Class({
 			this._builder.get_object('location_edge_far').label = this._locationEdgeRight;
 		}
 
-		// Marks
+		// Scale marks
 		function addMarks(scale) {
 			scale.add_mark(16, Gtk.PositionType.BOTTOM, '16');
 			scale.add_mark(32, Gtk.PositionType.BOTTOM, '32');
@@ -189,6 +190,8 @@ const PrefsWidget = new Lang.Class({
 			this._onIconsMiddleClickSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'icons-hover', 'string',
 			this._onIconsHoverSettingChanged);
+		this._signalManager.connectSetting(this._settings, 'icons-window-matchers', 'value',
+			this._onIconsWindowMatchersSettingChanged);
 	},
 
 	_onConnectBuilderSignal: function(builder, object, signal, handler) {
@@ -207,7 +210,7 @@ const PrefsWidget = new Lang.Class({
 		log(`"dash-location" setting changed signal: ${dashLocation}`);
 		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 
-		updateApplicationsButton = (vertical) => {
+		let updateApplicationsButton = (vertical) => {
 			if (vertical) {
 				this._builder.get_object('applications_button_near').label =
 					this._applicationsButtonTop;
@@ -562,6 +565,38 @@ const PrefsWidget = new Lang.Class({
 		let hover = combo.active_id;
 		log(`"icons_hover" combo box "changed" signal: ${hover}`);
 		this._settings.set_string('icons-hover', hover);
+	},
+
+	// Window matchers tree view
+
+	_onIconsWindowMatchersSettingChanged: function(settings, windowMatchers) {
+		log('"icons-window-matchers" setting changed signal');
+
+		let view = this._builder.get_object('window_grabbing');
+		let store = this._builder.get_object('window_grabbing_store');
+
+		windowMatchers = windowMatchers.deep_unpack();
+		for (let appId in windowMatchers) {
+			let appWindowMatchers = windowMatchers[appId];
+			let appIter = store.append(null);
+			store.set_value(appIter, 0, `<b>${appId}</b>`);
+
+			for (let i in appWindowMatchers) {
+				let appWindowMatcher = appWindowMatchers[i];
+				if (appWindowMatcher.length > 2) {
+					log(`WARNING: window matcher for ${app.id} has more than two strings: ${appWindowMatcher.join(', ')}`);
+					continue;
+				}
+				let iter = store.append(appIter);
+				let text = `WM_CLASS: <i>${appWindowMatcher[0]}</i>`;
+				if (appWindowMatcher.length > 1) {
+					text += `; WM_CLASS_INSTANCE: <i>${appWindowMatcher[1]}</i>`;
+				}
+				store.set_value(iter, 0, text);
+			}
+		}
+
+		view.expand_all();
 	}
 });
 
