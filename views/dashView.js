@@ -28,6 +28,7 @@ const TimeoutUtils = Me.imports.utils.timeout;
 const ClutterUtils = Me.imports.utils.clutter;
 const IconView = Me.imports.views.iconView;
 const ShowAppsIcon = Me.imports.views.showAppsIcon;
+const GrabDialog = Me.imports.views.grabDialog;
 
 const log = LoggingUtils.logger('dashView');
 
@@ -49,11 +50,13 @@ const DashView = new Lang.Class({
 
 		this.modelManager = modelManager;
 		this.quantize = quantize;
+		this.grabSourceIconView = null;
 
 		this._scalingManager = scalingManager;
 		this._logicalIconSize = null;
 		this._focused = null;
 		this._scrollTranslation = 0;
+		this._grabDialog = null;
 
 		// Actor: contains dash and arrow
 		this.actor = new St.Widget({
@@ -131,8 +134,10 @@ const DashView = new Lang.Class({
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
 		this.actor.destroy();
-		Main.layoutManager.removeChrome(this._tooltip);
 		this._tooltip.destroy();
+		if (this._grabDialog !== null) {
+			this._grabDialog.destroy();
+		}
 	},
 
 	getIconViewForModelIndex: function(modelIndex) {
@@ -274,6 +279,32 @@ const DashView = new Lang.Class({
 		}
 	},
 
+	startGrab: function(grabSourceIconView) {
+		log(`startGrab: grabbing from ${grabSourceIconView.app.id}`);
+		this.grabSourceIconView = grabSourceIconView;
+		if (this._grabDialog !== null) {
+			this._grabDialog.destroy();
+		}
+		this._grabDialog = new GrabDialog.GrabDialog(grabSourceIconView);
+		this._grabDialog.connect('destroy', () => {
+			log('grabDialog "destroy" signal');
+			this._grabDialog = null;
+		});
+		this._grabDialog.open();
+	},
+
+	endGrab: function(grabTargetIconView) {
+		log(`endGrab: grabbing from ${this.grabSourceIconView.app.id} to ${grabTargetIconView.app.id}`);
+		if (this._grabDialog !== null) {
+			this._grabDialog.destroy();
+		}
+		let windows = this.grabSourceIconView.model.getWindows(this.modelManager.workspaceIndex);
+		if (grabTargetIconView.model.addMatchersFor(windows)) {
+			grabTargetIconView.model.save();
+		}
+		this.grabSourceIconView = null;
+	},
+
 	_refresh: function(force, dashModel) {
 		this.modelManager.log();
 
@@ -295,22 +326,27 @@ const DashView = new Lang.Class({
 			for (let actor of this.box.get_children()) {
 				let iconView = actor._delegate;
 				if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
-					(dashModel.getIndexOfRepresenting(iconView.app) === -1)) {
+					!dashModel.has(iconView.app)) {
 					log(`removed: ${iconView.app.id}`);
 					iconView.dissolve();
 				}
 			}
 
-			// Move icons
+			// Refresh existing icons
 			let moved = false;
 			for (let modelIndex = 0; modelIndex < dashModel.icons.length; modelIndex++) {
 				let iconModel = dashModel.icons[modelIndex];
 				let iconView = this.getIconViewForApp(iconModel.app);
-				if ((iconView !== null) && !iconView.dissolving &&
-					(iconView.modelIndex !== modelIndex)) {
-					log(`moved: ${iconView.app.id} to ${modelIndex}`);
-					iconView.modelIndex = modelIndex;
-					moved = true;
+				if ((iconView !== null) && !iconView.dissolving) {
+					// Refresh model
+					iconView.model = iconModel;
+
+					// Moved?
+					if (iconView.modelIndex !== modelIndex) {
+						log(`moved: ${iconView.app.id} to ${modelIndex}`);
+						iconView.modelIndex = modelIndex;
+						moved = true;
+					}
 				}
 			}
 
@@ -328,6 +364,15 @@ const DashView = new Lang.Class({
 				let index = this.getChildIndexForModelIndex(0);
 				for (let actor of actors) {
 					this.box.insert_child_at_index(actor, index++);
+				}
+			}
+
+			// Update running style for existing icons (might have been changes to window grabs)
+			for (let modelIndex = 0; modelIndex < dashModel.icons.length; modelIndex++) {
+				let iconModel = dashModel.icons[modelIndex];
+				let iconView = this.getIconViewForApp(iconModel.app);
+				if ((iconView !== null) && !iconView.dissolving) {
+					iconView._updateRunningStyle();
 				}
 			}
 		}

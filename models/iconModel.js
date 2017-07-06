@@ -14,6 +14,7 @@
  */
 
 const Lang = imports.lang;
+const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
@@ -46,14 +47,13 @@ const IconModel = new Lang.Class({
 		let windowMatchers = settings.get_value('icons-window-matchers');
 		windowMatchers = windowMatchers.deep_unpack();
 		if (app.id in windowMatchers) {
-			windowMatchers = windowMatchers[app.id];
-			for (let i in windowMatchers) {
-				let windowMatcher = windowMatchers[i];
+			let appWindowMatchers = windowMatchers[app.id];
+			for (let windowMatcher of appWindowMatchers) {
 				if (windowMatcher.length > 2) {
 					log(`WARNING: window matcher for ${app.id} has more than two strings: ${windowMatcher.join(', ')}`);
 					continue;
 				}
-				this._matchers.push(new Matcher(...windowMatcher));
+				this.addMatcher(...windowMatcher);
 			}
 		}
 	},
@@ -128,8 +128,8 @@ const IconModel = new Lang.Class({
 
 		// Grabbed windows
 		if (this._matchers.length > 0) {
-			let n_workspaces = global.screen.n_workspaces;
-			for (let theWorkspaceIndex = 0; theWorkspaceIndex < n_workspaces; theWorkspaceIndex++) {
+			let nWorkspaces = global.screen.n_workspaces;
+			for (let theWorkspaceIndex = 0; theWorkspaceIndex < nWorkspaces; theWorkspaceIndex++) {
 				if ((workspaceIndex !== undefined) &&
 					(theWorkspaceIndex != workspaceIndex)) {
 					continue;
@@ -152,6 +152,39 @@ const IconModel = new Lang.Class({
 	 */
 	hasFocus: function(workspaceIndex) {
 		return WindowUtils.getFocusedWindowIndex(this.getWindows(workspaceIndex)) !== -1;
+	},
+
+	addMatcher: function(wmClass, wmClassInstance = null) {
+		for (let matcher of this._matchers) {
+			if (matcher.wmClass === wmClass) {
+				if (matcher.wmClassInstance === wmClassInstance) {
+					// Already exists, nothing to add
+					return false;
+				}
+				else if ((wmClassInstance !== null) && (matcher.wmClassInstance === null)) {
+					// Just add class instance
+					matcher.wmClassInstance = wmClassInstance;
+					return true;
+				}
+			}
+		}
+		this._matchers.push(new Matcher(wmClass, wmClassInstance));
+		return true;
+	},
+
+	/**
+	 * Adds matchers for all the windows.
+	 */
+	addMatchersFor: function(windows) {
+		let changed = false;
+		for (let window of windows) {
+			let wmClass = window.wm_class;
+			let wmClassInstance = window.get_wm_class_instance();
+			if (this.addMatcher(wmClass, wmClassInstance)) {
+				changed = true;
+			}
+		}
+		return changed;
 	},
 
 	/**
@@ -229,6 +262,24 @@ const IconModel = new Lang.Class({
 		}
 	},
 
+	save: function() {
+		let appWindowMatchers = [];
+		for (let matcher of this._matchers) {
+			let matchers = [matcher.wmClass];
+			if (matcher.wmClassInstance !== null) {
+				matchers.push(matcher.wmClassInstance);
+			}
+			appWindowMatchers.push(matchers);
+		}
+
+		let settings = this.dashModel.modelManager.settings;
+		let windowMatchers = settings.get_value('icons-window-matchers');
+		windowMatchers = windowMatchers.deep_unpack();
+		windowMatchers[this.app.id] = appWindowMatchers;
+		windowMatchers = new GLib.Variant('a{saas}', windowMatchers)
+		settings.set_value('icons-window-matchers', windowMatchers);
+	},
+
 	toString: function(workspaceIndex) {
 		let s = '';
 		if (this._favorite) {
@@ -258,8 +309,8 @@ const Matcher = new Lang.Class({
 	Name: 'EmDash.Matcher',
 
 	_init: function(wmClass, wmClassInstance = null) {
-		this._wmClass = wmClass;
-		this._wmClassInstance = wmClassInstance || null;
+		this.wmClass = wmClass;
+		this.wmClassInstance = wmClassInstance || null;
 	},
 
 	/**
@@ -267,12 +318,12 @@ const Matcher = new Lang.Class({
 	 */
 	matches: function(window) {
 		let wmClass = window.wm_class;
-		if (this._wmClass === wmClass) {
-			if (this._wmClassInstance === null) {
+		if (this.wmClass === wmClass) {
+			if (this.wmClassInstance === null) {
 				return true;
 			}
 			let wmClassInstance = window.get_wm_class_instance();
-			if (this._wmClassInstance === wmClassInstance) {
+			if (this.wmClassInstance === wmClassInstance) {
 				return true;
 			}
 		}
@@ -280,9 +331,9 @@ const Matcher = new Lang.Class({
 	},
 
 	toString: function() {
-		if (this._wmClassInstance === null) {
-			return this._wmClass;
+		if (this.wmClassInstance === null) {
+			return this.wmClass;
 		}
-		return `this._wmClass: ${this._wmClassInstance}`;
+		return `this.wmClass: ${this.wmClassInstance}`;
 	}
 });

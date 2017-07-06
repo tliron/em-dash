@@ -73,7 +73,9 @@
   </object>
   <object class="GtkTreeStore" id="window_grabbing_store">
     <columns>
-      <!-- column-name textcol -->
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name data -->
       <column type="gchararray"/>
     </columns>
   </object>
@@ -1378,34 +1380,101 @@
       </packing>
     </child>
     <child>
-      <object class="GtkScrolledWindow">
+      <object class="GtkBox">
+        <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="margin_left">6</property>
+        <property name="margin_right">6</property>
+        <property name="margin_top">6</property>
+        <property name="margin_bottom">6</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
         <child>
-          <object class="GtkTreeView" id="window_grabbing">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="margin_left">6</property>
-            <property name="margin_right">6</property>
-            <property name="margin_top">6</property>
-            <property name="margin_bottom">6</property>
-            <property name="model">window_grabbing_store</property>
-            <property name="headers_visible">False</property>
-            <property name="enable_tree_lines">True</property>
-            <child internal-child="selection">
-              <object class="GtkTreeSelection"/>
-            </child>
+          <object class="GtkScrolledWindow">
+            <property name="can_focus">False</property>
             <child>
-              <object class="GtkTreeViewColumn" id="textcol">
-                <property name="sizing">autosize</property>
+              <object class="GtkTreeView" id="window_grabbing">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="margin_left">6</property>
+                <property name="margin_right">6</property>
+                <property name="margin_top">6</property>
+                <property name="margin_bottom">6</property>
+                <property name="model">window_grabbing_store</property>
+                <property name="headers_visible">False</property>
+                <property name="enable_tree_lines">True</property>
+                <signal name="key-press-event" handler="WindowGrabbingKeyPressed" swapped="no"/>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection">
+                    <signal name="changed" handler="WindowGrabbingSelectionChanged" swapped="no"/>
+                  </object>
+                </child>
                 <child>
-                  <object class="GtkCellRendererText"/>
-                  <attributes>
-                    <attribute name="markup">0</attribute>
-                  </attributes>
+                  <object class="GtkTreeViewColumn" id="textcol">
+                    <property name="sizing">autosize</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="text"/>
+                      <attributes>
+                        <attribute name="markup">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
                 </child>
               </object>
             </child>
           </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButtonBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="margin_left">6</property>
+            <property name="margin_right">6</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
+            <property name="spacing">6</property>
+            <property name="layout_style">center</property>
+            <child>
+              <object class="GtkButton" id="window_grabbing_delete">
+                <property name="label" translatable="yes">Delete</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="WindowGrabbingDeleteClicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="window_grabbing_delete_all">
+                <property name="label" translatable="yes">Delete All</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="WindowGrabbingDeleteAllClicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
         </child>
       </object>
       <packing>

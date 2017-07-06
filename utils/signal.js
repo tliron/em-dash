@@ -51,6 +51,15 @@ const SignalManager = new Lang.Class({
 		return null;
 	},
 
+	getFor: function(site, name) {
+		for (let connection of this._connections) {
+			if ((connection.site === site) && (connection.name == name)) {
+				return connection;
+			}
+		}
+		return null;
+	},
+
 	connect: function(site, name, callback, single) {
 		return this._connect(site, name, callback, single);
 	},

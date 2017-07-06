@@ -22,7 +22,6 @@ const Atk = imports.gi.Atk;
 const GObject = imports.gi.GObject;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const GrabDialog = Me.imports.views.grabDialog;
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const MPRIS = Me.imports.utils.mpris;
@@ -121,7 +120,7 @@ const IconMenu = new Lang.Class({
 	},
 
 	_onGrab: function() {
-		new GrabDialog.GrabDialog(this._source.app);
+		this._source.dashView.startGrab(this._source);
 	}
 });
 

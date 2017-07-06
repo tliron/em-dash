@@ -46,8 +46,8 @@ function moveFavoriteToPos(appId, fromPos, toPos) {
 function getWorkspacesForApp(app) {
 	let workspaceIndexes = [];
 
-	let n_workspaces = global.screen.n_workspaces;
-	for (let workspaceIndex = 0; workspaceIndex < n_workspaces; workspaceIndex++) {
+	let nWorkspaces = global.screen.n_workspaces;
+	for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
 		let workspace = global.screen.get_workspace_by_index(workspaceIndex);
 		if (app.is_on_workspace(workspace)) {
 			workspaceIndexes.push(workspaceIndex);

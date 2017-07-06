@@ -118,9 +118,7 @@
       <description>Whether to cycle windows when mouse wheel scrolling on an icon.</description>
     </key>
     <key name="icons-window-matchers" type="a{saas}">
-      <default>{'riot-web.desktop': [['riot']],
-                'cxmenu-cxoffice-4305e7ff-7a64-406d-8e9c-2e4e7ecf84ea-0483fdc-Steam.desktop': [['Wine', 'Steam.exe']],
-                'org.gnome.Terminal.desktop': [['Gnome-control-center']]}</default>
+      <default>{}</default>
       <summary>Icon window matchers</summary>
       <description>Matches application IDs to WM_CLASS and optionally WM_CLASS_INSTANCE.</description>
     </key>

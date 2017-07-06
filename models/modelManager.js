@@ -62,10 +62,15 @@ const ModelManager = new Lang.Class({
 			this._onDashPerWorkspaceSettingChanged);
 		this._signalManager.connectSetting(settings, 'icons-window-matchers', 'value',
 			this._onIconsWindowMatchersSettingChanged);
-		this._signalManager.connect(appSystem, 'app-state-changed', this._onStateChanged);
+		this._signalManager.connect(appSystem, 'app-state-changed', this._onAppStateChanged);
 		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);
 		this._signalManager.connect(global.screen, 'workspace-added', this._onWorkspaceAdded);
 		this._signalManager.connect(global.screen, 'workspace-removed', this._onWorkspaceRemoved);
+
+		let nWorkspaces = global.screen.n_workspaces;
+		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
+			this._onWorkspaceAdded(global.screen, workspaceIndex);
+		}
 
 		this._initialized = true;
 	},
@@ -129,8 +134,8 @@ const ModelManager = new Lang.Class({
 			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
-		let n_workspaces = global.screen.n_workspaces;
-		for (let workspaceIndex = 0; workspaceIndex < n_workspaces; workspaceIndex++) {
+		let nWorkspaces = global.screen.n_workspaces;
+		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
 			}
@@ -215,7 +220,7 @@ const ModelManager = new Lang.Class({
 		this.refresh();
 	},
 
-	_onStateChanged: function(appSystem, app) {
+	_onAppStateChanged: function(appSystem, app) {
 		let id = app.id;
 		let state = app.state;
 		if (state == Shell.AppState.STARTING) {
@@ -245,12 +250,32 @@ const ModelManager = new Lang.Class({
 
 	_onWorkspaceAdded: function(screen, workspaceIndex) {
 		log(`screen "workspace-added" signal: ${workspaceIndex}`);
-		// Nothing to do: new workspaces are created on demand
+		// Note: new workspaces-per-dash are created on demand
+
+		// Signals
+		let workspace = screen.get_workspace_by_index(workspaceIndex);
+		this._signalManager.connect(workspace, 'window-added', this._onWindowAdded);
+		this._signalManager.connect(workspace, 'window-removed', this._onWindowRemoved);
 	},
 
 	_onWorkspaceRemoved: function(screen, workspaceIndex) {
 		log(`screen "workspace-removed" signal: ${workspaceIndex}`);
 		this.removeDashModel(workspaceIndex);
+
+		// Signals
+		let workspace = screen.get_workspace_by_index(workspaceIndex);
+		this._signalManager.getFor(workspace, 'window-added').disconnect();
+		this._signalManager.getFor(workspace, 'window-removed').disconnect();
+	},
+
+	_onWindowAdded: function(workspace, window) {
+		log('workspace "window-added" signal');
+		this.refresh();
+	},
+
+	_onWindowRemoved: function(workspace, window) {
+		log('workspace "window-removed" signal');
+		this.refresh();
 	}
 });
 

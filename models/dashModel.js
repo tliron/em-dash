@@ -41,10 +41,30 @@ const DashModel = new Lang.Class({
 	},
 
 	/**
+	 * Check if we have an icon for the application.
+	 */
+	has: function(app) {
+		return this.getIndexOf(app) !== -1;
+	},
+
+	/**
 	 * Check if we have an icon representing the application.
 	 */
 	isRepresenting: function(app) {
 		return this.getIndexOfRepresenting(app) !== -1;
+	},
+
+	/**
+	 * Find the index of an icon for the application.
+	 */
+	getIndexOf: function(app) {
+		for (let i = 0; i < this.icons.length; i++) {
+			let icon = this.icons[i];
+			if (icon.isFor(app)) {
+				return i;
+			}
+		}
+		return -1;
 	},
 
 	/**
@@ -59,7 +79,6 @@ const DashModel = new Lang.Class({
 		}
 		return -1;
 	},
-
 
 	/**
 	 * Add an icon for the application if there is no icon already representing it.
@@ -95,16 +114,9 @@ const DashModel = new Lang.Class({
 		let appSystem = Shell.AppSystem.get_default();
 		let running = appSystem.get_running(); // will be empty when the shell is restarted
 		for (let app of running) {
-			if (workspaceIndex === undefined) {
+			if ((workspaceIndex === undefined) || AppUtils.isAppOnWorkspace(app, workspaceIndex)) {
 				if (this.add(app)) {
 					changed = true;
-				}
-			}
-			else {
-				if (AppUtils.isAppOnWorkspace(app, workspaceIndex)) {
-					if (this.add(app)) {
-						changed = true;
-					}
 				}
 			}
 		}

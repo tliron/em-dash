@@ -15,6 +15,7 @@
 
 const Lang = imports.lang;
 const Gtk = imports.gi.Gtk;
+const Gdk = imports.gi.Gdk;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
@@ -572,14 +573,17 @@ const PrefsWidget = new Lang.Class({
 	_onIconsWindowMatchersSettingChanged: function(settings, windowMatchers) {
 		log('"icons-window-matchers" setting changed signal');
 
-		let view = this._builder.get_object('window_grabbing');
 		let store = this._builder.get_object('window_grabbing_store');
+		store.clear();
 
 		windowMatchers = windowMatchers.deep_unpack();
 		for (let appId in windowMatchers) {
 			let appWindowMatchers = windowMatchers[appId];
 			let appIter = store.append(null);
-			store.set_value(appIter, 0, `<b>${appId}</b>`);
+			let text = `<b>${appId}</b>`;
+			let data = {a: appId};
+			store.set_value(appIter, 0, text);
+			store.set_value(appIter, 1, `${JSON.stringify(data)}`);
 
 			for (let i in appWindowMatchers) {
 				let appWindowMatcher = appWindowMatchers[i];
@@ -592,11 +596,90 @@ const PrefsWidget = new Lang.Class({
 				if (appWindowMatcher.length > 1) {
 					text += `; WM_CLASS_INSTANCE: <i>${appWindowMatcher[1]}</i>`;
 				}
+				data = {a: appId, m: appWindowMatcher};
 				store.set_value(iter, 0, text);
+				store.set_value(iter, 1, `${JSON.stringify(data)}`);
 			}
 		}
 
+		let view = this._builder.get_object('window_grabbing');
 		view.expand_all();
+
+		let [notEmpty] = store.get_iter_first();
+		this._builder.get_object('window_grabbing_delete_all').sensitive = notEmpty;
+	},
+
+	_onWindowGrabbingSelectionChanged: function(selection) {
+		log('"window_grabbing" selection "changed" signal');
+		let [selected] = selection.get_selected();
+		this._builder.get_object('window_grabbing_delete').sensitive = selected;
+	},
+
+	_onWindowGrabbingDeleteClicked: function(button) {
+		log('"window_grabbing_delete" button "clicked" signal');
+		this._deleteWindowGrabbingSelection()
+	},
+
+	_onWindowGrabbingKeyPressed: function(view, eventKey) {
+		let [, keyval] = eventKey.get_keyval();
+		keyval = Gdk.keyval_name(keyval);
+		log(`"window_grabbing" tree view "key-press-event" signal: ${keyval}`)
+		if (keyval === 'Delete') {
+			this._deleteWindowGrabbingSelection();
+			return true;
+		}
+		return false;
+	},
+
+	_onWindowGrabbingDeleteAllClicked: function(button) {
+		log('"window_grabbing_delete_all" button "clicked" signal');
+		let windowMatchers = new GLib.Variant('a{saas}', {});
+		this._settings.set_value('icons-window-matchers', windowMatchers);
+	},
+
+	_deleteWindowGrabbingSelection: function() {
+		let selection = this._builder.get_object('window_grabbing').get_selection();
+		let [, store, iter] = selection.get_selected();
+		if (iter === null) {
+			return;
+		}
+
+		let data = store.get_value(iter, 1);
+		data = JSON.parse(data);
+		let windowMatchers = this._settings.get_value('icons-window-matchers');
+		windowMatchers = windowMatchers.deep_unpack();
+
+		if ('m' in data) {
+			// Delete matcher
+			let appWindowMatchers = windowMatchers[data.a];
+			for (let i = 0; i < appWindowMatchers.length; i++) {
+				let matcher = appWindowMatchers[i];
+				let equals = matcher.length === data.m.length;
+				if (equals) {
+					for (let ii = 0; ii < matcher.length; ii++) {
+						if (matcher[ii] !== data.m[ii]) {
+							equals = false;
+							break;
+						}
+					}
+				}
+				if (equals) {
+					appWindowMatchers.splice(i, 1);
+					break;
+				}
+			}
+			if (appWindowMatchers.length === 0) {
+				// No need to keep it
+				delete windowMatchers[data.a];
+			}
+		}
+		else {
+			// Delete appId
+			delete windowMatchers[data.a];
+		}
+
+		windowMatchers = new GLib.Variant('a{saas}', windowMatchers)
+		this._settings.set_value('icons-window-matchers', windowMatchers);
 	}
 });
 

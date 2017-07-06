@@ -90,6 +90,18 @@ const IconView = new Lang.Class({
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHoverPropertyChanged);
 	},
 
+	/**
+	 * Override.
+	 */
+	_onDestroy: function() {
+		log(`_onDestroy: ${this.app.id}`);
+		this._signalManager.destroy();
+		if (this._draggable !== null) {
+			this._draggable.destroy();
+		}
+		this.parent();
+	},
+
 	// Animations
 
 	dissolve: function() {
@@ -170,22 +182,10 @@ const IconView = new Lang.Class({
 		});
 	},
 
-	/**
-	 * Override.
-	 */
-	_onDestroy: function() {
-		log(`_onDestroy: ${this.app.id}`);
-		this._signalManager.destroy();
-		if (this._draggable !== null) {
-			this._draggable.destroy();
-		}
-		this.parent();
-	},
-
-	// Icons
+	// Icon
 
 	/**
-	 * Override to use fixed icon size
+	 * Override to use fixed icon size.
 	 */
 	_createIcon: function(iconSize) {
 		if (this._logicalIconSize !== null) {
@@ -193,6 +193,21 @@ const IconView = new Lang.Class({
 		}
 		// Usually creates St.Icon, but for some system windows it could be Clutter.Texture
 		return this.parent(iconSize);
+	},
+
+	/**
+	 * Override to check for grabbed windows, too.
+	 *
+	 * TODO: connect to which signal?
+	 */
+	_updateRunningStyle: function() {
+		let windows = this.model.getWindows(this.dashView.modelManager.workspaceIndex);
+		if (windows.length > 0) {
+			this._dot.show();
+		}
+		else {
+			this.parent();
+		}
 	},
 
 	// Focus
@@ -303,6 +318,11 @@ background-gradient-end: ${backlight.dark};`;
 	 * Override to support our custom middle-click actions.
 	 */
 	_onButtonPress: function(actor, event) {
+		if (this.dashView.grabSourceIconView !== null) {
+			this.dashView.endGrab(this);
+			return Clutter.EVENT_STOP;
+		}
+
 		let button = event.get_button();
 		switch (button) {
 		case 1:
@@ -337,11 +357,11 @@ background-gradient-end: ${backlight.dark};`;
 		switch (scrollEvent.get_scroll_direction()) {
 		case Clutter.ScrollDirection.UP:
 			log(`actor "scroll-event" signal: ${this.app.id} up`);
-			this.model.cycleFocus(this. this.dashView.modelManager.workspaceIndex, false);
+			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, false);
 			break;
 		case Clutter.ScrollDirection.DOWN:
 			log(`actor "scroll-event" signal: ${this.app.id} down`);
-			this.model.cycleFocus(this. this.dashView.modelManager.workspaceIndex, true);
+			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, true);
 			break;
 		default:
 			log(`actor "scroll-event" signal: ${this.app.id}`);
@@ -391,6 +411,7 @@ background-gradient-end: ${backlight.dark};`;
 
 	launchOrShow: function() {
 		log(`launchOrShow: ${this.app.id}`);
+		// TODO: won't work for grabbed!
 		if (this.app.state === Shell.AppState.STOPPED) {
 			this.animateLaunch();
 		}
@@ -400,7 +421,7 @@ background-gradient-end: ${backlight.dark};`;
 	launchOrToggle: function() {
 		log(`launchOrToggle: ${this.app.id}`);
 		if (!this._activateIfStopped() && !this.model.hideIfHasFocus(
-			this. this.dashView.modelManager.workspaceIndex)) {
+			this.dashView.modelManager.workspaceIndex)) {
 			// If we get here we should be already running, so this would not launch, only raise the
 			// primary window
 			this.app.activate();
@@ -410,7 +431,7 @@ background-gradient-end: ${backlight.dark};`;
 	launchOrCycle: function() {
 		log(`launchOrCycle: ${this.app.id}`);
 		if (!this._activateIfStopped()) {
-			this.model.cycleFocus(this. this.dashView.modelManager.workspaceIndex, true, true);
+			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, true, true);
 		}
 	},
 
