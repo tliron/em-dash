@@ -130,8 +130,9 @@ const DashView = new Lang.Class({
 		log('destroy');
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
-		Main.layoutManager.removeChrome(this._tooltip);
 		this.actor.destroy();
+		Main.layoutManager.removeChrome(this._tooltip);
+		this._tooltip.destroy();
 	},
 
 	getIconViewForModelIndex: function(modelIndex) {
@@ -249,7 +250,6 @@ const DashView = new Lang.Class({
 				}
 
 				this._tooltip.set_position(x, y);
-
 				this._tooltip.opacity = 0;
 				this._tooltip.show();
 				Tweener.addTween(this._tooltip, {

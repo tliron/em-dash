@@ -37,6 +37,7 @@ const IconModel = new Lang.Class({
 	Name: 'EmDash.IconModel',
 
 	_init: function(dashModel, app) {
+		this.dashModel = dashModel;
 		this.app = app;
 		this._matchers = [];
 		this._favorite = AppUtils.isFavoriteApp(app);

@@ -337,11 +337,11 @@ background-gradient-end: ${backlight.dark};`;
 		switch (scrollEvent.get_scroll_direction()) {
 		case Clutter.ScrollDirection.UP:
 			log(`actor "scroll-event" signal: ${this.app.id} up`);
-			this.model.cycleFocus(this._workspaceIndex, false);
+			this.model.cycleFocus(this. this.dashView.modelManager.workspaceIndex, false);
 			break;
 		case Clutter.ScrollDirection.DOWN:
 			log(`actor "scroll-event" signal: ${this.app.id} down`);
-			this.model.cycleFocus(this._workspaceIndex, true);
+			this.model.cycleFocus(this. this.dashView.modelManager.workspaceIndex, true);
 			break;
 		default:
 			log(`actor "scroll-event" signal: ${this.app.id}`);
@@ -399,7 +399,8 @@ background-gradient-end: ${backlight.dark};`;
 
 	launchOrToggle: function() {
 		log(`launchOrToggle: ${this.app.id}`);
-		if (!this._activateIfStopped() && !this.model.hideIfHasFocus(this._workspaceIndex)) {
+		if (!this._activateIfStopped() && !this.model.hideIfHasFocus(
+			this. this.dashView.modelManager.workspaceIndex)) {
 			// If we get here we should be already running, so this would not launch, only raise the
 			// primary window
 			this.app.activate();
@@ -409,16 +410,8 @@ background-gradient-end: ${backlight.dark};`;
 	launchOrCycle: function() {
 		log(`launchOrCycle: ${this.app.id}`);
 		if (!this._activateIfStopped()) {
-			this.model.cycleFocus(this._workspaceIndex, true, true);
+			this.model.cycleFocus(this. this.dashView.modelManager.workspaceIndex, true, true);
 		}
-	},
-
-	get _workspaceIndex() {
-		let settings = this.dashView.modelManager.settings;
-		if (settings.get_boolean('dash-per-workspace')) {
-			return global.screen.get_active_workspace().index();
-		}
-		return undefined;
 	},
 
 	_activateIfStopped: function() {

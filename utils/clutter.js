@@ -68,3 +68,27 @@ function getNaturalHeight(actor, width = -1) {
 	let [, natural] = actor.get_preferred_height(width);
 	return natural;
 }
+
+
+const eventTypeAsString = new Map([
+	[Clutter.EventType.NOTHING, 'NOTHING'],
+	[Clutter.EventType.KEY_PRESS, 'KEY_PRESS'],
+	[Clutter.EventType.KEY_RELEASE, 'KEY_RELEASE'],
+	[Clutter.EventType.MOTION, 'MOTION'],
+	[Clutter.EventType.ENTER, 'ENTER'],
+	[Clutter.EventType.LEAVE, 'LEAVE'],
+	[Clutter.EventType.BUTTON_PRESS, 'BUTTON_PRESS'],
+	[Clutter.EventType.BUTTON_RELEASE, 'BUTTON_RELEASE'],
+	[Clutter.EventType.SCROLL, 'SCROLL'],
+	[Clutter.EventType.STAGE_STATE, 'STAGE_STATE'],
+	[Clutter.EventType.DESTROY_NOTIFY, 'DESTROY_NOTIFY'],
+	[Clutter.EventType.CLIENT_MESSAGE, 'CLIENT_MESSAGE'],
+	[Clutter.EventType.DELETE, 'DELETE'],
+	[Clutter.EventType.TOUCH_BEGIN, 'TOUCH_BEGIN'],
+	[Clutter.EventType.TOUCH_UPDATE, 'TOUCH_UPDATE'],
+	[Clutter.EventType.TOUCH_END, 'TOUCH_END'],
+	[Clutter.EventType.TOUCH_CANCEL, 'TOUCH_CANCEL'],
+	[Clutter.EventType.TOUCHPAD_PINCH, 'TOUCHPAD_PINCH'],
+	[Clutter.EventType.TOUCHPAD_SWIPE, 'TOUCHPAD_SWIPE'],
+	[Clutter.EventType.EVENT_LAST, 'EVENT_LAST']
+]);

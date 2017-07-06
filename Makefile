@@ -8,9 +8,9 @@ SCHEMA = em-dash
 INSTALLNAME = $(UUID)
 
 BASE_MODULES = extension.js stylesheet.css metadata.json COPYING README.md
-EXTRA_MODULES = convenience.js dash.js dockable.js dockableDash.js entries.js icons.js panelDash.js prefs.js utils.js prefs.ui
+EXTRA_MODULES = convenience.js dashes/ models/ utils/ views/
 EXTRA_IMAGES =
-TOLOCALIZE = menu.js
+TOLOCALIZE = prefs.js views/iconMenu.js views/grabDialog.js
 
 
 # The command line passed variable VERSION is used to set the version string
@@ -85,7 +85,7 @@ update-translations: ./po/$(TRANSLATIONS).pot
 _deploy: all
 	-rm -fR ./_build
 	mkdir -p ./_build
-	cp $(BASE_MODULES) $(EXTRA_MODULES) ./_build
+	cp -r $(BASE_MODULES) $(EXTRA_MODULES) ./_build
 	#mkdir -p _build/img
 	#cd img ; cp $(EXTRA_IMAGES) ../_build/img/
 	mkdir -p ./_build/schemas

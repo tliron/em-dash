@@ -22,6 +22,7 @@ const Atk = imports.gi.Atk;
 const GObject = imports.gi.GObject;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
+const GrabDialog = Me.imports.views.grabDialog;
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const MPRIS = Me.imports.utils.mpris;
@@ -93,6 +94,15 @@ const IconMenu = new Lang.Class({
 
 		this.parent();
 
+		let windows = this._source.model.getWindows(
+			this._source.model.dashModel.modelManager.workspaceIndex);
+		if (windows.length > 0) {
+			let item = new PopupMenu.PopupMenuItem(
+				windows.length > 1 ? _('Grab These Windows...') : _('Grab This Window...'));
+			item.connect('activate', Lang.bind(this, this._onGrab));
+			this.addMenuItem(item);
+		}
+
 		// Application menu
 		if (this._settings.get_boolean('menu-application')) {
 			let menuModel = this._source.app.menu; // Gio.DBusMenuModel
@@ -108,6 +118,10 @@ const IconMenu = new Lang.Class({
 			this._mediaControlsMenu = new MediaControlsMenu(this._simpleName);
 			this.addMenuItem(this._mediaControlsMenu.item);
 		}
+	},
+
+	_onGrab: function() {
+		new GrabDialog.GrabDialog(this._source.app);
 	}
 });
 

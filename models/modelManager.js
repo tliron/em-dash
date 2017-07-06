@@ -75,6 +75,13 @@ const ModelManager = new Lang.Class({
 		this._signalManager.destroy();
 	},
 
+	get workspaceIndex() {
+		if (this.single) {
+			return undefined;
+		}
+		return global.screen.get_active_workspace().index();
+	},
+
 	refresh: function() {
 		this._reset();
 		if (this._initialized) {
