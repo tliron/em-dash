@@ -1410,10 +1410,10 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="textcol">
+                  <object class="GtkTreeViewColumn" id="window_grabbing_text_column">
                     <property name="sizing">autosize</property>
                     <child>
-                      <object class="GtkCellRendererText" id="text"/>
+                      <object class="GtkCellRendererText" id="window_grabbing_text_renderer"/>
                       <attributes>
                         <attribute name="markup">0</attribute>
                       </attributes>

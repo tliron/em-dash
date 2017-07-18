@@ -148,6 +148,13 @@ const IconModel = new Lang.Class({
 	},
 
 	/**
+	 * Checks if we have windows on any workspace.
+	 */
+	get hasWindows() {
+		return this.getWindows().length !== 0;
+	},
+
+	/**
 	 * Checks if any of our windows has focus, for all workspaces or for a specific workspace.
 	 */
 	hasFocus: function(workspaceIndex) {
@@ -208,6 +215,15 @@ const IconModel = new Lang.Class({
 		}
 		log('hideIfHasFocus: false');
 		return false;
+	},
+
+	/**
+	 * Raises all windows and sets the focus to the primary window for all workspaces or for a
+	 * specific workspace.
+	 */
+	focus: function(workspaceIndex) {
+		let windows = this.getWindows(workspaceIndex);
+		WindowUtils.raiseWindowsAndFocusPrimary(windows);
 	},
 
 	/**

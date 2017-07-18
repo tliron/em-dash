@@ -13,7 +13,12 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Clutter = imports.gi.Clutter;
+const Meta = imports.gi.Meta;
+
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const LoggingUtils = Me.imports.utils.logging;
+
+const log = LoggingUtils.logger('window');
 
 
 function getFocusedWindowIndex(windows) {
@@ -35,7 +40,73 @@ function hideWindows(windows) {
 
 
 function focusWindow(window) {
-	window.unminimize();
-	window.raise();
-	window.focus(Clutter.CURRENT_TIME);
+	window.activate(global.get_current_time());
+}
+
+
+function raiseWindowsAndFocusPrimary(windows) {
+	// Adapted from shell_app_activate_window in
+	// https://github.com/GNOME/gnome-shell/blob/master/src/shell-app.c
+
+	if (windows.length === 0) {
+		log('raiseWindowsAndFocusPrimary: do nothing');
+		return;
+	}
+
+	// Sort by user time
+	windows.sort((a, b) => {
+		return b.get_user_time() - a.get_user_time();
+	});
+	let window = windows.shift();
+
+	let display = global.screen.get_display();
+
+	// Is the display newer? (I don't understand what this is for...)
+	let time = global.get_current_time();
+	let displayTime = display.get_last_user_time();
+	if (display.xserver_time_is_before(time, displayTime)) {
+		log('raiseWindowsAndFocusPrimary: display is newer');
+		window.set_demands_attention();
+		return;
+	}
+
+	let activeWorkspace = global.screen.get_active_workspace();
+
+	// Raise windows in this workspace (in reverse order to preserve stacking)
+	windows.reverse();
+	for (let window of windows) {
+		if (window.get_workspace() === activeWorkspace) {
+			window.unminimize();
+			window.raise();
+		}
+	}
+
+	// Find our newest transient in this workspace
+	let transients = [];
+	window.foreach_transient((transient) => {
+		if (transient.get_workspace() === activeWorkspace) {
+			let type = transient.window_type;
+			if ((type === Meta.WindowType.NORMAL) || (type === Meta.WindowType.DIALOG)) {
+				transients.push(transient);
+			}
+		}
+	});
+	transients = display.sort_windows_by_stacking(transients);
+	let transient = transients.pop();
+
+	// Is the transient newer than us?
+	if ((transient !== undefined) &&
+			display.xserver_time_is_before(window.get_user_time(), transient.get_user_time())) {
+		window = transient;
+		log('raiseWindowsAndFocusPrimary: transient is newer');
+	}
+
+	// Focus
+	let workspace = window.get_workspace();
+	if (workspace === activeWorkspace) {
+		window.activate(time);
+	}
+	else {
+		workspace.activate_with_focus(window, time);
+	}
 }

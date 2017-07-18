@@ -319,6 +319,7 @@ background-gradient-end: ${backlight.dark};`;
 	 */
 	_onButtonPress: function(actor, event) {
 		if (this.dashView.grabSourceIconView !== null) {
+			// We are in grab selection mode
 			this.dashView.endGrab(this);
 			return Clutter.EVENT_STOP;
 		}
@@ -333,9 +334,8 @@ background-gradient-end: ${backlight.dark};`;
 			let iconsMiddleClick = settings.get_string('icons-middle-click');
 			if (iconsMiddleClick !== 'NOTHING') {
 				this._clickAction(iconsMiddleClick);
-				return Clutter.EVENT_STOP;
 			}
-			break;
+			return Clutter.EVENT_STOP;
 		case 3:
 			this.popupMenu();
 			return Clutter.EVENT_STOP;
@@ -395,56 +395,44 @@ background-gradient-end: ${backlight.dark};`;
 
 	launch: function() {
 		log(`launch: ${this.app.id}`);
-		if (this.app.state === Shell.AppState.STOPPED) {
-			this.animateLaunch();
-		}
-		if (this.app.can_open_new_window()) {
-			// Opening a new window would also be considered "launching"
-			this.app.open_new_window(-1);
-		}
-		else {
-			// Some apps don't allow more than one instance to be running, so for them this may
-			// cause nothing to happen; we'll try anyway
-			this.app.launch(0, -1, false);
-		}
+		this._openNewWindow(true);
 	},
 
 	launchOrShow: function() {
 		log(`launchOrShow: ${this.app.id}`);
-		// TODO: won't work for grabbed!
-		if (this.app.state === Shell.AppState.STOPPED) {
-			this.animateLaunch();
+		if (!this._openNewWindow()) {
+			this.model.focus(this.dashView.modelManager.workspaceIndex);
 		}
-		this.app.activate();
 	},
 
 	launchOrToggle: function() {
 		log(`launchOrToggle: ${this.app.id}`);
-		if (!this._activateIfStopped() && !this.model.hideIfHasFocus(
-			this.dashView.modelManager.workspaceIndex)) {
-			// If we get here we should be already running, so this would not launch, only raise the
-			// primary window
-			this.app.activate();
+		let workspaceIndex = this.dashView.modelManager.workspaceIndex;
+		if (!this._openNewWindow()) {
+			if (!this.model.hideIfHasFocus(workspaceIndex)) {
+				this.model.focus(workspaceIndex);
+			}
 		}
 	},
 
 	launchOrCycle: function() {
 		log(`launchOrCycle: ${this.app.id}`);
-		if (!this._activateIfStopped()) {
+		if (!this._openNewWindow()) {
 			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, true, true);
 		}
 	},
 
-	_activateIfStopped: function() {
-		if (this.app.state === Shell.AppState.STOPPED) {
+	_openNewWindow: function(force = false) {
+		if (force || !this.model.hasWindows) {
 			// Launch
 			this.animateLaunch();
 			if (this.app.can_open_new_window()) {
-				// Opening a new window would also be considered "launching"
 				this.app.open_new_window(-1);
 			}
 			else {
-				this.app.activate();
+				// Some apps don't allow more than one instance to be running, so for them this may
+				// cause nothing to happen; we'll try anyway
+				this.app.launch(0, -1, false);
 			}
 			return true;
 		}

@@ -101,6 +101,9 @@ const PrefsWidget = new Lang.Class({
 		if (version === -1) {
 			version = '<i>DEVELOPMENT</i>';
 		}
+		else {
+			version = _escape(version);
+		}
 		this._builder.get_object('about_version').label = version;
 
 		// Signals
@@ -578,12 +581,15 @@ const PrefsWidget = new Lang.Class({
 
 		windowMatchers = windowMatchers.deep_unpack();
 		for (let appId in windowMatchers) {
+			let appInfo = Gio.DesktopAppInfo.new(appId);
 			let appWindowMatchers = windowMatchers[appId];
 			let appIter = store.append(null);
-			let text = `<b>${appId}</b>`;
+			let text = appInfo !== null ?
+				`<b>${_escape(appInfo.get_name())}</b>` :
+				`<b>${_escape(appId)}</b>`;
 			let data = {a: appId};
 			store.set_value(appIter, 0, text);
-			store.set_value(appIter, 1, `${JSON.stringify(data)}`);
+			store.set_value(appIter, 1, JSON.stringify(data));
 
 			for (let i in appWindowMatchers) {
 				let appWindowMatcher = appWindowMatchers[i];
@@ -592,13 +598,13 @@ const PrefsWidget = new Lang.Class({
 					continue;
 				}
 				let iter = store.append(appIter);
-				let text = `WM_CLASS: <i>${appWindowMatcher[0]}</i>`;
+				let text = `WM_CLASS: <i>${_escape(appWindowMatcher[0])}</i>`;
 				if (appWindowMatcher.length > 1) {
-					text += `; WM_CLASS_INSTANCE: <i>${appWindowMatcher[1]}</i>`;
+					text += `; WM_CLASS_INSTANCE: <i>${_escape(appWindowMatcher[1])}</i>`;
 				}
 				data = {a: appId, m: appWindowMatcher};
 				store.set_value(iter, 0, text);
-				store.set_value(iter, 1, `${JSON.stringify(data)}`);
+				store.set_value(iter, 1, JSON.stringify(data));
 			}
 		}
 
@@ -695,4 +701,9 @@ function _log(message) {
 		GNOME_SHELL_EXTENSION_NAME: Me.metadata.name
 		// The domain is automatically added as GLIB_DOMAIN
 	});
+}
+
+
+function _escape(text) {
+	return GLib.markup_escape_text(text, -1);
 }
