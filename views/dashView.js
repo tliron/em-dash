@@ -126,6 +126,9 @@ const DashView = new Lang.Class({
 				'applications-button', 'string', this._onApplicationsButtonSettingChanged);
 			this._signalManager.connectSetting(this.modelManager.settings, 'icons-wheel-scroll',
 				'boolean', this._onIconsWheelScrollSettingChanged);
+			this._signalManager.connectSetting(this.modelManager.settings,
+				'icons-indicate-number-of-windows', 'boolean',
+				this._onIconsIndicateNumberOfWindowsSettingChanged);
 		}, true);
 	},
 
@@ -557,6 +560,15 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		}
 	},
 
+	_updateIndicateNumberOfWindows: function(indicateNumberOfWindows) {
+		for (let actor of this.box.get_children()) {
+			let iconView = actor._delegate;
+			if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
+				iconView.setRunningDot(indicateNumberOfWindows);
+			}
+		}
+	},
+
 	_updateFocusApp: function(app) {
 		if (this.modelManager.settings.get_boolean('icons-highlight-focused')) {
 			if (app === undefined) {
@@ -671,6 +683,11 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 	_onIconsWheelScrollSettingChanged: function(settings, iconsWheelScroll) {
 		log(`"icons-wheel-scroll" setting changed signal: ${iconsWheelScroll}`);
 		this._updateWheelScrolling(iconsWheelScroll);
+	},
+
+	_onIconsIndicateNumberOfWindowsSettingChanged: function(settings, indicateNumberOfWindows) {
+		log(`"icons-indicate-number-of-windows" setting changed signal: ${indicateNumberOfWindows}`);
+		this._updateIndicateNumberOfWindows(indicateNumberOfWindows);
 	},
 
 	_onSyncTooltip: function(iconView) {

@@ -968,8 +968,8 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkCheckButton" id="icons_show_dots">
-                        <property name="label" translatable="yes">Show up to 3 dots for every open window</property>
+                      <object class="GtkCheckButton" id="icons_indicate_number_of_windows">
+                        <property name="label" translatable="yes">Indicate number of open windows</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>

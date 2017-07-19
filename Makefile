@@ -115,7 +115,7 @@ unregister-schema:
 
 link: all
 	mkdir -p "$(HOME)/.local/share/gnome-shell/extensions/"
-	ln -sf "$(CURDIR)" "$(HOME)/.local/share/gnome-shell/extensions/${UUID}"
+	ln -sfT "$(CURDIR)" "$(HOME)/.local/share/gnome-shell/extensions/${UUID}"
 
 unlink:
 	rm -f "$(HOME)/.local/share/gnome-shell/extensions/${UUID}"

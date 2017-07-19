@@ -4,7 +4,7 @@
 	"description": "An enhanced GNOME Shell desktop dash.",
 	"url": "https://github.com/tliron/em-dash",
 	"original-author": "tal.liron@gmail.com",
-	"shell-version": ["3.18", "3.20", "3.22", "3.24"],
+	"shell-version": ["3.24"],
 	"version": -1,
 	"settings-schema": "org.gnome.shell.extensions.em-dash",
 	"gettext-domain": "em-dash"

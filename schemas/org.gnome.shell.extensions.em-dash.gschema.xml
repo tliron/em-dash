@@ -82,10 +82,10 @@
       <summary>Icon highlight gradient</summary>
       <description>Whether to use color gradient when highlighting the icon for the currently focused application.</description>
     </key>
-    <key name="icons-dots" type="b">
+    <key name="icons-indicate-number-of-windows" type="b">
       <default>false</default>
-      <summary>Icon dots</summary>
-      <description>Whether to show dots for the number of open windows for each icon.</description>
+      <summary>Icon indicate number of windows</summary>
+      <description>Whether to indicate the number of open windows for each icon.</description>
     </key>
     <key name="menu-application" type="b">
       <default>false</default>

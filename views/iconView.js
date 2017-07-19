@@ -72,6 +72,19 @@ const IconView = new Lang.Class({
 
 		this.actor.height = physicalActorHeight;
 
+		// Enhanced dot
+		this._simpleDot = this._dot;
+		this._enhancedDot = new St.DrawingArea({
+			style_class: 'app-well-app-running-dot',
+			style: 'background-color: transparent;', // override style class background
+			x_expand: true,
+			y_expand: true,
+			x_align: Clutter.ActorAlign.CENTER,
+			y_align: Clutter.ActorAlign.END,
+			visible: false
+		});
+		this._iconContainer.add_child(this._enhancedDot);
+
 		// Can we extract a simple name?
 		this._simpleName = null;
 		let id = model.app.id;
@@ -88,6 +101,7 @@ const IconView = new Lang.Class({
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHoverPropertyChanged);
+		this._signalManager.connect(this._enhancedDot, 'repaint', this._onEnhancedDotRepainted);
 	},
 
 	/**
@@ -195,21 +209,6 @@ const IconView = new Lang.Class({
 		return this.parent(iconSize);
 	},
 
-	/**
-	 * Override to check for grabbed windows, too.
-	 *
-	 * TODO: connect to which signal?
-	 */
-	_updateRunningStyle: function() {
-		let windows = this.model.getWindows(this.dashView.modelManager.workspaceIndex);
-		if (windows.length > 0) {
-			this._dot.show();
-		}
-		else {
-			this.parent();
-		}
-	},
-
 	// Focus
 
 	focus: function() {
@@ -236,7 +235,7 @@ background-gradient-end: ${backlight.dark};`;
 				this.actor.style = `background-color: ${backlight.dark};`;
 			}
 			// Assumes dot on bottom (TODO: we can check _dot.y_align for Clutter.ActorAlign.END)
-			this._dot.style = `background-color: ${backlight.normal};`;
+			this._simpleDot.style = `background-color: ${backlight.normal};`;
 		}
 		this.actor.add_style_class_name('focused');
 	},
@@ -245,7 +244,80 @@ background-gradient-end: ${backlight.dark};`;
 		log(`unfocus: ${this.app.id}`);
 		this.actor.remove_style_class_name('focused');
 		this.actor.style = null;
-		this._dot.style = null;
+		this._simpleDot.style = null;
+	},
+
+	// Running dot
+
+	setRunningDot: function(enhanced) {
+		if (enhanced) {
+			this._enhancedDot.show();
+			this._simpleDot.hide();
+			this._dot = this._enhancedDot;
+		}
+		else {
+			this._simpleDot.show();
+			this._enhancedDot.hide();
+			this._dot = this._simpleDot;
+		}
+		this._updateRunningStyle();
+	},
+
+	_onEnhancedDotRepainted: function(drawingArea) {
+		let dotSpacing = 2;
+		let dotMinWidth = 2;
+
+		let number = this.model.getWindows(this.dashView.modelManager.workspaceIndex).length;
+		if (number === 0) {
+			return;
+		}
+
+		let themeNode = this._simpleDot.get_theme_node();
+		let color = themeNode.get_background_color();
+		let [width, height] = drawingArea.get_surface_size();
+
+		if (dotMinWidth > width) {
+			dotMinWidth = width;
+		}
+		let dotWidth = (width - (number - 1) * dotSpacing) / number;
+		if (dotWidth < dotMinWidth) {
+			// Max number of dots that would fit
+			number = Math.max(Math.floor((width + dotSpacing) / (dotMinWidth + dotSpacing)), 1);
+			dotWidth = (width - (number - 1) * dotSpacing) / number;
+		}
+		let dotDistance = dotWidth + dotSpacing;
+
+		let cr = drawingArea.get_context();
+		try {
+			cr.save();
+			Clutter.cairo_set_source_color(cr, color);
+			for (let i = 0; i < number; i++) {
+				cr.newSubPath();
+				cr.rectangle(i * dotDistance, 0, dotWidth, height);
+			}
+			cr.fill();
+		}
+		finally {
+			cr.restore();
+			cr.$dispose();
+		}
+	},
+
+	/**
+	 * Override to check for grabbed windows, too.
+	 */
+	_updateRunningStyle: function() {
+		let windows = this.model.getWindows(this.dashView.modelManager.workspaceIndex);
+		if (windows.length > 0) {
+			this._dot.show();
+			if ('queue_repaint' in this._dot) {
+				// For enhanced dot only
+				this._dot.queue_repaint();
+			}
+		}
+		else {
+			this._dot.hide();
+		}
 	},
 
 	// Menu

@@ -149,8 +149,8 @@ const PrefsWidget = new Lang.Class({
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
-		this._settings.bind('icons-dots',
-			this._builder.get_object('icons_show_dots'),
+		this._settings.bind('icons-indicate-number-of-windows',
+			this._builder.get_object('icons_indicate_number_of_windows'),
 			'active',
 			Gio.SettingsBindFlags.DEFAULT);
 
