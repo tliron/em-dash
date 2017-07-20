@@ -148,13 +148,6 @@ var IconModel = new Lang.Class({
 	},
 
 	/**
-	 * Checks if we have windows on any workspace.
-	 */
-	get hasWindows() {
-		return this.getWindows().length !== 0;
-	},
-
-	/**
 	 * Checks if any of our windows has focus, for all workspaces or for a specific workspace.
 	 */
 	hasFocus: function(workspaceIndex) {

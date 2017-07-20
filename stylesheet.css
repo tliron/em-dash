@@ -1,9 +1,9 @@
 
-/* The panel is a very cramped place for the dash, so we'll squash some stuff that takes too much
-   vertical space. This is especially true in Hi-DPI, where all elements become beefer, but the
-   panel might often be quite small. */
+/* The top bar is a very cramped place for the dash, so we'll squash some stuff that takes too much
+   vertical space. This is especially true in Hi-DPI, where all elements become beefier, but the
+   top bar might still be quite small. */
 
-#dash.panel {
+#dash.top-bar {
 	padding-top: 1px;
 	padding-bottom: 1px;
 	padding-left: 3px;
@@ -12,12 +12,12 @@
 	margin-bottom: 0;
 }
 
-#dash.panel #icon-box {
+#dash.top-bar #icon-box {
 	spacing: 3px; /* special property for St.BoxLayout */
 }
 
-#dash.panel .overview-icon,
-#dash.panel .app-well-app-running-dot {
+#dash.top-bar .overview-icon,
+#dash.top-bar .app-well-app-running-dot {
 	padding-top: 0;
 	padding-bottom: 0;
 	margin-top: 0;

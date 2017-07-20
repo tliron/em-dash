@@ -17,6 +17,9 @@
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 
+/**
+ * Creates a logger function for a logger name.
+ */
 function logger(name) {
 	return (message) => {
 		if (Me.LOGGING_ENABLED && Me.LOGGING_IMPLEMENTATION) {
@@ -29,7 +32,7 @@ function logger(name) {
 /*
  * Why not use global "let" vars here, and instead put our global values in the extension object?
  * Because we found global "let" to be weirdly unreliable. A bug somewhere in the import mechanism
- * causes the globals to sometimes *not* be shared. Our extension.js would enable logging, but some
- * imported modules failed to log, while others logged just fine. We could not find a way to
- * reproduce the bug reliably.
+ * causes the globals to sometimes *not* be shared with other files. Our extension.js would enable
+ * logging via a global "let" defined here, but some imported modules failed to log, while others
+ * logged just fine. We could not find a way to reproduce the bug reliably.
  */

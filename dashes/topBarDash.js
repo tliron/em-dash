@@ -38,12 +38,12 @@ var TopBarDash = new Lang.Class({
 	_init: function(dashManager, location) {
 		log('_init');
 
-		this.parent(dashManager, 'panel', false,
+		this.parent(dashManager, 'top-bar', false,
 			dashManager.scalingManager.toLogical(Main.panel.actor.height), false);
 
 		this._view.dash.x_align = St.Align.START;
 		this._view.dash.set_x_align(Clutter.ActorAlign.START);
-		this.bin = new StUtils.FlexBin({
+		this.bin = new StUtils.FixedBin({
 			child: this._view.actor,
 			preferred_width: Main.panel.actor.width
 			// (the actual width of the bin would shrink to fit in the left box)

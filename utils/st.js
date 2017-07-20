@@ -31,8 +31,8 @@ const SignalUtils = Me.imports.utils.signal;
  *
  * Note also that this is a GObject class!
  */
-var FlexBin = new Lang.Class({
-	Name: 'EmDash-FlexBin', // can't use "." with GObject classes
+var FixedBin = new Lang.Class({
+	Name: 'EmDash-FixedBin', // can't use "." with GObject classes
 	Extends: Shell.GenericContainer,
 
 	_init: function(params) {
@@ -97,8 +97,8 @@ var FlexBin = new Lang.Class({
  * An St container for a single child which makes sure that the child is rendered at scale. This
  * is especially necessary for avoiding blurry text.
  *
- * At achieves this effect by constraining its bounds to those of the stage while not affecting
- * the input regions.
+ * It achieves this effect by constraining its bounds to those of the stage. It is placed behind
+ * all other actors to avoid affecting DND.
  *
  * Note that though it's not a subclass of St.Bin, it behaves similarly.
  *
@@ -128,15 +128,17 @@ var StageBin = new Lang.Class({
 			this.add_child(child);
 		}
 
-		this.add_constraint(new Clutter.BindConstraint({
-			source: global.stage,
-			coordinate: Clutter.BindCoordinate.ALL
-		}));
+		this.width = 500;
+		this.height = 500;
+
+//		this.add_constraint(new Clutter.BindConstraint({
+//			source: global.stage,
+//			coordinate: Clutter.BindCoordinate.ALL
+//		}));
 	},
 
-	addToChrome: function() {
-		Main.layoutManager.addChrome(this, {
-			affectsInputRegion: false
-		});
+	addChrome: function() {
+		//Main.layoutManager.uiGroup.insert_child_at_index(this, 0);
+		Main.layoutManager.uiGroup.add_child(this);
 	}
 });

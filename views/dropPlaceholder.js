@@ -49,7 +49,7 @@ var DropPlaceholder = new Lang.Class({
 		let vertical = this._iconView.dashView.box.vertical;
 
 		this.actor = new St.Widget({
-			name: 'em-dash-placeholder',
+			name: 'drop-placeholder',
 			width: vertical ? actor.width : 0,
 			height: vertical ? 0 : actor.height,
 			style_class: 'placeholder' // GNOME theme styling
@@ -168,7 +168,7 @@ var DropPlaceholder = new Lang.Class({
 });
 
 
-let _dropPlaceholder = null;
+var _dropPlaceholder = null;
 
 
 function add(actor, after) {

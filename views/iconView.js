@@ -85,14 +85,23 @@ var IconView = new Lang.Class({
 		});
 		this._iconContainer.add_child(this._enhancedDot);
 
-		// Can we extract a simple name?
+		if (dashView.modelManager.settings.get_boolean('icons-indicate-number-of-windows')) {
+			this._simpleDot.hide();
+			this._dot = this._enhancedDot;
+			this._updateRunningStyle();
+		}
+		else {
+			this._enhancedDot.hide();
+		}
+
+		// Simple name
 		this._simpleName = null;
 		let id = model.app.id;
 		if (id.endsWith('.desktop')) {
 			this._simpleName = id.substring(0, id.length - '.desktop'.length);
 		}
 
-		// Draggable?
+		// Draggable
 		this._draggable = null;
 		if (global.settings.is_writable('favorite-apps') && AppUtils.isFavoriteApp(model.app)) {
 			this._draggable = new DraggableUtils.Draggable(this.actor);
@@ -479,8 +488,8 @@ background-gradient-end: ${backlight.dark};`;
 
 	launchOrToggle: function() {
 		log(`launchOrToggle: ${this.app.id}`);
-		let workspaceIndex = this.dashView.modelManager.workspaceIndex;
 		if (!this._openNewWindow()) {
+			let workspaceIndex = this.dashView.modelManager.workspaceIndex;
 			if (!this.model.hideIfHasFocus(workspaceIndex)) {
 				this.model.focus(workspaceIndex);
 			}
@@ -495,8 +504,8 @@ background-gradient-end: ${backlight.dark};`;
 	},
 
 	_openNewWindow: function(force = false) {
-		if (force || !this.model.hasWindows) {
-			// Launch
+		if (force ||
+			(this.model.getWindows(this.dashView.modelManager.workspaceIndex).length === 0)) {
 			this.animateLaunch();
 			if (this.app.can_open_new_window()) {
 				this.app.open_new_window(-1);
@@ -505,6 +514,9 @@ background-gradient-end: ${backlight.dark};`;
 				// Some apps don't allow more than one instance to be running, so for them this may
 				// cause nothing to happen; we'll try anyway
 				this.app.launch(0, -1, false);
+
+				// TODO: If we failed, but have windows on another workspace, could we switch to
+				// that workspace? Probably not, because it's not easy to find out if we failed.
 			}
 			return true;
 		}
@@ -513,8 +525,10 @@ background-gradient-end: ${backlight.dark};`;
 
 	// Dragging us
 
+	/**
+	 * Hooked from EmDash.Draggable using our actor._delegate.
+	 */
 	handleDragBegin: function() {
-		// Hooked from EmDash.Draggable using our actor._delegate
 		log(`handleDragBegin hook: ${this.app.id}`);
 		this._removeMenuTimeout();
 		this._dissolve();
@@ -522,30 +536,37 @@ background-gradient-end: ${backlight.dark};`;
 
 	/*
 	 * Override to make sure the drag actor is the same size as our icon.
+	 *
+	 * Hooked from DND using our actor._delegate.
 	 */
 	getDragActor: function() {
-		// Hooked from DND using our actor._delegate
 		let size = this.icon.icon.icon_size;
 		log(`getDragActor hook: ${this.app.id} ${size}`);
 		return this.app.create_icon_texture(size);
 	},
 
+	/**
+	 * Hooked from EmDash.Draggable using our actor._delegate.
+	 */
 	getDragRestoreLocation: function() {
-		// Hooked from EmDash.Draggable using our actor._delegate
 		log(`getDragRestoreLocation hook: ${this.app.id}`);
 		return [this._originalX, this._originalY, 1];
 	},
 
+	/**
+	 * Hooked from EmDash.Draggable using our actor._delegate.
+	 */
 	handleDragCancelling: function() {
-		// Hooked from EmDash.Draggable using our actor._delegate
 		// Called as soon as the mouse button is released
 		log(`handleDragCancelling hook: ${this.app.id}`);
 		// Note: handleDragEnd may be called *before* the appear animation is complete
 		this._appear();
 	},
 
+	/**
+	 * Hooked from EmDash.Draggable using our actor._delegate.
+	 */
 	handleDragEnd: function(dropped) {
-		// Hooked from EmDash.Draggable using our actor._delegate
 		// When cancelling, called when the draggable *finishes* "snapping back"
 		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
 		DropPlaceholder.remove();
@@ -558,13 +579,18 @@ background-gradient-end: ${backlight.dark};`;
 
 	// Dragging over us
 
+	/**
+	 * Test if we can drop on this icon. If we can drop, create the a drop placeholder instead of or
+	 * after this icon.
+	 *
+	 * Hooked from DND using our actor._delegate.
+	 */
 	handleDragOver: function(source, actor, x, y, extra) {
 		if (source === this) {
 			log('handleDragOver hook: self');
 			return DND.DragMotionResult.NO_DROP;
 		}
 
-		// Hooked from DND using our actor._delegate
 		if (!(source instanceof AppDisplay.AppIcon)) {
 			log('handleDragOver hook: not an app');
 			return DND.DragMotionResult.NO_DROP;

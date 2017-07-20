@@ -4,23 +4,23 @@ Em—Dash
 
 **WORK IN PROGRESS, DO NOT USE**
 
-An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension.
+An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension, for GNOME Shell
+version 3.24 and above. 
 
-It's primary function is to move the dash out of the overview and into the **top panel** or dock it
+Its primary function is to move the dash out of the overview and into the **top panel** or dock it
 on an **edge** of one of the **monitors**.
-
-It supports any number of icons: when there are too many, it will let you scroll through them. (The
-built-in dash keeps shrinking the icons in order to fit more, until it reaches a minimum icon size
-and then stops showing extra icons...)
 
 Also, Em—Dash provides the following *optional* features for the icons:
 
+* Handle any number of icons: when there are too many, it will let you scroll through them. (The
+  built-in dash keeps shrinking the icons in order to fit more, until it reaches a minimum icon
+  size and then stops showing extra icons).
 * Show windows from **all of the workspaces** (like the built-in dash) or only from the
   **current workspace**.
 * **Highlight** the currently focused application with a color-appropriate backlight (a feature
   borrowed from the Unity desktop).
-* Show dots for **how many** windows are open (the built-in dash only shows a line if *any* are
-  open).
+* Indicate **how many** windows are open using a dotted line (the built-in dash only shows a full
+  line if *any* are open).
 * Move the **activities button** from the top panel to the dash. 
 * Change the behavior of **left-click** and **middle-click** on the dash icons: launch (like the
   built-in dash), launch/hide, or cycle/hide.
@@ -164,8 +164,8 @@ TODO
 
 #### Overview
 
-* In touch-to-show, make sure it is shown in overview
-* Bottom dash on overview might cover some UI
+* In touch-to-show, make sure dock is shown in overview
+* Bottom dash on overview might cover some UI elements
 
 #### DND
 
@@ -181,5 +181,4 @@ TODO
 
 #### Misc
 
-* Reset backcolor cache if icon theme changes
 * Popup menu can be too big to fit small screens

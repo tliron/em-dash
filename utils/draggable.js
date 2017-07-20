@@ -27,6 +27,14 @@ const log = LoggingUtils.logger('draggable');
 /**
  * Makes it a easier to use GNOME Shell's DND by managing the signals and calling delegated
  * functions.
+ *
+ * The following functions are supported on the actor's delegate:
+ *
+ * * handleDragBegin()
+ * * handleDragCancelling()
+ * * getDragRestoreLocation()
+ * * handleDragCancelled()
+ * * handleDragEnd(dropped)
  */
 var Draggable = new Lang.Class({
 	Name: 'EmDash.Draggable',
@@ -65,6 +73,9 @@ var Draggable = new Lang.Class({
 		}
 	},
 
+	/**
+	 * Monkey patched.
+	 */
 	_cancelDrag: function(original, eventTime) {
 		if (this.actor._delegate && this.actor._delegate.handleDragCancelling) {
 			this.actor._delegate.handleDragCancelling();
@@ -72,6 +83,9 @@ var Draggable = new Lang.Class({
 		original(eventTime);
 	},
 
+	/**
+	 * Monkey patched.
+	 */
 	_getRestoreLocation: function(original) {
 		if (this.actor._delegate && this.actor._delegate.getDragRestoreLocation) {
 			return this.actor._delegate.getDragRestoreLocation();
@@ -80,7 +94,7 @@ var Draggable = new Lang.Class({
 	},
 
 	_onDragCancelled: function(draggable, time) {
-		// Unnecessary, because _onDragEnded will be called anyway with dropped=false
+		// Likely unnecessary, because _onDragEnded will be called anyway with dropped=false
 		if (this.actor._delegate && this.actor._delegate.handleDragCancelled) {
 			this.actor._delegate.handleDragCancelled();
 		}

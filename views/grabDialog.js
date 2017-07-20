@@ -15,6 +15,7 @@
 
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
+const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const DialogUtils = Me.imports.utils.dialog;
@@ -36,13 +37,14 @@ var GrabDialog = new Lang.Class({
 
 		let app = iconView.app;
 
-		// Labels
-		this.addLabel(_('Click on the dash icon that will grab current windows'
-			.format(app.get_name())));
-		this.addLabel(_('belonging to <b>%s</b>'
-			.format(app.get_name())));
-		this.addLabel(_('or click anywhere else to cancel.'
-			.format(app.get_name())));
+		let name = GLib.markup_escape_text(app.get_name(), -1);
+		this.addTitle(_('Em—Dash'));
+		this.addMessage(_('Click on the dash icon that should'
+			.format(name)));
+		this.addMessage(_('grab the currently open windows of'
+			.format(name)));
+		this.addMessage(_('<b>%s</b>.'
+			.format(name)));
 	},
 
 	open: function() {

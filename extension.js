@@ -22,8 +22,8 @@ const DockableDash = Me.imports.dashes.dockableDash;
 
 const log = LoggingUtils.logger('extension');
 
-let settings = null;
-let dashManager = null;
+var settings = null;
+var dashManager = null;
 
 
 function init() {

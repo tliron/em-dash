@@ -158,4 +158,4 @@ function resamplePixels(pixbuf, pixels, resampleX, resampleY) {
 }
 
 
-let _backlightCache = new Map();
+var _backlightCache = new Map();

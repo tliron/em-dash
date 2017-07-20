@@ -120,7 +120,7 @@ var DockableDash = new Lang.Class({
 	_onStyleChanged: function(actor) {
 		log('dash "style-changed" signal');
 
-		// Block the signal while changing the style
+		// Block this signal connection while changing the style to avoid recursion
 		let connection = this._signalManager.get(this._onStyleChanged);
 		connection.blocked = true;
 
@@ -142,7 +142,7 @@ var DockableDash = new Lang.Class({
 				topRight = themeNode.get_border_radius(St.Corner.BOTTOMRIGHT);
 			}
 			actor.style = `border-radius: ${topLeft}px ${topRight}px 0 0;`;
-			// Note: St CSS doesn't seem to support "border-top-left-radius", etc.
+			// Note: St doesn't seem to support "border-top-left-radius" CSS, etc.
 		}
 
 		connection.blocked = false;

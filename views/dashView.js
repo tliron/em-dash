@@ -26,6 +26,7 @@ const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const TimeoutUtils = Me.imports.utils.timeout;
 const ClutterUtils = Me.imports.utils.clutter;
+const BacklightUtils = Me.imports.utils.backlight;
 const StUtils = Me.imports.utils.st;
 const IconView = Me.imports.views.iconView;
 const ShowAppsIcon = Me.imports.views.showAppsIcon;
@@ -57,6 +58,7 @@ var DashView = new Lang.Class({
 		this._logicalIconSize = null;
 		this._focused = null;
 		this._scrollTranslation = 0;
+		this._tooltip = null;
 		this._grabDialog = null;
 
 		// Actor: contains dash and arrow
@@ -87,16 +89,6 @@ var DashView = new Lang.Class({
 		});
 		this.actor.add_child(this._fader);
 
-		// Tooltip
-		this._tooltip = new St.Label({
-			style_class: 'dash-label',
-			visible: false
-		});
-		this._tooltipContainer = new StUtils.StageBin({
-			child: this._tooltip
-		});
-		this._tooltipContainer.addToChrome();
-
 		this._timeoutManager = new TimeoutUtils.TimeoutManager(this);
 
 		// Signals
@@ -111,8 +103,13 @@ var DashView = new Lang.Class({
 
 			let appSystem = Shell.AppSystem.get_default();
 			let windowTracker = Shell.WindowTracker.get_default();
+			let textureCache = St.TextureCache.get_default();
+
 			this._signalManager.connectProperty(this.box, 'allocation',
 				this._onBoxAllocationPropertyChanged);
+			this._signalManager.connect(this.dash, 'style-changed', this._onStyleChanged);
+			this._signalManager.connect(textureCache, 'icon-theme-changed',
+				this._onIconThemeChanged);
 			this._signalManager.connect(this._fader, 'enter-event', this._onFaderEnter);
 			this._signalManager.connect(this.modelManager, 'changed', this._onDashModelChanged);
 			this._signalManager.connect(appSystem, 'installed-changed',
@@ -141,7 +138,9 @@ var DashView = new Lang.Class({
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
 		this.actor.destroy();
-		this._tooltipContainer.destroy();
+		if (this._tooltip !== null) {
+			this._tooltip.destroy();
+		}
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
 		}
@@ -217,115 +216,20 @@ var DashView = new Lang.Class({
 	},
 
 	refresh: function(force = false, workspaceIndex) {
-		if (workspaceIndex === undefined) {
-			workspaceIndex = global.screen.get_active_workspace().index();
-		}
-		let dashModel = this.modelManager.getDashModel(workspaceIndex);
-		this._refresh(force, dashModel);
-	},
-
-	updateTooltip: function(enable, iconView) {
-		if (enable) {
-			let hover = this.modelManager.settings.get_string('icons-hover');
-			if (hover === 'NOTHING') {
-				return;
-			}
-
-			this._timeoutManager.cancelAndAdd(HOVER_TIMEOUT, 'DashView.updateTooltip', () => {
-				let margin = 6;
-				let x, y;
-				let actor = iconView.actor;
-				let [iconX, iconY] = actor.get_transformed_position();
-				let [dashX, dashY] = this.actor.get_transformed_position();
-
-				this._tooltip.text = iconView.app.get_name();
-				if (this.box.vertical) {
-					y = iconY + actor.height / 2 - this._tooltip.height / 2;
-
-					// Try on left side
-					x = dashX - this._tooltip.width - margin;
-					if (x < 0) {
-						// Right side
-						x = dashX + this.actor.width + margin;
-					}
-
-				}
-				else {
-					x = iconX + actor.width / 2 - this._tooltip.width / 2;
-
-					// Try on top
-					y = dashY - this._tooltip.height - margin;
-					if (y < 0) {
-						// Bottom
-						y = dashY + this.actor.height + margin;
-					}
-				}
-
-				this._tooltip.set_position(x, y);
-				this._tooltip.opacity = 0;
-				this._tooltip.show();
-				Tweener.addTween(this._tooltip, {
-					time: ANIMATION_TIME,
-					transition: 'easeOutQuad',
-					opacity: 255
-				});
-			});
-		}
-		else {
-			this._timeoutManager.cancel('DashView.updateTooltip');
-			if (this._tooltip.visible) {
-				Tweener.addTween(this._tooltip, {
-					time: ANIMATION_TIME,
-					transition: 'easeOutQuad',
-					opacity: 0,
-					onComplete: () => {
-						this._tooltip.hide();
-					}
-				});
-			}
-		}
-	},
-
-	startGrab: function(grabSourceIconView) {
-		log(`startGrab: grabbing from ${grabSourceIconView.app.id}`);
-		this.grabSourceIconView = grabSourceIconView;
-		if (this._grabDialog !== null) {
-			this._grabDialog.destroy();
-		}
-		this._grabDialog = new GrabDialog.GrabDialog(grabSourceIconView);
-		this._grabDialog.connect('destroy', () => {
-			log('grabDialog "destroy" signal');
-			this._grabDialog = null;
-		});
-		this._grabDialog.connect('cancel', () => {
-			log('grabDialog "cancel" signal');
-			this.grabSourceIconView = null;
-		});
-		this._grabDialog.open();
-	},
-
-	endGrab: function(grabTargetIconView) {
-		log(`endGrab: grabbing from ${this.grabSourceIconView.app.id} to ${grabTargetIconView.app.id}`);
-		if (this._grabDialog !== null) {
-			this._grabDialog.destroy();
-		}
-		let windows = this.grabSourceIconView.model.getWindows(this.modelManager.workspaceIndex);
-		if (grabTargetIconView.model.addMatchersFor(windows)) {
-			grabTargetIconView.model.save();
-		}
-		this.grabSourceIconView = null;
-	},
-
-	_refresh: function(force, dashModel) {
-		this.modelManager.log();
-
 		let physicalActorHeight = this._scalingManager.toPhysical(this._logicalIconSize);
 		let physicalIconSize = physicalActorHeight * 0.75;
 		if (this.quantize) {
 			physicalIconSize = this._scalingManager.getSafeIconSize(physicalIconSize);
 		}
 		let logicalIconSize = this._scalingManager.toLogical(physicalIconSize);
-		log(`_refresh: height=${physicalActorHeight} icon=${physicalIconSize}`);
+		log(`refresh: height=${physicalActorHeight} icon=${physicalIconSize}`);
+
+		if (workspaceIndex === undefined) {
+			workspaceIndex = global.screen.get_active_workspace().index();
+		}
+		let dashModel = this.modelManager.getDashModel(workspaceIndex);
+
+		//this.modelManager.log();
 
 		//this.box.set_translation(0, 0, 0);
 
@@ -415,6 +319,108 @@ var DashView = new Lang.Class({
 		this._updateFader();
 		this._updateFocusApp();
 		this._updateWheelScrolling();
+	},
+
+	updateTooltip: function(enable, iconView) {
+		if (enable) {
+			let hover = this.modelManager.settings.get_string('icons-hover');
+			if (hover === 'NOTHING') {
+				return;
+			}
+
+			this._timeoutManager.cancelAndAdd(HOVER_TIMEOUT, 'DashView.updateTooltip', () => {
+				let margin = 6;
+				let x, y;
+				let actor = iconView.actor;
+				let [iconX, iconY] = actor.get_transformed_position();
+				let [dashX, dashY] = this.actor.get_transformed_position();
+
+				// Note: we tried to reuse the same St.Label, but found that subsequent uses after
+				// the first one resulted in oddly blurred text
+				this._tooltip = new St.Label({
+					text: iconView.app.get_name(),
+					style_class: 'dash-label',
+					visible: false,
+					opacity: 0
+				});
+				Main.layoutManager.addChrome(this._tooltip);
+
+				if (this.box.vertical) {
+					y = iconY + actor.height / 2 - this._tooltip.height / 2;
+
+					// Try on left side
+					x = dashX - this._tooltip.width - margin;
+					if (x < 0) {
+						// Right side
+						x = dashX + this.actor.width + margin;
+					}
+
+				}
+				else {
+					x = iconX + actor.width / 2 - this._tooltip.width / 2;
+
+					// Try on top
+					y = dashY - this._tooltip.height - margin;
+					if (y < 0) {
+						// Bottom
+						y = dashY + this.actor.height + margin;
+					}
+				}
+
+				this._tooltip.set_position(x, y);
+				this._tooltip.show();
+				Tweener.addTween(this._tooltip, {
+					time: ANIMATION_TIME,
+					transition: 'easeOutQuad',
+					opacity: 255
+				});
+			});
+		}
+		else {
+			this._timeoutManager.cancel('DashView.updateTooltip');
+			if (this._tooltip !== null) {
+				let tooltip = this._tooltip;
+				this._tooltip = null;
+				Tweener.addTween(tooltip, {
+					time: ANIMATION_TIME,
+					transition: 'easeOutQuad',
+					opacity: 0,
+					onComplete: () => {
+						tooltip.destroy();
+					}
+				});
+			}
+		}
+	},
+
+	startGrab: function(grabSourceIconView) {
+		log(`startGrab: grabbing from ${grabSourceIconView.app.id}`);
+		this.grabSourceIconView = grabSourceIconView;
+		if (this._grabDialog !== null) {
+			this._grabDialog.destroy();
+		}
+		this._grabDialog = new GrabDialog.GrabDialog(grabSourceIconView);
+		this._grabDialog.connect('destroy', () => {
+			log('grabDialog "destroy" signal');
+			this._grabDialog = null;
+		});
+		this._grabDialog.connect('cancel', () => {
+			log('grabDialog "cancel" signal');
+			this.grabSourceIconView = null;
+		});
+		this._grabDialog.open();
+	},
+
+	endGrab: function(grabTargetIconView) {
+		log(`endGrab: grabbing from ${this.grabSourceIconView.app.id} to ${grabTargetIconView.app.id}`);
+		if (this._grabDialog !== null) {
+			this._grabDialog.destroy();
+		}
+		let windows = this.grabSourceIconView.model.getWindows(this.modelManager.workspaceIndex);
+		if (grabTargetIconView.model.addMatchersFor(windows)) {
+			grabTargetIconView.model.save();
+		}
+		this.grabSourceIconView = null;
 	},
 
 	_updateApplicationsButton: function(logicalIconSize) {
@@ -630,6 +636,17 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 	_onBoxAllocationPropertyChanged: function(actor, allocation) {
 		log('box "allocation" property changed signal');
 		this._updateFader();
+	},
+
+	_onStyleChanged: function(actor) {
+		log('dash "style-changed" signal');
+		this.refresh(true);
+	},
+
+	_onIconThemeChanged: function(textureCache) {
+		log('texture cache "icon-theme-changed" signal');
+		BacklightUtils.reset();
+		this.refresh(true);
 	},
 
 	_onFaderEnter: function(actor, crossingEvent) {
