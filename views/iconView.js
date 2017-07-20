@@ -45,7 +45,7 @@ const ANIMATION_TIME = 0.1;
  *
  *   https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
  */
-const IconView = new Lang.Class({
+var IconView = new Lang.Class({
 	Name: 'EmDash.IconView',
 	Extends: AppDisplay.AppIcon,
 

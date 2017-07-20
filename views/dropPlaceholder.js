@@ -32,7 +32,7 @@ const ANIMATION_TIME = 0.1;
 /**
  * Drop hovering placeholder singleton.
  */
-const DropPlaceholder = new Lang.Class({
+var DropPlaceholder = new Lang.Class({
 	Name: 'EmDash.DropPlaceholder',
 
 	_init: function(actor, after) {

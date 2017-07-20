@@ -102,7 +102,7 @@ const ICON_SAFE_SIZES = [8, 16, 22, 24, 32, 48, 64, 96, 128, 256, 512];
  * whatever scaling factor (like pixel sizes in CSS). Only when "dropping" to Clutter do you have
  * to convert to "physical" sizes.
  */
-const ScalingManager = new Lang.Class({
+var ScalingManager = new Lang.Class({
 	Name: 'EmDash.ScalingManager',
 
 	_init: function() {

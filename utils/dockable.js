@@ -33,7 +33,7 @@ const log = LoggingUtils.logger('dockable');
 /**
  * Container that can be docked on the side of a monitor.
  */
-const Dockable = new Lang.Class({
+var Dockable = new Lang.Class({
 	Name: 'EmDash.Dockable',
 
 	_init: function(child, alignChild, side, align, stretch, toggle) {

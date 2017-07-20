@@ -18,7 +18,7 @@ const Mainloop = imports.mainloop;
 const GLib = imports.gi.GLib;
 
 
-const TimeoutManager = new Lang.Class({
+var TimeoutManager = new Lang.Class({
 	Name: 'EmDash.TimeoutManager',
 
 	_init: function(self) {
@@ -55,7 +55,7 @@ const TimeoutManager = new Lang.Class({
 });
 
 
-const Timeout = new Lang.Class({
+var Timeout = new Lang.Class({
 	Name: 'EmDash.Timeout',
 
 	_init: function(time, name, self, callback) {

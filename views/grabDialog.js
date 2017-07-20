@@ -27,7 +27,7 @@ const N_ = e => e;
 /**
  * Just tells the user to click on the grabbing dash icon.
  */
-const GrabDialog = new Lang.Class({
+var GrabDialog = new Lang.Class({
 	Name: 'EmDash.GrabDialog',
 	Extends: DialogUtils.MessageDialog,
 

@@ -40,7 +40,7 @@ const log = LoggingUtils.logger('iconMenu');
  *
  *   https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
  */
-const IconMenu = new Lang.Class({
+var IconMenu = new Lang.Class({
 	Name: 'EmDash.IconMenu',
 	Extends: AppDisplay.AppIconMenu,
 
@@ -128,7 +128,7 @@ const IconMenu = new Lang.Class({
 /**
  * Base class for containers that use Shell.MenuTracker to insert and remove items.
  */
-const TrackingContainer = new Lang.Class({
+var TrackingContainer = new Lang.Class({
 	Name: 'EmDash.TrackingContainer',
 
 	_init: function() {
@@ -206,7 +206,7 @@ const TrackingContainer = new Lang.Class({
 /**
  * Application menu section.
  */
-const AppMenu = new Lang.Class({
+var AppMenu = new Lang.Class({
 	Name: 'EmDash.AppMenu',
 	Extends: TrackingContainer,
 
@@ -223,7 +223,7 @@ const AppMenu = new Lang.Class({
 /**
  * Manages the relationship between an application menu item and a tracker item.
  */
-const AppMenuItem = new Lang.Class({
+var AppMenuItem = new Lang.Class({
 	Name: 'EmDash.AppMenuItem',
 	Extends: TrackingContainer, // we only need the base class functionality for has_submenu
 
@@ -317,7 +317,7 @@ const AppMenuItem = new Lang.Class({
 /**
  * Media controls menu section.
  */
-const MediaControlsMenu = new Lang.Class({
+var MediaControlsMenu = new Lang.Class({
 	Name: 'EmDash.MediaControlsMenu',
 
 	_init: function(simpleName) {
@@ -393,7 +393,7 @@ const MediaControlsMenu = new Lang.Class({
 /**
  * Popup sub-menu item, with support for an "open" signal.
  */
-const PopupSubMenuMenuItem = new Lang.Class({
+var PopupSubMenuMenuItem = new Lang.Class({
 	Name: 'EmDash.PopupSubMenuMenuItem',
 	Extends: PopupMenu.PopupSubMenuMenuItem,
 
@@ -413,7 +413,7 @@ const PopupSubMenuMenuItem = new Lang.Class({
  *
  * See: https://github.com/GNOME/gnome-shell/blob/master/js/ui/popupMenu.js
  */
-const PopupImageMenuItem = new Lang.Class({
+var PopupImageMenuItem = new Lang.Class({
 	Name: 'EmDash.PopupImageMenuItem',
 	Extends: PopupMenu.PopupImageMenuItem,
 

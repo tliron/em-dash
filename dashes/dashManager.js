@@ -29,7 +29,7 @@ const log = LoggingUtils.logger('dashManager');
 /**
  * Manages and switches between dash implementations.
  */
-const DashManager = new Lang.Class({
+var DashManager = new Lang.Class({
 	Name: 'EmDash.DashManager',
 
 	_init: function(settings, dashClasses) {

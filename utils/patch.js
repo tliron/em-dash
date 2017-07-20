@@ -22,7 +22,7 @@ const Lang = imports.lang;
  * The patching function will receive a callable to the patched function prepended as its first
  * argument.
  */
-const PatchManager = new Lang.Class({
+var PatchManager = new Lang.Class({
 	Name: 'EmDash.PatchManager',
 
 	_init: function(self) {
@@ -60,7 +60,7 @@ const PatchManager = new Lang.Class({
 /**
  * A monkey patch.
  */
-const Patch = new Lang.Class({
+var Patch = new Lang.Class({
 	Name: 'EmDash.Patch',
 
 	_init: function(self, site, name, fn) {

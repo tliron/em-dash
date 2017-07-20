@@ -27,7 +27,7 @@ const DashView = Me.imports.views.dashView;
  * They should be considered singletons, as only one instance ever exists, as managed by
  * DashManager.
  */
-const Dash = new Lang.Class({
+var Dash = new Lang.Class({
 	Name: 'EmDash.Dash',
 
 	_init: function(dashManager, styleClass, vertical, iconSize, quantize) {

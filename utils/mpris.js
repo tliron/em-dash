@@ -26,7 +26,7 @@ const log = LoggingUtils.logger('mpris');
 /**
  * DBus connection to an MPRIS2 player.
  */
-const MPRIS = new Lang.Class({
+var MPRIS = new Lang.Class({
 	Name: 'EmDash.MPRIS',
 
 	_init: function(name) {

@@ -31,7 +31,7 @@ const log = LoggingUtils.logger('panelDash');
 /**
  * Dash implementation on the GNOME Shell panel.
  */
-const TopBarDash = new Lang.Class({
+var TopBarDash = new Lang.Class({
 	Name: 'EmDash.TopBarDash',
 	Extends: Dash.Dash,
 

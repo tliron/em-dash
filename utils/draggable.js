@@ -28,7 +28,7 @@ const log = LoggingUtils.logger('draggable');
  * Makes it a easier to use GNOME Shell's DND by managing the signals and calling delegated
  * functions.
  */
-const Draggable = new Lang.Class({
+var Draggable = new Lang.Class({
 	Name: 'EmDash.Draggable',
 
 	_init: function(actor) {

@@ -20,7 +20,7 @@ const Meta = imports.gi.Meta;
 /**
  * Manages deferred callbacks.
  */
-const LaterManager = new Lang.Class({
+var LaterManager = new Lang.Class({
 	Name: 'EmDash.LaterManager',
 
 	_init: function(self) {
@@ -80,7 +80,7 @@ const LaterManager = new Lang.Class({
 /**
  * Deferred callback.
  */
-const Later = new Lang.Class({
+var Later = new Lang.Class({
 	Name: 'EmDash.Later',
 
 	_init: function(self, callback, type) {

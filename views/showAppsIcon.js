@@ -29,7 +29,7 @@ const log = LoggingUtils.logger('showAppsIcon');
  *
  * Note that this is a GObject class!
  */
-const ShowAppsIcon = new Lang.Class({
+var ShowAppsIcon = new Lang.Class({
 	Name: 'EmDash-ShowAppsIcon', // can't use "." with GObject classes
 	Extends: Dash.ShowAppsIcon,
 

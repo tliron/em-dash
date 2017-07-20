@@ -27,7 +27,7 @@ const Lang = imports.lang;
  * WARNING: The signal manager *will* keep references to the objects to which you connect, so
  * it will keep them from being garbage-collected.
  */
-const SignalManager = new Lang.Class({
+var SignalManager = new Lang.Class({
 	Name: 'EmDash.SignalManager',
 
 	_init: function(self) {
@@ -123,7 +123,7 @@ const SignalManager = new Lang.Class({
  * Set "blocked" to true to temporarily block the connection, and "blockedReturn" to return a
  * specific value while blocked.
  */
-const SignalConnection = new Lang.Class({
+var SignalConnection = new Lang.Class({
 	Name: 'EmDash.SignalConnection',
 
 	_init: function(manager, site, name, callback, single, mode) {

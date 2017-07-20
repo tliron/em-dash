@@ -14,7 +14,10 @@
  */
 
 const Lang = imports.lang;
+const Main = imports.ui.main;
 const Shell = imports.gi.Shell;
+const Clutter = imports.gi.Clutter;
+const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
@@ -28,7 +31,7 @@ const SignalUtils = Me.imports.utils.signal;
  *
  * Note also that this is a GObject class!
  */
-const FlexBin = new Lang.Class({
+var FlexBin = new Lang.Class({
 	Name: 'EmDash-FlexBin', // can't use "." with GObject classes
 	Extends: Shell.GenericContainer,
 
@@ -86,5 +89,54 @@ const FlexBin = new Lang.Class({
 	_onGetPreferredHeight: function(actor, forWidth, alloc) {
 		alloc.min_size = 0;
 		alloc.natural_size = this.preferred_height;
+	}
+});
+
+
+/**
+ * An St container for a single child which makes sure that the child is rendered at scale. This
+ * is especially necessary for avoiding blurry text.
+ *
+ * At achieves this effect by constraining its bounds to those of the stage while not affecting
+ * the input regions.
+ *
+ * Note that though it's not a subclass of St.Bin, it behaves similarly.
+ *
+ * Note also that this is a GObject class!
+ */
+var StageBin = new Lang.Class({
+	Name: 'EmDash-StageBin', // can't use "." with GObject classes
+	Extends: St.Widget,
+
+	_init: function(params) {
+		params = params || {};
+
+		let child = null;
+
+		// Parse/remove our extra params
+		if ('child' in params) {
+			child = params['child'];
+			delete params['child'];
+		}
+		if (!('layout_manager' in params)) {
+			params.layout_manager = new Clutter.BinLayout();
+		}
+
+		this.parent(params);
+
+		if (child !== null) {
+			this.add_child(child);
+		}
+
+		this.add_constraint(new Clutter.BindConstraint({
+			source: global.stage,
+			coordinate: Clutter.BindCoordinate.ALL
+		}));
+	},
+
+	addToChrome: function() {
+		Main.layoutManager.addChrome(this, {
+			affectsInputRegion: false
+		});
 	}
 });

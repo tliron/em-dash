@@ -25,7 +25,6 @@ const Convenience = Me.imports.convenience;
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 
-
 const log = LoggingUtils.logger('prefs');
 
 
@@ -41,7 +40,7 @@ function buildPrefsWidget() {
 }
 
 
-const PrefsWidget = new Lang.Class({
+var PrefsWidget = new Lang.Class({
 	Name: 'EmDash.PrefsWidget',
 
 	_init: function() {

@@ -29,7 +29,7 @@ const log = LoggingUtils.logger('dockableDash');
 /**
  * Dash implementation that can be docked to the sides of a monitor.
  */
-const DockableDash = new Lang.Class({
+var DockableDash = new Lang.Class({
 	Name: 'EmDash.DockableDash',
 	Extends: Dash.Dash,
 

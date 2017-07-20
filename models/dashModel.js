@@ -32,7 +32,7 @@ const log = LoggingUtils.logger('dashModel');
  *
  * Other icons will appear after the favorites, and only if they have a window on the workspace.
  */
-const DashModel = new Lang.Class({
+var DashModel = new Lang.Class({
 	Name: 'EmDash.DashModel',
 
 	_init: function(modelManager) {

@@ -26,6 +26,7 @@ const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const TimeoutUtils = Me.imports.utils.timeout;
 const ClutterUtils = Me.imports.utils.clutter;
+const StUtils = Me.imports.utils.st;
 const IconView = Me.imports.views.iconView;
 const ShowAppsIcon = Me.imports.views.showAppsIcon;
 const GrabDialog = Me.imports.views.grabDialog;
@@ -42,7 +43,7 @@ const HOVER_TIMEOUT = 300;
  * Note that it is a complete re-implementation, and does not inherit from GNOME Shell's built-in
  * dash (though our IconView does inherit from AppIcon).
  */
-const DashView = new Lang.Class({
+var DashView = new Lang.Class({
 	Name: 'EmDash.DashView',
 
 	_init: function(modelManager, scalingManager, styleClass, vertical, logicalIconSize, quantize) {
@@ -91,16 +92,19 @@ const DashView = new Lang.Class({
 			style_class: 'dash-label',
 			visible: false
 		});
-		Main.layoutManager.addChrome(this._tooltip);
+		this._tooltipContainer = new StUtils.StageBin({
+			child: this._tooltip
+		});
+		this._tooltipContainer.addToChrome();
 
 		this._timeoutManager = new TimeoutUtils.TimeoutManager(this);
 
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this.actor, 'paint', () => {
-			// We need to wait until we're painted in order to focus app (backlight highlighting
-			// needs theme information)
 			log('"paint" signal');
+			// We need to wait until we're painted before calling _updateFocusApp (backlight
+			// highlighting needs theme information)
 
 			this.setVertical(vertical);
 			this.setIconSize(logicalIconSize);
@@ -137,7 +141,7 @@ const DashView = new Lang.Class({
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
 		this.actor.destroy();
-		this._tooltip.destroy();
+		this._tooltipContainer.destroy();
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
 		}
@@ -292,6 +296,10 @@ const DashView = new Lang.Class({
 		this._grabDialog.connect('destroy', () => {
 			log('grabDialog "destroy" signal');
 			this._grabDialog = null;
+		});
+		this._grabDialog.connect('cancel', () => {
+			log('grabDialog "cancel" signal');
+			this.grabSourceIconView = null;
 		});
 		this._grabDialog.open();
 	},

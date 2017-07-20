@@ -26,7 +26,6 @@ const DashModel = Me.imports.models.dashModel;
 
 const log = LoggingUtils.logger('modelManager');
 
-
 const SINGLE_WORKSPACE_INDEX = -1;
 
 
@@ -42,7 +41,7 @@ const SINGLE_WORKSPACE_INDEX = -1;
  * Internally relies on the GNOME Shell AppSystem, but with enhancements to support per-workspace
  * tracking and window grabbing.
  */
-const ModelManager = new Lang.Class({
+var ModelManager = new Lang.Class({
 	Name: 'EmDash.ModelManager',
 
 	_init: function(settings) {

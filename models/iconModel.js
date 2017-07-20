@@ -34,7 +34,7 @@ const log = LoggingUtils.logger('iconModel');
  * An icon is associated with a list of windows. Only favorite icons are allowed to stay in the dash
  * with no windows.
  */
-const IconModel = new Lang.Class({
+var IconModel = new Lang.Class({
 	Name: 'EmDash.IconModel',
 
 	_init: function(dashModel, app) {
@@ -321,7 +321,7 @@ const IconModel = new Lang.Class({
 /**
  * Can match a window by its WM_CLASS and optionally its WM_CLASS_INSTANCE.
  */
-const Matcher = new Lang.Class({
+var Matcher = new Lang.Class({
 	Name: 'EmDash.Matcher',
 
 	_init: function(wmClass, wmClassInstance = null) {
