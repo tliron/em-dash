@@ -33,7 +33,7 @@ var DockableDash = new Lang.Class({
 	Name: 'EmDash.DockableDash',
 	Extends: Dash.Dash,
 
-	_init: function(dashManager, location) {
+	_init(dashManager, location) {
 		log('_init');
 
 		let side = getMutterSideForLocation(location);
@@ -65,13 +65,13 @@ var DockableDash = new Lang.Class({
 		this._updateStyle(side);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._dockable.destroy();
 		this.parent();
 	},
 
-	setLocation: function(location) {
+	setLocation(location) {
 		let side = getMutterSideForLocation(location);
 		this._view.setVertical((side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
 		this._view.refresh();
@@ -79,7 +79,7 @@ var DockableDash = new Lang.Class({
 		this._updateStyle(side);
 	},
 
-	_updateStyle: function(side) {
+	_updateStyle(side) {
 		let actor = this._view.dash;
 		let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 		switch (side) {
@@ -117,7 +117,7 @@ var DockableDash = new Lang.Class({
 		}
 	},
 
-	_onStyleChanged: function(actor) {
+	_onStyleChanged(actor) {
 		log('dash "style-changed" signal');
 
 		// Block this signal connection while changing the style to avoid recursion
@@ -148,35 +148,35 @@ var DockableDash = new Lang.Class({
 		connection.blocked = false;
 	},
 
-	_onDockIconSizeSettingChanged: function(setting, dockIconSize) {
+	_onDockIconSizeSettingChanged(setting, dockIconSize) {
 		log(`"dock-icon-size" setting changed signal: ${dockIconSize}`);
 		this._view.setIconSize(dockIconSize);
 	},
 
-	_onDockStretchSettingChanged: function(setting, dockStretch) {
+	_onDockStretchSettingChanged(setting, dockStretch) {
 		log(`"dock-stretch" setting changed signal: ${dockStretch}`);
 		this._dockable.setStretch(dockStretch);
 	},
 
-	_onDockBordersSettingChanged: function(setting, dockBorders) {
+	_onDockBordersSettingChanged(setting, dockBorders) {
 		log(`"dock-borders" setting changed signal: ${dockBorders}`);
 		let location = this._dashManager.settings.get_string('dash-location');
 		this._updateStyle(getMutterSideForLocation(location));
 	},
 
-	_onDockAlignmentSettingChanged: function(settings, dockAlignment) {
+	_onDockAlignmentSettingChanged(settings, dockAlignment) {
 		log(`"dock-alignment" setting changed signal: ${dockAlignment}`);
 		let align = getStAlignForAlignment(dockAlignment);
 		this._dockable.setAlign(align);
 	},
 
-	_onDockVisibilitySettingChanged: function(settings, dockVisibility) {
+	_onDockVisibilitySettingChanged(settings, dockVisibility) {
 		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
 		let toggle = dockVisibility === 'TOUCH_TO_REVEAL';
 		this._dockable.setToggle(toggle);
 	},
 
-	_onScalingChanged: function(scaling, factor) {
+	_onScalingChanged(scaling, factor) {
 		log(`scaling "changed" signal: ${factor}`);
 		this._view.refresh();
 	}

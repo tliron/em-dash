@@ -29,7 +29,7 @@ const log = LoggingUtils.logger('mpris');
 var MPRIS = new Lang.Class({
 	Name: 'EmDash.MPRIS',
 
-	_init: function(name) {
+	_init(name) {
 		log('_init');
 
 		this.canPause = null;
@@ -49,34 +49,34 @@ var MPRIS = new Lang.Class({
 		getOwner(this._busName, Lang.bind(this, this._onGetOwner));
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		// There is no way to cancel the existing DBus remote calls, so we'll just make sure not to
 		// do anything if answers arrive after we've been destroyed
 		this._destroyed = true;
 	},
 
-	play: function() {
+	play() {
 		this._mediaPlayerPlayer.PlayRemote();
 	},
 
-	pause: function() {
+	pause() {
 		this._mediaPlayerPlayer.PauseRemote();
 	},
 
-	stop: function() {
+	stop() {
 		this._mediaPlayerPlayer.StopRemote();
 	},
 
-	next: function() {
+	next() {
 		this._mediaPlayerPlayer.NextRemote();
 	},
 
-	previous: function() {
+	previous() {
 		this._mediaPlayerPlayer.PreviousRemote();
 	},
 
-	_onGetOwner: function(owner) {
+	_onGetOwner(owner) {
 		if (this._destroyed) {
 			log('_onGetOwner: destroyed!');
 			return;
@@ -109,7 +109,7 @@ var MPRIS = new Lang.Class({
 		*/
 	},
 
-	_onProxyCreated: function(name, proxy) {
+	_onProxyCreated(name, proxy) {
 		if (this._destroyed) {
 			log('_onProxyCreated: destroyed!');
 			return;

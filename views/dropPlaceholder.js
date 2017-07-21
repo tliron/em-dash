@@ -28,6 +28,8 @@ const log = LoggingUtils.logger('dropPlaceholder');
 
 const ANIMATION_TIME = 0.1;
 
+var _dropPlaceholder = null;
+
 
 /**
  * Drop hovering placeholder singleton.
@@ -35,7 +37,7 @@ const ANIMATION_TIME = 0.1;
 var DropPlaceholder = new Lang.Class({
 	Name: 'EmDash.DropPlaceholder',
 
-	_init: function(actor, after) {
+	_init(actor, after) {
 		this._iconView = actor._delegate;
 		this._after = after;
 		log(`_init: ${this._iconView.app.id}${after?' after':''}`);
@@ -89,7 +91,7 @@ var DropPlaceholder = new Lang.Class({
 		Tweener.addTween(this.actor, tween);
 	},
 
-	destroy: function() {
+	destroy() {
 		if (this.destroying) {
 			return;
 		}
@@ -126,13 +128,13 @@ var DropPlaceholder = new Lang.Class({
 		Tweener.addTween(this.actor, tween);
 	},
 
-	isFor: function(actor, after) {
+	isFor(actor, after) {
 		return (actor === this._iconView.actor) && (after == this._after);
 	},
 
 	// Dropping on us
 
-	acceptDrop: function(source, actor, x, y, time) {
+	acceptDrop(source, actor, x, y, time) {
 		// Hooked from DND using our actor._delegate
 		this._dropped = true;
 		let appId = source.app.id;
@@ -156,7 +158,7 @@ var DropPlaceholder = new Lang.Class({
 		return true;
 	},
 
-	_onDragMotion: function(dragEvent) {
+	_onDragMotion(dragEvent) {
 		// Remove placeholder if we've moved out of the dash view box
 		if (!ClutterUtils.isDescendent(dragEvent.targetActor, this._iconView.dashView.box)) {
 			log('dragMotion monitor hook: not in our area');
@@ -166,9 +168,6 @@ var DropPlaceholder = new Lang.Class({
 		return DND.DragMotionResult.CONTINUE;
 	}
 });
-
-
-var _dropPlaceholder = null;
 
 
 function add(actor, after) {

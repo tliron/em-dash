@@ -32,7 +32,7 @@ const log = LoggingUtils.logger('dashManager');
 var DashManager = new Lang.Class({
 	Name: 'EmDash.DashManager',
 
-	_init: function(settings, dashClasses) {
+	_init(settings, dashClasses) {
 		log('_init');
 
 		this.dash = null;
@@ -73,7 +73,7 @@ var DashManager = new Lang.Class({
 		}, true);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
 		if (this.dash !== null) {
@@ -85,19 +85,19 @@ var DashManager = new Lang.Class({
 		this.restoreAppMenu();
 	},
 
-	removeBuiltInDash: function() {
+	removeBuiltInDash() {
 		if (this._overlayDashWasVisible) {
 			Main.overview._controls.dash.actor.hide();
 		}
 	},
 
-	restoreBuiltInDash: function() {
+	restoreBuiltInDash() {
 		if (this._overlayDashWasVisible) {
 			Main.overview._controls.dash.actor.show();
 		}
 	},
 
-	removeAppMenu: function() {
+	removeAppMenu() {
 		if (this._appMenuParent !== null) {
 			let appMenu = Main.panel.statusArea.appMenu.container;
 			if (this._appMenuParent.contains(appMenu)) {
@@ -106,7 +106,7 @@ var DashManager = new Lang.Class({
 		}
 	},
 
-	restoreAppMenu: function() {
+	restoreAppMenu() {
 		if (this._appMenuParent !== null) {
 			let appMenu = Main.panel.statusArea.appMenu.container;
 			if (!this._appMenuParent.contains(appMenu)) {
@@ -115,7 +115,7 @@ var DashManager = new Lang.Class({
 		}
 	},
 
-	_onDashLocationChanged: function(settings, dashLocation) {
+	_onDashLocationChanged(settings, dashLocation) {
 		log(`"dash-location" setting changed signal: ${dashLocation}`);
 		let DashClass = this._dashClasses[dashLocation];
 		if (this.dash !== null) {
@@ -130,7 +130,7 @@ var DashManager = new Lang.Class({
 		this.dash = new DashClass(this, dashLocation);
 	},
 
-	_onMenuApplicationSettingChanged: function(settings, menuApplication) {
+	_onMenuApplicationSettingChanged(settings, menuApplication) {
 		log(`"menu-application" setting changed signal: ${menuApplication}`);
 		if (menuApplication) {
 			this.removeAppMenu();

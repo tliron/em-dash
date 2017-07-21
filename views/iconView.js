@@ -49,7 +49,7 @@ var IconView = new Lang.Class({
 	Name: 'EmDash.IconView',
 	Extends: AppDisplay.AppIcon,
 
-	_init: function(dashView, model, modelIndex, physicalActorHeight, logicalIconSize) {
+	_init(dashView, model, modelIndex, physicalActorHeight, logicalIconSize) {
 		log(`_init: ${modelIndex} ${model.app.id}`);
 		this.dashView = dashView;
 		this.model = model;
@@ -116,7 +116,7 @@ var IconView = new Lang.Class({
 	/**
 	 * Override.
 	 */
-	_onDestroy: function() {
+	_onDestroy() {
 		log(`_onDestroy: ${this.app.id}`);
 		this._signalManager.destroy();
 		if (this._draggable !== null) {
@@ -127,12 +127,12 @@ var IconView = new Lang.Class({
 
 	// Animations
 
-	dissolve: function() {
+	dissolve() {
 		this.dissolving = true;
 		this._dissolve(true);
 	},
 
-	appear: function() {
+	appear() {
 		if (this._appearing) {
 			return;
 		}
@@ -151,7 +151,7 @@ var IconView = new Lang.Class({
 		});
 	},
 
-	_dissolve: function(destroy = false) {
+	_dissolve(destroy = false) {
 		log(`_dissolve: ${this.app.id}`);
 		let position = this.icon.icon.get_transformed_position();
 		this._originalX = position[0];
@@ -184,7 +184,7 @@ var IconView = new Lang.Class({
 		});
 	},
 
-	_appear: function(immediate = false) {
+	_appear(immediate = false) {
 		if (this._appearing) {
 			return;
 		}
@@ -210,7 +210,7 @@ var IconView = new Lang.Class({
 	/**
 	 * Override to use fixed icon size.
 	 */
-	_createIcon: function(iconSize) {
+	_createIcon(iconSize) {
 		if (this._logicalIconSize !== null) {
 			iconSize = this._logicalIconSize;
 		}
@@ -220,7 +220,7 @@ var IconView = new Lang.Class({
 
 	// Focus
 
-	focus: function() {
+	focus() {
 		log(`focus: ${this.app.id}`);
 		let icon = this.icon.icon;
 		if (icon !== null) {
@@ -249,7 +249,7 @@ background-gradient-end: ${backlight.dark};`;
 		this.actor.add_style_class_name('focused');
 	},
 
-	unfocus: function() {
+	unfocus() {
 		log(`unfocus: ${this.app.id}`);
 		this.actor.remove_style_class_name('focused');
 		this.actor.style = null;
@@ -258,7 +258,7 @@ background-gradient-end: ${backlight.dark};`;
 
 	// Running dot
 
-	setRunningDot: function(enhanced) {
+	setRunningDot(enhanced) {
 		if (enhanced) {
 			this._enhancedDot.show();
 			this._simpleDot.hide();
@@ -272,7 +272,7 @@ background-gradient-end: ${backlight.dark};`;
 		this._updateRunningStyle();
 	},
 
-	_onEnhancedDotRepainted: function(drawingArea) {
+	_onEnhancedDotRepainted(drawingArea) {
 		let dotSpacing = 2;
 		let dotMinWidth = 2;
 
@@ -315,7 +315,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Override to check for grabbed windows, too.
 	 */
-	_updateRunningStyle: function() {
+	_updateRunningStyle() {
 		let windows = this.model.getWindows(this.dashView.modelManager.workspaceIndex);
 		if (windows.length > 0) {
 			this._dot.show();
@@ -334,7 +334,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Override and copy original code, just use our menu class instead.
 	 */
-	popupMenu: function() {
+	popupMenu() {
 		this._removeMenuTimeout();
 		this.actor.fake_release();
 
@@ -378,7 +378,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Override to support our custom left-click actions.
 	 */
-	activate: function(button) {
+	activate(button) {
 		let settings = this.dashView.modelManager.settings;
 		let iconsLeftClick = settings.get_string('icons-left-click');
 
@@ -398,7 +398,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Override to support our custom middle-click actions.
 	 */
-	_onButtonPress: function(actor, event) {
+	_onButtonPress(actor, event) {
 		if (this.dashView.grabSourceIconView !== null) {
 			// We are in grab selection mode
 			this.dashView.endGrab(this);
@@ -424,17 +424,17 @@ background-gradient-end: ${backlight.dark};`;
 		return Clutter.EVENT_PROPAGATE;
 	},
 
-	enableWheelScrolling: function() {
+	enableWheelScrolling() {
 		if (this._signalManager.get(this._onScrollEvent) === null) {
 			this._signalManager.connect(this.actor, 'scroll-event', this._onScrollEvent);
 		}
 	},
 
-	disableWheelScrolling: function() {
+	disableWheelScrolling() {
 		this._signalManager.disconnect(this._onScrollEvent);
 	},
 
-	_onScrollEvent: function(actor, scrollEvent) {
+	_onScrollEvent(actor, scrollEvent) {
 		switch (scrollEvent.get_scroll_direction()) {
 		case Clutter.ScrollDirection.UP:
 			log(`actor "scroll-event" signal: ${this.app.id} up`);
@@ -451,12 +451,12 @@ background-gradient-end: ${backlight.dark};`;
 		return true;
 	},
 
-	_onHoverPropertyChanged: function(actor, hover) {
+	_onHoverPropertyChanged(actor, hover) {
 		log(`"hover" property changed signal: ${this.app.id} ${hover}`);
 		this.dashView.updateTooltip(hover, this);
 	},
 
-	_clickAction: function(action) {
+	_clickAction(action) {
 		Main.overview.hide();
 		switch (action) {
 		case 'LAUNCH':
@@ -474,19 +474,19 @@ background-gradient-end: ${backlight.dark};`;
 		}
 	},
 
-	launch: function() {
+	launch() {
 		log(`launch: ${this.app.id}`);
 		this._openNewWindow(true);
 	},
 
-	launchOrShow: function() {
+	launchOrShow() {
 		log(`launchOrShow: ${this.app.id}`);
 		if (!this._openNewWindow()) {
 			this.model.focus(this.dashView.modelManager.workspaceIndex);
 		}
 	},
 
-	launchOrToggle: function() {
+	launchOrToggle() {
 		log(`launchOrToggle: ${this.app.id}`);
 		if (!this._openNewWindow()) {
 			let workspaceIndex = this.dashView.modelManager.workspaceIndex;
@@ -496,14 +496,14 @@ background-gradient-end: ${backlight.dark};`;
 		}
 	},
 
-	launchOrCycle: function() {
+	launchOrCycle() {
 		log(`launchOrCycle: ${this.app.id}`);
 		if (!this._openNewWindow()) {
 			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, true, true);
 		}
 	},
 
-	_openNewWindow: function(force = false) {
+	_openNewWindow(force = false) {
 		if (force ||
 			(this.model.getWindows(this.dashView.modelManager.workspaceIndex).length === 0)) {
 			this.animateLaunch();
@@ -528,7 +528,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
 	 */
-	handleDragBegin: function() {
+	handleDragBegin() {
 		log(`handleDragBegin hook: ${this.app.id}`);
 		this._removeMenuTimeout();
 		this._dissolve();
@@ -539,7 +539,7 @@ background-gradient-end: ${backlight.dark};`;
 	 *
 	 * Hooked from DND using our actor._delegate.
 	 */
-	getDragActor: function() {
+	getDragActor() {
 		let size = this.icon.icon.icon_size;
 		log(`getDragActor hook: ${this.app.id} ${size}`);
 		return this.app.create_icon_texture(size);
@@ -548,7 +548,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
 	 */
-	getDragRestoreLocation: function() {
+	getDragRestoreLocation() {
 		log(`getDragRestoreLocation hook: ${this.app.id}`);
 		return [this._originalX, this._originalY, 1];
 	},
@@ -556,7 +556,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
 	 */
-	handleDragCancelling: function() {
+	handleDragCancelling() {
 		// Called as soon as the mouse button is released
 		log(`handleDragCancelling hook: ${this.app.id}`);
 		// Note: handleDragEnd may be called *before* the appear animation is complete
@@ -566,7 +566,7 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
 	 */
-	handleDragEnd: function(dropped) {
+	handleDragEnd(dropped) {
 		// When cancelling, called when the draggable *finishes* "snapping back"
 		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
 		DropPlaceholder.remove();
@@ -585,7 +585,7 @@ background-gradient-end: ${backlight.dark};`;
 	 *
 	 * Hooked from DND using our actor._delegate.
 	 */
-	handleDragOver: function(source, actor, x, y, extra) {
+	handleDragOver(source, actor, x, y, extra) {
 		if (source === this) {
 			log('handleDragOver hook: self');
 			return DND.DragMotionResult.NO_DROP;

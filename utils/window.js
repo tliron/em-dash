@@ -22,13 +22,7 @@ const log = LoggingUtils.logger('window');
 
 
 function getFocusedWindowIndex(windows) {
-	for (let i = 0; i < windows.length; i++) {
-		let window = windows[i];
-		if (window.has_focus()) {
-			return i;
-		}
-	}
-	return -1;
+	return windows.findIndex(window => window.has_focus());
 }
 
 

@@ -23,12 +23,12 @@ const Meta = imports.gi.Meta;
 var LaterManager = new Lang.Class({
 	Name: 'EmDash.LaterManager',
 
-	_init: function(self) {
+	_init(self) {
 		this._self = self;
 		this._laters = new Set();
 	},
 
-	destroy: function() {
+	destroy() {
 		// Forgetting to cancel these can result in crashes if the user enables and disables the
 		// extension very quickly...
 		for (let later of this._laters) {
@@ -55,7 +55,7 @@ var LaterManager = new Lang.Class({
 	 * * Meta.LaterType.IDLE: call at a very low priority (can be blocked by running animations or
 	 *   redrawing applications)
 	 */
-	later: function(callback, type = Meta.LaterType.BEFORE_REDRAW) {
+	later(callback, type = Meta.LaterType.BEFORE_REDRAW) {
 		let later = new Later(this._self, callback, type);
 		if (later.initialize()) {
 			this._laters.add(later);
@@ -64,7 +64,7 @@ var LaterManager = new Lang.Class({
 		return false;
 	},
 
-	cancel: function(callback) {
+	cancel(callback) {
 		for (let later of this._laters) {
 			if (later.callback === callback) {
 				this._laters.delete(later);
@@ -83,19 +83,19 @@ var LaterManager = new Lang.Class({
 var Later = new Lang.Class({
 	Name: 'EmDash.Later',
 
-	_init: function(self, callback, type) {
+	_init(self, callback, type) {
 		this.self = self;
 		this.callback = callback;
 		this.type = type;
 		this.id = 0;
 	},
 
-	initialize: function() {
+	initialize() {
 		this.id = Meta.later_add(this.type, Lang.bind(this.self, this.callback));
 		return this.id != 0;
 	},
 
-	destroy: function() {
+	destroy() {
 		if (this.id != 0) {
 			Meta.later_remove(this.id);
 			this.id = 0;

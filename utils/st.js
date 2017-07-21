@@ -35,7 +35,7 @@ var FixedBin = new Lang.Class({
 	Name: 'EmDash-FixedBin', // can't use "." with GObject classes
 	Extends: Shell.GenericContainer,
 
-	_init: function(params) {
+	_init(params) {
 		params = params || {};
 
 		this.preferred_width = 0;
@@ -70,23 +70,23 @@ var FixedBin = new Lang.Class({
 		this._signalManager.connect(this, 'get-preferred-height', this._onGetPreferredHeight);
 	},
 
-	_onDestroy: function() {
+	_onDestroy() {
 		this._signalManager.destroy();
 	},
 
-	_onAllocate: function(actor, box, flags) {
+	_onAllocate(actor, box, flags) {
         let child = actor.get_first_child();
         if (child !== null) {
 	        child.allocate(box, flags);
         }
 	},
 
-	_onGetPreferredWidth: function(actor, forHeight, alloc) {
+	_onGetPreferredWidth(actor, forHeight, alloc) {
 		alloc.min_size = 0;
 		alloc.natural_size = this.preferred_width;
 	},
 
-	_onGetPreferredHeight: function(actor, forWidth, alloc) {
+	_onGetPreferredHeight(actor, forWidth, alloc) {
 		alloc.min_size = 0;
 		alloc.natural_size = this.preferred_height;
 	}
@@ -108,7 +108,7 @@ var StageBin = new Lang.Class({
 	Name: 'EmDash-StageBin', // can't use "." with GObject classes
 	Extends: St.Widget,
 
-	_init: function(params) {
+	_init(params) {
 		params = params || {};
 
 		let child = null;
@@ -137,7 +137,7 @@ var StageBin = new Lang.Class({
 //		}));
 	},
 
-	addChrome: function() {
+	addChrome() {
 		//Main.layoutManager.uiGroup.insert_child_at_index(this, 0);
 		Main.layoutManager.uiGroup.add_child(this);
 	}

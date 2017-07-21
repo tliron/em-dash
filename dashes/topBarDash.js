@@ -35,7 +35,7 @@ var TopBarDash = new Lang.Class({
 	Name: 'EmDash.TopBarDash',
 	Extends: Dash.Dash,
 
-	_init: function(dashManager, location) {
+	_init(dashManager, location) {
 		log('_init');
 
 		this.parent(dashManager, 'top-bar', false,
@@ -74,7 +74,7 @@ var TopBarDash = new Lang.Class({
 		this.setLocation(location);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this.parent();
 		this.bin.destroy();
@@ -82,7 +82,7 @@ var TopBarDash = new Lang.Class({
 		Main.panel.actor.set_height(-1);
 	},
 
-	setLocation: function(location) {
+	setLocation(location) {
 		// Note: in RTL, the poorly named "_leftBox" actually appears on the right :)
 		switch (location) {
 		case 'TOP_BAR':
@@ -93,21 +93,21 @@ var TopBarDash = new Lang.Class({
 		}
 	},
 
-	_leftBoxAllocate: function(original, childBox, flags) {
+	_leftBoxAllocate(original, childBox, flags) {
 		if (!this._moveCenter) {
 			original(childBox, flags);
 		}
 		// else we will postpone until _rightBoxAllocate
 	},
 
-	_centerBoxAllocate: function(original, childBox, flags) {
+	_centerBoxAllocate(original, childBox, flags) {
 		if (!this._moveCenter) {
 			original(childBox, flags);
 		}
 		// else we will postpone until _rightBoxAllocate
 	},
 
-	_rightBoxAllocate: function(original, rightChildBox, flags) {
+	_rightBoxAllocate(original, rightChildBox, flags) {
 		original(rightChildBox, flags);
 
 		// TODO: rtl?
@@ -139,7 +139,7 @@ var TopBarDash = new Lang.Class({
 		}
 	},
 
-	_updateStyle: function(appearanceMerge) {
+	_updateStyle(appearanceMerge) {
 		if (appearanceMerge) {
 			this._view.dash.add_style_class_name('merge');
 		}
@@ -148,7 +148,7 @@ var TopBarDash = new Lang.Class({
 		}
 	},
 
-	_updatePanelHeight: function() {
+	_updatePanelHeight() {
 		if (this._dashManager.settings.get_boolean('top-bar-custom-height')) {
 			Main.panel.actor.height = this._dashManager.scalingManager.toPhysical(
 				this._dashManager.settings.get_uint('top-bar-height'));
@@ -158,39 +158,39 @@ var TopBarDash = new Lang.Class({
 		}
 	},
 
-	_onTopBarAppearanceMergeSettingChanged: function(settings, appearanceMerge) {
+	_onTopBarAppearanceMergeSettingChanged(settings, appearanceMerge) {
 		log(`"top-bar-appearance-merge" setting changed signal: ${appearanceMerge}`);
 		this._updateStyle(appearanceMerge);
 	},
 
-	_onTopBarMoveCenterSettingChanged: function(settings, moveCenter) {
+	_onTopBarMoveCenterSettingChanged(settings, moveCenter) {
 		log(`"top-bar-move-center" setting changed signal: ${moveCenter}`);
 		this._moveCenter = moveCenter;
 		Main.panel.actor.queue_relayout(); // causes allocation to be called
 	},
 
-	_onTopBarCustomHeightSettingChanged: function(settings, customHeight) {
+	_onTopBarCustomHeightSettingChanged(settings, customHeight) {
 		log(`"top-bar-custom-height" setting changed signal: ${customHeight}`);
 		this._updatePanelHeight();
 	},
 
-	_onTopBarHeightSettingChanged: function(settings, height) {
+	_onTopBarHeightSettingChanged(settings, height) {
 		log(`"top-bar-height" setting changed signal: ${height}`);
 		this._updatePanelHeight();
 	},
 
-	_onScalingChanged: function(scaling, factor) {
+	_onScalingChanged(scaling, factor) {
 		log(`scaling "changed" signal: ${factor}`);
 		this._updatePanelHeight();
 	},
 
-	_onPanelWidthChanged: function(actor, width) {
+	_onPanelWidthChanged(actor, width) {
 		log(`panel "width" property changed signal: ${width}`);
 		this.bin.preferred_width = width;
 		// (the actual width of the bin would shrink to fit in the leftbox)
 	},
 
-	_onPanelHeightChanged: function(actor, height) {
+	_onPanelHeightChanged(actor, height) {
 		log(`panel "height" property changed signal: ${height}`);
 		this._view.setIconSize(this._dashManager.scalingManager.toLogical(height));
 	}

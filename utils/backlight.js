@@ -29,6 +29,8 @@ const log = LoggingUtils.logger('backlight');
 // Default to a neutral gray
 const DEFAULT_BACKLIGHT = ColorUtils.getVariationsAsHex(180, 180, 180);
 
+const _backlightCache = new Map();
+
 
 /**
  * Gets backlight color variations based on relative weight of colors, or uses a cached value.
@@ -156,6 +158,3 @@ function resamplePixels(pixbuf, pixels, resampleX, resampleY) {
 
 	return resampledPixels;
 }
-
-
-var _backlightCache = new Map();

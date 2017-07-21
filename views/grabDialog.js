@@ -32,7 +32,7 @@ var GrabDialog = new Lang.Class({
 	Name: 'EmDash.GrabDialog',
 	Extends: DialogUtils.MessageDialog,
 
-	_init: function(iconView) {
+	_init(iconView) {
 		this.parent();
 
 		let app = iconView.app;
@@ -47,12 +47,12 @@ var GrabDialog = new Lang.Class({
 			.format(name)));
 	},
 
-	open: function() {
+	open() {
 		this.parent();
 		global.screen.set_cursor(Meta.Cursor.POINTING_HAND);
 	},
 
-	destroy: function() {
+	destroy() {
 		this.parent();
 		global.screen.set_cursor(Meta.Cursor.DEFAULT);
 	}

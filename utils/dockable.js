@@ -36,7 +36,7 @@ const log = LoggingUtils.logger('dockable');
 var Dockable = new Lang.Class({
 	Name: 'EmDash.Dockable',
 
-	_init: function(child, alignChild, side, align, stretch, toggle) {
+	_init(child, alignChild, side, align, stretch, toggle) {
 		log('_init');
 
 		this._alignChild = alignChild;
@@ -87,7 +87,7 @@ var Dockable = new Lang.Class({
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
 		this._destroyPressureBarrier();
@@ -102,35 +102,35 @@ var Dockable = new Lang.Class({
 		}
 	},
 
-	setSide: function(side) {
+	setSide(side) {
 		if (this._side !== side) {
 			this._side = side;
 			this.actor.set_size(0, 0); // will change struts and trigger 'workareas-changed' signal
 		}
 	},
 
-	setAlign: function(align) {
+	setAlign(align) {
 		if (this._align !== align) {
 			this._align = align;
 			this._refreshAlign();
 		}
 	},
 
-	setStretch: function(stretch) {
+	setStretch(stretch) {
 		if (this._stretch !== stretch) {
 			this._stretch = stretch;
 			this._refreshAlign();
 		}
 	},
 
-	setToggle: function(toggle) {
+	setToggle(toggle) {
 		if (this._toggle !== toggle) {
 			this._collapsed = this._toggle = toggle;
 			this._reinitialize(); // will also refresh tracking
 		}
 	},
 
-	_reinitialize: function() {
+	_reinitialize() {
 		let x, y, width = -1, height = -1, translationX = 0, translationY = 0, barrier = {};
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
 		let monitor = Main.layoutManager.monitors[this._monitorIndex];
@@ -214,18 +214,18 @@ var Dockable = new Lang.Class({
 		// otherwise there is no other averse effect, and we avoid an endless loop.
 	},
 
-	_untrack: function() {
+	_untrack() {
 		Main.layoutManager._untrackActor(this.actor);
 	},
 
-	_track: function() {
+	_track() {
 		Main.layoutManager._trackActor(this.actor, {
 			affectsStruts: !this._toggle,
 			trackFullscreen: true
 		});
 	},
 
-	_refreshAlign: function() {
+	_refreshAlign() {
 		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine.
 
 		let vertical = (this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT);
@@ -267,7 +267,7 @@ var Dockable = new Lang.Class({
 		}
 	},
 
-	_setPressureBarrier: function(barrier) {
+	_setPressureBarrier(barrier) {
 		log(`_setPressureBarrier: x1=${barrier.x1} y1=${barrier.y1} x2=${barrier.x2} y2=${barrier.y2}`);
 		this._destroyPressureBarrier();
 		barrier.display = global.display;
@@ -281,7 +281,7 @@ var Dockable = new Lang.Class({
 			this._onPressureBarrierTriggered, true);
 	},
 
-	_destroyPressureBarrier: function() {
+	_destroyPressureBarrier() {
 		if (this._barrier !== null) {
 			this._pressureBarrier.removeBarrier(this._barrier);
 			this._barrier.destroy();
@@ -293,7 +293,7 @@ var Dockable = new Lang.Class({
 		}
 	},
 
-	_refreshRoundedCorners: function() {
+	_refreshRoundedCorners() {
 		if (this._side === Meta.Side.LEFT) {
 			if (this._leftCornerWasVisible) {
 				Main.panel._leftCorner.actor.hide();
@@ -328,7 +328,7 @@ var Dockable = new Lang.Class({
 		}
 	},
 
-	_hasWorkAreaChanged: function() {
+	_hasWorkAreaChanged() {
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
 		if ((workArea.x === this._workArea.x) &&
 			(workArea.y === this._workArea.y) &&
@@ -346,14 +346,14 @@ var Dockable = new Lang.Class({
 		return true;
 	},
 
-	_onPressureBarrierTriggered: function(pressureBarrier) {
+	_onPressureBarrierTriggered(pressureBarrier) {
 		log('pressure barrier "trigger" signal');
 		this._collapsed = false;
 		this._reinitialize();
 		this.actor.track_hover = true;
 	},
 
-	_onHover: function(actor, hover) {
+	_onHover(actor, hover) {
 		// Emitted only if track_hover is true.
 		// (We tried using the leave-event for this, but it proved problematic: it would be emitted
 		// even if we move into children of our actor. But hover tracking works for us!)
@@ -365,7 +365,7 @@ var Dockable = new Lang.Class({
 		}
 	},
 
-	_onWorkAreasChanged: function(screen) {
+	_onWorkAreasChanged(screen) {
 		log('screen "workareas-changed" signal');
 		if (this._hasWorkAreaChanged()) {
 			this._reinitialize();

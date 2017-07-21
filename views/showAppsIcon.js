@@ -33,7 +33,7 @@ var ShowAppsIcon = new Lang.Class({
 	Name: 'EmDash-ShowAppsIcon', // can't use "." with GObject classes
 	Extends: Dash.ShowAppsIcon,
 
-	_init: function(logicalIconSize) {
+	_init(logicalIconSize) {
 		this.parent();
 
 		this.childScale = 1;
@@ -50,12 +50,12 @@ var ShowAppsIcon = new Lang.Class({
 		this.child.add_style_class_name('show-apps-minimal');
 	},
 
-	destroy: function() {
+	destroy() {
 		this._signalManager.destroy();
 		this.parent();
 	},
 
-	_onButtonCheckedChanged: function(button, checked) {
+	_onButtonCheckedChanged(button, checked) {
 		log(`"checked" property changed signal: ${checked}`);
 		if (Main.overview.viewSelector._showAppsButton.checked !== checked) {
 			Main.overview.viewSelector._showAppsButton.checked = checked;
@@ -68,7 +68,7 @@ var ShowAppsIcon = new Lang.Class({
 		}
 	},
 
-	_onBuiltInButtonCheckedChanged: function(button, checked) {
+	_onBuiltInButtonCheckedChanged(button, checked) {
 		log(`built-in ShowAppsIcon "checked" property changed signal: ${checked}`);
 		if (this.toggleButton.checked !== checked) {
 			this.toggleButton.checked = checked;

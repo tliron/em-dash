@@ -21,23 +21,23 @@ const GLib = imports.gi.GLib;
 var TimeoutManager = new Lang.Class({
 	Name: 'EmDash.TimeoutManager',
 
-	_init: function(self) {
+	_init(self) {
 		this.self = self;
 		this._timeouts = new Set();
 	},
 
-	destroy: function() {
+	destroy() {
 		for (let timeout of this._timeouts) {
 			timeout.destroy();
 		}
 		this._timeouts.clear();
 	},
 
-	add: function(time, name, callback) {
+	add(time, name, callback) {
 		this._timeouts.add(new Timeout(time, name, this.self, callback));
 	},
 
-	cancel: function(name) {
+	cancel(name) {
 		for (let timeout of this._timeouts) {
 			if (timeout.name === name) {
 				this._timeouts.delete(timeout);
@@ -48,7 +48,7 @@ var TimeoutManager = new Lang.Class({
 		return false;
 	},
 
-	cancelAndAdd: function(time, name, callback) {
+	cancelAndAdd(time, name, callback) {
 		this.cancel(name);
 		this.add(time, name, callback);
 	}
@@ -58,7 +58,7 @@ var TimeoutManager = new Lang.Class({
 var Timeout = new Lang.Class({
 	Name: 'EmDash.Timeout',
 
-	_init: function(time, name, self, callback) {
+	_init(time, name, self, callback) {
 		this.name = name;
 		this.self = self;
 		this.callback = callback;
@@ -68,14 +68,14 @@ var Timeout = new Lang.Class({
 		}
 	},
 
-	destroy: function() {
+	destroy() {
 		if (this.id !== 0) {
 			Mainloop.source_remove(this.id);
 			this.id = 0;
 		}
 	},
 
-	call: function() {
+	call() {
 		this.id = 0;
 		this.callback.call(this.self);
 		return GLib.SOURCE_REMOVE;

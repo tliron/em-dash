@@ -30,18 +30,18 @@ const DashView = Me.imports.views.dashView;
 var Dash = new Lang.Class({
 	Name: 'EmDash.Dash',
 
-	_init: function(dashManager, styleClass, vertical, iconSize, quantize) {
+	_init(dashManager, styleClass, vertical, iconSize, quantize) {
 		this._dashManager = dashManager;
 		this._view = new DashView.DashView(dashManager.modelManager, dashManager.scalingManager,
 			styleClass, vertical, iconSize, quantize);
 		this._signalManager = new SignalUtils.SignalManager(this);
 	},
 
-	destroy: function() {
+	destroy() {
 		this._signalManager.destroy();
 		this._view.destroy();
 	},
 
-	setLocation: function(location) {
+	setLocation(location) {
 	}
 });

@@ -47,7 +47,7 @@ const HOVER_TIMEOUT = 300;
 var DashView = new Lang.Class({
 	Name: 'EmDash.DashView',
 
-	_init: function(modelManager, scalingManager, styleClass, vertical, logicalIconSize, quantize) {
+	_init(modelManager, scalingManager, styleClass, vertical, logicalIconSize, quantize) {
 		log('_init');
 
 		this.modelManager = modelManager;
@@ -133,7 +133,7 @@ var DashView = new Lang.Class({
 		}, true);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
@@ -146,7 +146,7 @@ var DashView = new Lang.Class({
 		}
 	},
 
-	getIconViewForModelIndex: function(modelIndex) {
+	getIconViewForModelIndex(modelIndex) {
 		for (let actor of this.box.get_children()) {
 			let iconView = actor._delegate;
 			if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
@@ -157,7 +157,7 @@ var DashView = new Lang.Class({
 		return null;
 	},
 
-	getIconViewForApp: function(app) {
+	getIconViewForApp(app) {
 		let id = app.id;
 		for (let actor of this.box.get_children()) {
 			let iconView = actor._delegate;
@@ -169,7 +169,7 @@ var DashView = new Lang.Class({
 		return null;
 	},
 
-	getChildIndexForModelIndex: function(modelIndex) {
+	getChildIndexForModelIndex(modelIndex) {
 		let lastGoodChildIndex = 0;
 		let nChildren = this.box.get_n_children();
 		for (let i = 0; i < nChildren; i++) {
@@ -196,7 +196,7 @@ var DashView = new Lang.Class({
 		return lastGoodChildIndex;
 	},
 
-	setVertical: function(vertical) {
+	setVertical(vertical) {
 		if (this.box.vertical !== vertical) {
 			this.box.vertical = vertical;
 			if (vertical) {
@@ -208,14 +208,14 @@ var DashView = new Lang.Class({
 		}
 	},
 
-	setIconSize: function(logicalIconSize) {
+	setIconSize(logicalIconSize) {
 		if (this._logicalIconSize !== logicalIconSize) {
 			this._logicalIconSize = logicalIconSize;
 			this.refresh(true);
 		}
 	},
 
-	refresh: function(force = false, workspaceIndex) {
+	refresh(force = false, workspaceIndex) {
 		let physicalActorHeight = this._scalingManager.toPhysical(this._logicalIconSize);
 		let physicalIconSize = physicalActorHeight * 0.75;
 		if (this.quantize) {
@@ -321,7 +321,7 @@ var DashView = new Lang.Class({
 		this._updateWheelScrolling();
 	},
 
-	updateTooltip: function(enable, iconView) {
+	updateTooltip(enable, iconView) {
 		if (enable) {
 			let hover = this.modelManager.settings.get_string('icons-hover');
 			if (hover === 'NOTHING') {
@@ -393,7 +393,7 @@ var DashView = new Lang.Class({
 		}
 	},
 
-	startGrab: function(grabSourceIconView) {
+	startGrab(grabSourceIconView) {
 		log(`startGrab: grabbing from ${grabSourceIconView.app.id}`);
 		this.grabSourceIconView = grabSourceIconView;
 		if (this._grabDialog !== null) {
@@ -411,7 +411,7 @@ var DashView = new Lang.Class({
 		this._grabDialog.open();
 	},
 
-	endGrab: function(grabTargetIconView) {
+	endGrab(grabTargetIconView) {
 		log(`endGrab: grabbing from ${this.grabSourceIconView.app.id} to ${grabTargetIconView.app.id}`);
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
@@ -423,7 +423,7 @@ var DashView = new Lang.Class({
 		this.grabSourceIconView = null;
 	},
 
-	_updateApplicationsButton: function(logicalIconSize) {
+	_updateApplicationsButton(logicalIconSize) {
 		let applicationsButton = this.modelManager.settings.get_string('applications-button');
 		if (applicationsButton === 'HIDE') {
 			this._removeApplicationsButton();
@@ -446,7 +446,7 @@ var DashView = new Lang.Class({
 		}
 	},
 
-	_removeApplicationsButton: function() {
+	_removeApplicationsButton() {
 		for (let actor of this.box.get_children()) {
 			if (actor instanceof ShowAppsIcon.ShowAppsIcon) {
 				this.box.remove_child(actor);
@@ -455,7 +455,7 @@ var DashView = new Lang.Class({
 		}
 	},
 
-	_updateClip: function() {
+	_updateClip() {
 		// Clutter does not normally take into account translation when clipping
 		let x = -this.box.translation_x;
 		let y = -this.box.translation_y;
@@ -466,7 +466,7 @@ var DashView = new Lang.Class({
 		this.box.clip_rect = ClutterUtils.newRect(x, y, width, height);
 	},
 
-	_updateFader: function() {
+	_updateFader() {
 		this._updateClip();
 
 		let desiredSize, actualSize;
@@ -557,7 +557,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		}
 	},
 
-	_updateWheelScrolling: function(iconsWheelScroll) {
+	_updateWheelScrolling(iconsWheelScroll) {
 		if (iconsWheelScroll === undefined) {
 			iconsWheelScroll = this.modelManager.settings.get_boolean('icons-wheel-scroll');
 		}
@@ -574,7 +574,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		}
 	},
 
-	_updateIndicateNumberOfWindows: function(indicateNumberOfWindows) {
+	_updateIndicateNumberOfWindows(indicateNumberOfWindows) {
 		for (let actor of this.box.get_children()) {
 			let iconView = actor._delegate;
 			if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
@@ -583,7 +583,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		}
 	},
 
-	_updateFocusApp: function(app) {
+	_updateFocusApp(app) {
 		if (this.modelManager.settings.get_boolean('icons-highlight-focused')) {
 			if (app === undefined) {
 				app = Shell.WindowTracker.get_default().focus_app;
@@ -608,14 +608,14 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		this._removeFocusApp();
 	},
 
-	_removeFocusApp: function() {
+	_removeFocusApp() {
 		if (this._focused !== null) {
 			this._focused.unfocus();
 			this._focused = null;
 		}
 	},
 
-	_scroll: function(callback = null) {
+	_scroll(callback = null) {
 		let tween = {
 			time: ANIMATION_TIME,
 			transition: 'easeOutQuad',
@@ -633,23 +633,23 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		Tweener.addTween(this.box, tween);
 	},
 
-	_onBoxAllocationPropertyChanged: function(actor, allocation) {
+	_onBoxAllocationPropertyChanged(actor, allocation) {
 		log('box "allocation" property changed signal');
 		this._updateFader();
 	},
 
-	_onStyleChanged: function(actor) {
+	_onStyleChanged(actor) {
 		log('dash "style-changed" signal');
 		this.refresh(true);
 	},
 
-	_onIconThemeChanged: function(textureCache) {
+	_onIconThemeChanged(textureCache) {
 		log('texture cache "icon-theme-changed" signal');
 		BacklightUtils.reset();
 		this.refresh(true);
 	},
 
-	_onFaderEnter: function(actor, crossingEvent) {
+	_onFaderEnter(actor, crossingEvent) {
 		log('fader "enter-event" signal');
 		this._fader.reactive = false;
 		this._scroll(() => {
@@ -658,25 +658,25 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		return true;
 	},
 
-	_onDashModelChanged: function(modelManager) {
+	_onDashModelChanged(modelManager) {
 		log('dash model "changed" signal');
 		this.refresh();
 	},
 
-	_onInstalledChanged: function(appSystem) {
+	_onInstalledChanged(appSystem) {
 		log('app system "installed-changed" signal');
 		// This could potentially change some of our icons
 		this.refresh();
 	},
 
-	_onWorkspaceSwitched: function(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
+	_onWorkspaceSwitched(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
 		log(`screen "workspace-switched" signal: from ${oldWorkspaceIndex} to ${newWorkspaceIndex} (${direction})`);
 		if (!this.modelManager.single) {
 			this.refresh(true, newWorkspaceIndex);
 		}
 	},
 
-	_onFocusAppChanged: function(windowTracker, app) {
+	_onFocusAppChanged(windowTracker, app) {
 		if (app === null) {
 			log('window tracker "focus-app" property changed signal: none');
 		}
@@ -686,12 +686,12 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		this._updateFocusApp(app);
 	},
 
-	_onIconsHighlightFocusedSettingChanged: function(settings, iconsHighlightFocused) {
+	_onIconsHighlightFocusedSettingChanged(settings, iconsHighlightFocused) {
 		log(`"icons-highlight-focused" setting changed signal: ${iconsHighlightFocused}`);
 		this._updateFocusApp();
 	},
 
-	_onIconsHighlightFocusedGradientSettingChanged: function(settings,
+	_onIconsHighlightFocusedGradientSettingChanged(settings,
 		iconsHighlightFocusedGradient) {
 		log(`"icons-highlight-focused-gradient" setting changed signal: ${iconsHighlightFocusedGradient}`);
 		if (this._focused !== null) {
@@ -700,22 +700,22 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		}
 	},
 
-	_onApplicationsButtonSettingChanged: function(settings, applicationsButton) {
+	_onApplicationsButtonSettingChanged(settings, applicationsButton) {
 		log(`"applications-button" setting changed signal: ${applicationsButton}`);
 		this.refresh();
 	},
 
-	_onIconsWheelScrollSettingChanged: function(settings, iconsWheelScroll) {
+	_onIconsWheelScrollSettingChanged(settings, iconsWheelScroll) {
 		log(`"icons-wheel-scroll" setting changed signal: ${iconsWheelScroll}`);
 		this._updateWheelScrolling(iconsWheelScroll);
 	},
 
-	_onIconsIndicateNumberOfWindowsSettingChanged: function(settings, indicateNumberOfWindows) {
+	_onIconsIndicateNumberOfWindowsSettingChanged(settings, indicateNumberOfWindows) {
 		log(`"icons-indicate-number-of-windows" setting changed signal: ${indicateNumberOfWindows}`);
 		this._updateIndicateNumberOfWindows(indicateNumberOfWindows);
 	},
 
-	_onSyncTooltip: function(iconView) {
+	_onSyncTooltip(iconView) {
 		log(`"sync-tooltip" signal: ${iconView.app.id}`);
 	}
 });

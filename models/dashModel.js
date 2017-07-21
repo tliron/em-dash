@@ -35,7 +35,7 @@ const log = LoggingUtils.logger('dashModel');
 var DashModel = new Lang.Class({
 	Name: 'EmDash.DashModel',
 
-	_init: function(modelManager) {
+	_init(modelManager) {
 		this.modelManager = modelManager;
 		this.icons = [];
 	},
@@ -43,21 +43,21 @@ var DashModel = new Lang.Class({
 	/**
 	 * Check if we have an icon for the application.
 	 */
-	has: function(app) {
+	has(app) {
 		return this.getIndexOf(app) !== -1;
 	},
 
 	/**
 	 * Check if we have an icon representing the application.
 	 */
-	isRepresenting: function(app) {
+	isRepresenting(app) {
 		return this.getIndexOfRepresenting(app) !== -1;
 	},
 
 	/**
 	 * Find the index of an icon for the application.
 	 */
-	getIndexOf: function(app) {
+	getIndexOf(app) {
 		for (let i = 0; i < this.icons.length; i++) {
 			let icon = this.icons[i];
 			if (icon.isFor(app)) {
@@ -70,7 +70,7 @@ var DashModel = new Lang.Class({
 	/**
 	 * Find the index of an icon representing the application.
 	 */
-	getIndexOfRepresenting: function(app) {
+	getIndexOfRepresenting(app) {
 		for (let i = 0; i < this.icons.length; i++) {
 			let icon = this.icons[i];
 			if (icon.isRepresenting(app)) {
@@ -83,7 +83,7 @@ var DashModel = new Lang.Class({
 	/**
 	 * Add an icon for the application if there is no icon already representing it.
 	 */
-	add: function(app) {
+	add(app) {
 		if (!this.isRepresenting(app)) {
 			this.icons.push(new IconModel.IconModel(this, app));
 			return true;
@@ -94,7 +94,7 @@ var DashModel = new Lang.Class({
 	/**
 	 * Adds icons for the favorite applications if there are no icons already representing them.
 	 */
-	addFavorites: function() {
+	addFavorites() {
 		let changed = false;
 		let favorites = AppFavorites.getAppFavorites().getFavorites();
 		for (let app of favorites) {
@@ -109,7 +109,7 @@ var DashModel = new Lang.Class({
 	 * Adds icons for the running applications in one or all workspaces if there are no icons
 	 * already representing them.
 	 */
-	addRunning: function(workspaceIndex) {
+	addRunning(workspaceIndex) {
 		let changed = false;
 		let appSystem = Shell.AppSystem.get_default();
 		let running = appSystem.get_running(); // will be empty when the shell is restarted
@@ -127,7 +127,7 @@ var DashModel = new Lang.Class({
 	 * Removes the icon created for the application. Note that it will not remove icons that are
 	 * grabbing it.
 	 */
-	remove: function(app) {
+	remove(app) {
 		for (let i = 0; i < this.icons.length; i++) {
 			let icon = this.icons[i];
 			if (icon.isFor(app)) {
@@ -141,7 +141,7 @@ var DashModel = new Lang.Class({
 	/**
 	 * Removes an icon.
 	 */
-	removeIcon: function(icon) {
+	removeIcon(icon) {
 		let i = this.icons.indexOf(icon);
 		if (i !== -1) {
 			this.icons.splice(i, 1);
@@ -153,7 +153,7 @@ var DashModel = new Lang.Class({
 	/**
 	 * Removes icons that are no longer favorites.
 	 */
-	prune: function() {
+	prune() {
 		let prunables = [];
 		for (let icon of this.icons) {
 			if (icon.isPrunable) {
@@ -169,7 +169,7 @@ var DashModel = new Lang.Class({
 		return changed;
 	},
 
-	toString: function(workspaceIndex) {
+	toString(workspaceIndex) {
 		let iconStrings = [];
 		for (let icon of this.icons) {
 			iconStrings.push(icon.toString(workspaceIndex));

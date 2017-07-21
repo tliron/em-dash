@@ -37,7 +37,7 @@ const log = LoggingUtils.logger('iconModel');
 var IconModel = new Lang.Class({
 	Name: 'EmDash.IconModel',
 
-	_init: function(dashModel, app) {
+	_init(dashModel, app) {
 		this.dashModel = dashModel;
 		this.app = app;
 		this._matchers = [];
@@ -61,7 +61,7 @@ var IconModel = new Lang.Class({
 	/**
 	 * Checks if we were created for the application.
 	 */
-	isFor: function(app) {
+	isFor(app) {
 		return this.app.id === app.id;
 	},
 
@@ -69,7 +69,7 @@ var IconModel = new Lang.Class({
 	 * Checks if we represent the application, either because we were created for it or we grab all
 	 * its windows.
 	 */
-	isRepresenting: function(app) {
+	isRepresenting(app) {
 		if (this.isFor(app)) {
 			return true;
 		}
@@ -94,7 +94,7 @@ var IconModel = new Lang.Class({
 	/**
 	 * Checks if we are grabbing a window.
 	 */
-	isGrabbing: function(window) {
+	isGrabbing(window) {
 		for (let matcher of this._matchers) {
 			if (matcher.matches(window)) {
 				return true;
@@ -113,7 +113,7 @@ var IconModel = new Lang.Class({
 	/**
 	 * Associated windows, including those we grab, for all workspaces or for a specific workspace.
 	 */
-	getWindows: function(workspaceIndex) {
+	getWindows(workspaceIndex) {
 		let windows = [];
 
 		// App windows
@@ -150,11 +150,11 @@ var IconModel = new Lang.Class({
 	/**
 	 * Checks if any of our windows has focus, for all workspaces or for a specific workspace.
 	 */
-	hasFocus: function(workspaceIndex) {
+	hasFocus(workspaceIndex) {
 		return WindowUtils.getFocusedWindowIndex(this.getWindows(workspaceIndex)) !== -1;
 	},
 
-	addMatcher: function(wmClass, wmClassInstance = null) {
+	addMatcher(wmClass, wmClassInstance = null) {
 		for (let matcher of this._matchers) {
 			if (matcher.wmClass === wmClass) {
 				if (matcher.wmClassInstance === wmClassInstance) {
@@ -175,7 +175,7 @@ var IconModel = new Lang.Class({
 	/**
 	 * Adds matchers for all the windows.
 	 */
-	addMatchersFor: function(windows) {
+	addMatchersFor(windows) {
 		let changed = false;
 		for (let window of windows) {
 			let wmClass = window.wm_class;
@@ -190,7 +190,7 @@ var IconModel = new Lang.Class({
 	/**
 	 * Hides our windows for all workspaces or for a specific workspace.
 	 */
-	hide: function(workspaceIndex) {
+	hide(workspaceIndex) {
 		log('hide');
 		return WindowUtils.hideWindows(this.getWindows(workspaceIndex));
 	},
@@ -199,7 +199,7 @@ var IconModel = new Lang.Class({
 	 * Hides our windows for all workspaces or for a specific workspace if any of out windows has
 	 * focus.
 	 */
-	hideIfHasFocus: function(workspaceIndex) {
+	hideIfHasFocus(workspaceIndex) {
 		let windows = this.getWindows(workspaceIndex);
 		if (WindowUtils.getFocusedWindowIndex(windows) !== -1) {
 			log('hideIfHasFocus: true');
@@ -214,7 +214,7 @@ var IconModel = new Lang.Class({
 	 * Raises all windows and sets the focus to the primary window for all workspaces or for a
 	 * specific workspace.
 	 */
-	focus: function(workspaceIndex) {
+	focus(workspaceIndex) {
 		let windows = this.getWindows(workspaceIndex);
 		WindowUtils.raiseWindowsAndFocusPrimary(windows);
 	},
@@ -223,7 +223,7 @@ var IconModel = new Lang.Class({
 	 * Cycle focus to next/previous window or optionally hide when reaching the end for all
 	 * workspaces or for a specific workspace.
 	 */
-	cycleFocus: function(workspaceIndex, next, hideOnLast = false) {
+	cycleFocus(workspaceIndex, next, hideOnLast = false) {
 		let windows = this.getWindows(workspaceIndex);
 		if (windows.length === 0) {
 			log('cycleFocus: do nothing');
@@ -271,7 +271,7 @@ var IconModel = new Lang.Class({
 		}
 	},
 
-	save: function() {
+	save() {
 		let appWindowMatchers = [];
 		for (let matcher of this._matchers) {
 			let matchers = [matcher.wmClass];
@@ -289,7 +289,7 @@ var IconModel = new Lang.Class({
 		settings.set_value('icons-window-matchers', windowMatchers);
 	},
 
-	toString: function(workspaceIndex) {
+	toString(workspaceIndex) {
 		let s = '';
 		if (this._favorite) {
 			s += '*';
@@ -317,7 +317,7 @@ var IconModel = new Lang.Class({
 var Matcher = new Lang.Class({
 	Name: 'EmDash.Matcher',
 
-	_init: function(wmClass, wmClassInstance = null) {
+	_init(wmClass, wmClassInstance = null) {
 		this.wmClass = wmClass;
 		this.wmClassInstance = wmClassInstance || null;
 	},
@@ -325,7 +325,7 @@ var Matcher = new Lang.Class({
 	/**
 	 * Checks if we match a window.
 	 */
-	matches: function(window) {
+	matches(window) {
 		let wmClass = window.wm_class;
 		if (this.wmClass === wmClass) {
 			if (this.wmClassInstance === null) {
@@ -339,7 +339,7 @@ var Matcher = new Lang.Class({
 		return false;
 	},
 
-	toString: function() {
+	toString() {
 		if (this.wmClassInstance === null) {
 			return this.wmClass;
 		}

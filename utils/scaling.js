@@ -105,7 +105,7 @@ const ICON_SAFE_SIZES = [8, 16, 22, 24, 32, 48, 64, 96, 128, 256, 512];
 var ScalingManager = new Lang.Class({
 	Name: 'EmDash.ScalingManager',
 
-	_init: function() {
+	_init() {
 		log('_init');
 
 		this._factor = null;
@@ -130,7 +130,7 @@ var ScalingManager = new Lang.Class({
 			this._onXOverridesSettingChanged);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._laterManager.destroy();
 		this._signalManager.destroy();
@@ -138,15 +138,15 @@ var ScalingManager = new Lang.Class({
 		this._xSettings.run_dispose();
 	},
 
-	toPhysical: function(logicalSize) {
+	toPhysical(logicalSize) {
 		return logicalSize * this._factor;
 	},
 
-	toLogical: function(physicalSize) {
+	toLogical(physicalSize) {
 		return physicalSize / this._factor;
 	},
 
-	getSafeIconSize: function(physicalSize) {
+	getSafeIconSize(physicalSize) {
 		for (let i = 1; i < ICON_SAFE_SIZES.length; i++) {
 			let nextPhysicalSize = this.toPhysical(ICON_SAFE_SIZES[i]);
 			if (nextPhysicalSize > physicalSize) {
@@ -205,7 +205,7 @@ var ScalingManager = new Lang.Class({
 		}
 	},
 
-	_onStThemeContextScaleFactorChanged: function(themeContext, scaleFactor) {
+	_onStThemeContextScaleFactorChanged(themeContext, scaleFactor) {
 		// Note: this is called whenever the theme context is changed, even if scale-factor
 		// itself has *not* changed
 		log(`St theme context "scale-factor" property changed signal: ${scaleFactor}`);
@@ -221,7 +221,7 @@ var ScalingManager = new Lang.Class({
 		}
 	},
 
-	_onMutterScalingFactorSettingChanged: function(settings, mutterScalingFactor) {
+	_onMutterScalingFactorSettingChanged(settings, mutterScalingFactor) {
 		log(`Mutter "scaling-factor" setting changed signal: ${mutterScalingFactor}`);
 		if (mutterScalingFactor === 0) {
 			// This will trigger a signal
@@ -234,7 +234,7 @@ var ScalingManager = new Lang.Class({
 		}
 	},
 
-	_onXOverridesSettingChanged: function(settings, overrides) {
+	_onXOverridesSettingChanged(settings, overrides) {
 		let gdkWindowScalingFactor = getGdkWindowScalingFactor(overrides);
 		log(`GNOME Settings Daemon overrides "Gdk/WindowScalingFactor" setting changed signal: ${gdkWindowScalingFactor}`);
 		if (gdkWindowScalingFactor !== null) {

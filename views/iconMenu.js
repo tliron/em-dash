@@ -44,7 +44,7 @@ var IconMenu = new Lang.Class({
 	Name: 'EmDash.IconMenu',
 	Extends: AppDisplay.AppIconMenu,
 
-	_init: function(source, simpleName, settings) {
+	_init(source, simpleName, settings) {
 		log('_init');
 		this.parent(source);
 		this._simpleName = simpleName;
@@ -65,7 +65,7 @@ var IconMenu = new Lang.Class({
 	/**
 	 * Override.
 	 */
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		if (this._appMenu !== null) {
 			this._appMenu.destroy();
@@ -79,7 +79,7 @@ var IconMenu = new Lang.Class({
 	/**
 	 * Override.
 	 */
-	_redisplay: function() {
+	_redisplay() {
 		log('_redisplay');
 
 		if (this._appMenu !== null) {
@@ -119,7 +119,7 @@ var IconMenu = new Lang.Class({
 		}
 	},
 
-	_onGrab: function() {
+	_onGrab() {
 		this._source.dashView.startGrab(this._source);
 	}
 });
@@ -131,7 +131,7 @@ var IconMenu = new Lang.Class({
 var TrackingContainer = new Lang.Class({
 	Name: 'EmDash.TrackingContainer',
 
-	_init: function() {
+	_init() {
 		this._menu = null;
 		this._menuTracker = null;
 		this._items = [];
@@ -139,7 +139,7 @@ var TrackingContainer = new Lang.Class({
 		this._signalManager = new SignalUtils.SignalManager(this);
 	},
 
-	destroy: function() {
+	destroy() {
 		this._signalManager.destroy();
 		if (this._menuTracker !== null) {
 			this._menuTracker.destroy();
@@ -150,21 +150,21 @@ var TrackingContainer = new Lang.Class({
 		this.item.destroy();
 	},
 
-	_track: function(menu, actionGroup, itemModel) {
+	_track(menu, actionGroup, itemModel) {
 		this._menu = menu;
 		this._menuTracker = Shell.MenuTracker.new(actionGroup, itemModel, null,
 			this._onInsertItem.bind(this, this),
 			this._onRemoveItem.bind(this, this));
 	},
 
-	_trackSubmenu: function(menu, trackerItem) {
+	_trackSubmenu(menu, trackerItem) {
 		this._menu = menu;
 		this._menuTracker = Shell.MenuTracker.new_for_item_submenu(trackerItem,
 			this._onInsertItem.bind(this, this),
 			this._onRemoveItem.bind(this, this));
 	},
 
-	_onInsertItem: function(menu, trackerItem, position) {
+	_onInsertItem(menu, trackerItem, position) {
 		log(`menu tracker insert item: ${position} "${trackerItem.label||''}"`);
 
 		let submenu = this.item instanceof PopupSubMenuMenuItem;
@@ -195,7 +195,7 @@ var TrackingContainer = new Lang.Class({
 		}
 	},
 
-	_onRemoveItem: function(menu, position) {
+	_onRemoveItem(menu, position) {
 		log(`menu tracker remove item: ${position}`);
 		let items = this._menu._getMenuItems();
 		items[position].destroy();
@@ -210,7 +210,7 @@ var AppMenu = new Lang.Class({
 	Name: 'EmDash.AppMenu',
 	Extends: TrackingContainer,
 
-	_init: function(actionGroup, menuModel, trackerItem = null) {
+	_init(actionGroup, menuModel, trackerItem = null) {
 		this.parent();
 		this.item = new PopupMenu.PopupMenuSection();
 		this._track(this.item, actionGroup, menuModel);
@@ -227,7 +227,7 @@ var AppMenuItem = new Lang.Class({
 	Name: 'EmDash.AppMenuItem',
 	Extends: TrackingContainer, // we only need the base class functionality for has_submenu
 
-	_init: function(trackerItem) {
+	_init(trackerItem) {
 		this.parent();
 		this._trackerItem = trackerItem;
 
@@ -252,12 +252,12 @@ var AppMenuItem = new Lang.Class({
 			GObject.BindingFlags.SYNC_CREATE);
 	},
 
-	destroy: function() {
+	destroy() {
 		this.parent();
 		this._trackerItem.run_dispose();
 	},
 
-	_refreshRole: function(role) {
+	_refreshRole(role) {
 		switch (role) {
 		case ShellMenu.MenuTrackerItemRole.NORMAL:
 			this.item.actor.accessible_role = Atk.Role.MENU_ITEM;
@@ -276,37 +276,37 @@ var AppMenuItem = new Lang.Class({
 		}
 	},
 
-	_onOpen: function(item) {
+	_onOpen(item) {
 		log(`menu item "${this.item.label.text||''}" "open" signal`);
 		this._trackSubmenu(this.item.menu, this._trackerItem);
 	},
 
-	_onActivated: function(menuItem) {
+	_onActivated(menuItem) {
 		log(`menu item "${this.item.label.text||''}" "activate" signal`);
 		this._trackerItem.activated();
 	},
 
-	_onLabelChanged: function(trackerItem, label) {
+	_onLabelChanged(trackerItem, label) {
 		log(`tracker item "${this.item.label.text||''}" "label" property changed signal: ${label}`);
 		this.item.label.text = stripMnemonics(label);
 	},
 
-	_onSubmenuShownChanged: function(trackerItem, submenuShown) {
+	_onSubmenuShownChanged(trackerItem, submenuShown) {
 		log(`tracker item "${this.item.label.text||''}" "submenu-shown" property changed signal: ${submenuShown}`);
 		this.item.setSubmenuShown(submenuShown);
 	},
 
-	_onSensitiveChanged: function(trackerItem, sensitive) {
+	_onSensitiveChanged(trackerItem, sensitive) {
 		log(`tracker item "${this.item.label.text||''}" "sensitive" property changed signal: ${sensitive}`);
 		this.item.setSensitive(sensitive);
 	},
 
-	_onRoleChanged: function(trackerItem, role) {
+	_onRoleChanged(trackerItem, role) {
 		log(`tracker item "${this.item.label.text||''}" "role" property changed signal: ${role}`);
 		this._refreshRole(role);
 	},
 
-	_onToggledChanged: function(trackerItem, toggled) {
+	_onToggledChanged(trackerItem, toggled) {
 		log(`tracker item "${this.item.label.text||''}" "toggled" property changed signal: ${toggled}`);
 		this._refreshRole(trackerItem.role);
 	}
@@ -320,7 +320,7 @@ var AppMenuItem = new Lang.Class({
 var MediaControlsMenu = new Lang.Class({
 	Name: 'EmDash.MediaControlsMenu',
 
-	_init: function(simpleName) {
+	_init(simpleName) {
 		this.item = new PopupMenu.PopupMenuSection();
 		this._mpris = new MPRIS.MPRIS(simpleName);
 
@@ -329,13 +329,13 @@ var MediaControlsMenu = new Lang.Class({
 		this._signalManager.connect(this._mpris, 'initialize', this._onInitialized);
 	},
 
-	destroy: function() {
+	destroy() {
 		this._signalManager.destroy();
 		this._mpris.destroy();
 		this.item.destroy();
 	},
 
-	_onInitialized: function(mpris) {
+	_onInitialized(mpris) {
 		log('mpris "initialize" signal');
 
 		this.item.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -356,34 +356,34 @@ var MediaControlsMenu = new Lang.Class({
 		}
 	},
 
-	_appendItem: function(labelText, iconName, callback) {
+	_appendItem(labelText, iconName, callback) {
 		log(`MediaControlsMenu._appendItem: ${labelText}`)
 		let item = new PopupImageMenuItem(labelText, iconName);
 		this.item.addMenuItem(item);
 		this._signalManager.connect(item, 'activate', callback);
 	},
 
-	_onPlay: function() {
+	_onPlay() {
 		log('play')
 		this._mpris.play();
 	},
 
-	_onPause: function() {
+	_onPause() {
 		log('pause');
 		this._mpris.pause();
 	},
 
-	_onStop: function() {
+	_onStop() {
 		log('stop');
 		this._mpris.stop();
 	},
 
-	_onNext: function() {
+	_onNext() {
 		log('next');
 		this._mpris.next();
 	},
 
-	_onPrevious: function() {
+	_onPrevious() {
 		log('previous');
 		this._mpris.previous();
 	}
@@ -397,7 +397,7 @@ var PopupSubMenuMenuItem = new Lang.Class({
 	Name: 'EmDash.PopupSubMenuMenuItem',
 	Extends: PopupMenu.PopupSubMenuMenuItem,
 
-	_setOpenState: function(open) {
+	_setOpenState(open) {
 		this.parent(open);
 		this.emit('open');
 	}
@@ -417,7 +417,7 @@ var PopupImageMenuItem = new Lang.Class({
 	Name: 'EmDash.PopupImageMenuItem',
 	Extends: PopupMenu.PopupImageMenuItem,
 
-	_init: function(text, iconName, params) {
+	_init(text, iconName, params) {
 		this.parent(text, iconName, params);
 		this.actor.remove_child(this._icon);
 		this.actor.remove_child(this.label);

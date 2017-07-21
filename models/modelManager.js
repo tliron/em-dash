@@ -44,7 +44,7 @@ const SINGLE_WORKSPACE_INDEX = -1;
 var ModelManager = new Lang.Class({
 	Name: 'EmDash.ModelManager',
 
-	_init: function(settings) {
+	_init(settings) {
 		log('_init');
 
 		this.settings = settings;
@@ -74,7 +74,7 @@ var ModelManager = new Lang.Class({
 		this._initialized = true;
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
 	},
@@ -86,14 +86,14 @@ var ModelManager = new Lang.Class({
 		return global.screen.get_active_workspace().index();
 	},
 
-	refresh: function() {
+	refresh() {
 		this._reset();
 		if (this._initialized) {
 			this.emit('changed');
 		}
 	},
 
-	getDashModel: function(workspaceIndex) {
+	getDashModel(workspaceIndex) {
 		if (this.single) {
 			workspaceIndex = SINGLE_WORKSPACE_INDEX;
 		}
@@ -112,7 +112,7 @@ var ModelManager = new Lang.Class({
 		return dashModel;
 	},
 
-	removeDashModel: function(workspaceIndex) {
+	removeDashModel(workspaceIndex) {
 		this._dashModels.delete(workspaceIndex);
 	},
 
@@ -120,7 +120,7 @@ var ModelManager = new Lang.Class({
 	 * Adds an icon for the application to a specific workspace if there is no icon already
 	 * representing it.
 	 */
-	addTo: function(workspaceIndex, app) {
+	addTo(workspaceIndex, app) {
 		return this.getDashModel(workspaceIndex).add(app);
 	},
 
@@ -128,7 +128,7 @@ var ModelManager = new Lang.Class({
 	 * Adds an icon for the application to all workspaces if there is no icon already representing
 	 * it.
 	 */
-	addToAll: function(app) {
+	addToAll(app) {
 		if (this.single) {
 			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
@@ -146,7 +146,7 @@ var ModelManager = new Lang.Class({
 	 * Adds an icon for the application to the workspaces for which it has windows if there is no
 	 * icon already representing it.
 	 */
-	add: function(app) {
+	add(app) {
 		if (this.single) {
 			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
@@ -164,7 +164,7 @@ var ModelManager = new Lang.Class({
 	 * Removes icons created for the application from all workspaces. Note that it will not remove
 	 * icons that are grabbing it.
 	 */
-	remove: function(app) {
+	remove(app) {
 		let changed = false;
 		for (let dashModel of this._dashModels.values()) {
 			if (dashModel.remove(app)) {
@@ -177,7 +177,7 @@ var ModelManager = new Lang.Class({
 	/**
 	 * Removes icons that are no longer favorites.
 	 */
-	prune: function() {
+	prune() {
 		let changed = false;
 		for (let dashModel of this._dashModels.values()) {
 			if (dashModel.prune()) {
@@ -187,7 +187,7 @@ var ModelManager = new Lang.Class({
 		return changed;
 	},
 
-	log: function() {
+	log() {
 		if (this.single) {
 			if (this._dashModels.has(SINGLE_WORKSPACE_INDEX)) {
 				let dashModel = this._dashModels.get(SINGLE_WORKSPACE_INDEX);
@@ -201,11 +201,11 @@ var ModelManager = new Lang.Class({
 		}
 	},
 
-	_reset: function() {
+	_reset() {
 		this._dashModels.clear();
 	},
 
-	_onDashPerWorkspaceSettingChanged: function(settings, dashPerWorkspace) {
+	_onDashPerWorkspaceSettingChanged(settings, dashPerWorkspace) {
 		log(`"dash-per-workspace" setting changed signal: ${dashPerWorkspace}`);
 		let single = !dashPerWorkspace;
 		if (this.single !== single) {
@@ -214,12 +214,12 @@ var ModelManager = new Lang.Class({
 		}
 	},
 
-	_onIconsWindowMatchersSettingChanged: function(settings, windowMatchers) {
+	_onIconsWindowMatchersSettingChanged(settings, windowMatchers) {
 		log('"icons-window-matchers" setting changed signal');
 		this.refresh();
 	},
 
-	_onAppStateChanged: function(appSystem, app) {
+	_onAppStateChanged(appSystem, app) {
 		let id = app.id;
 		let state = app.state;
 		if (state == Shell.AppState.STARTING) {
@@ -242,12 +242,12 @@ var ModelManager = new Lang.Class({
 		}
 	},
 
-	_onFavoritesChanged: function(favorites) {
+	_onFavoritesChanged(favorites) {
 		log('favorites "changed" signal');
 		this.refresh();
 	},
 
-	_onWorkspaceAdded: function(screen, workspaceIndex) {
+	_onWorkspaceAdded(screen, workspaceIndex) {
 		log(`screen "workspace-added" signal: ${workspaceIndex}`);
 		// Note: new workspaces-per-dash are created on demand
 
@@ -257,7 +257,7 @@ var ModelManager = new Lang.Class({
 		this._signalManager.connect(workspace, 'window-removed', this._onWindowRemoved);
 	},
 
-	_onWorkspaceRemoved: function(screen, workspaceIndex) {
+	_onWorkspaceRemoved(screen, workspaceIndex) {
 		log(`screen "workspace-removed" signal: ${workspaceIndex}`);
 		this.removeDashModel(workspaceIndex);
 
@@ -267,12 +267,12 @@ var ModelManager = new Lang.Class({
 		this._signalManager.getFor(workspace, 'window-removed').disconnect();
 	},
 
-	_onWindowAdded: function(workspace, window) {
+	_onWindowAdded(workspace, window) {
 		log('workspace "window-added" signal');
 		this.refresh();
 	},
 
-	_onWindowRemoved: function(workspace, window) {
+	_onWindowRemoved(workspace, window) {
 		log('workspace "window-removed" signal');
 		this.refresh();
 	}

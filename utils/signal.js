@@ -30,19 +30,19 @@ const Lang = imports.lang;
 var SignalManager = new Lang.Class({
 	Name: 'EmDash.SignalManager',
 
-	_init: function(self) {
+	_init(self) {
 		this.self = self;
 		this._connections = new Set();
 	},
 
-	destroy: function() {
+	destroy() {
 		for (let connection of this._connections) {
 			connection.disconnect(false);
 		}
 		this._connections.clear();
 	},
 
-	get: function(callback) {
+	get(callback) {
 		for (let connection of this._connections) {
 			if (connection.callback === callback) {
 				return connection;
@@ -51,7 +51,7 @@ var SignalManager = new Lang.Class({
 		return null;
 	},
 
-	getFor: function(site, name) {
+	getFor(site, name) {
 		for (let connection of this._connections) {
 			if ((connection.site === site) && (connection.name == name)) {
 				return connection;
@@ -60,23 +60,23 @@ var SignalManager = new Lang.Class({
 		return null;
 	},
 
-	connect: function(site, name, callback, single) {
+	connect(site, name, callback, single) {
 		return this._connect(site, name, callback, single);
 	},
 
-	connectAfter: function(site, name, callback, single) {
+	connectAfter(site, name, callback, single) {
 		return this._connect(site, name, callback, single, 'after');
 	},
 
-	connectProperty: function(site, name, callback, single) {
+	connectProperty(site, name, callback, single) {
 		return this._connect(site, name, callback, single, 'property');
 	},
 
-	connectSetting: function(site, name, type, callback, single) {
+	connectSetting(site, name, type, callback, single) {
 		return this._connect(site, name, callback, single, `setting.${type}`);
 	},
 
-	disconnect: function(callback) {
+	disconnect(callback) {
 		let connection = this.get(callback);
 		if (connection !== null) {
 			connection.disconnect();
@@ -85,7 +85,7 @@ var SignalManager = new Lang.Class({
 		return null;
 	},
 
-	disconnectFor: function(site) {
+	disconnectFor(site) {
 		for (let connection of this._connections) {
 			if (connection.site === site) {
 				connection.disconnect();
@@ -93,19 +93,19 @@ var SignalManager = new Lang.Class({
 		}
 	},
 
-	block: function() {
+	block() {
 		for (let connection of this._connections) {
 			connection.block = true;
 		}
 	},
 
-	unblock: function() {
+	unblock() {
 		for (let connection of this._connections) {
 			connection.block = false;
 		}
 	},
 
-	_connect: function(site, name, callback, single, mode) {
+	_connect(site, name, callback, single, mode) {
 		mode = mode || null;
 		single = single || false;
 		let connection = new SignalConnection(this, site, name, callback, single, mode);
@@ -126,7 +126,7 @@ var SignalManager = new Lang.Class({
 var SignalConnection = new Lang.Class({
 	Name: 'EmDash.SignalConnection',
 
-	_init: function(manager, site, name, callback, single, mode) {
+	_init(manager, site, name, callback, single, mode) {
 		this.manager = manager;
 		this.site = site;
 		this.name = name;
@@ -139,7 +139,7 @@ var SignalConnection = new Lang.Class({
 		this.boundCall = Lang.bind(this, this.call);
 	},
 
-	call: function(...args) {
+	call(...args) {
 		if (this.blocked) {
 			return this.blockedReturn;
 		}
@@ -149,7 +149,7 @@ var SignalConnection = new Lang.Class({
 		return this.callback.apply(this.manager.self, args);
 	},
 
-	connect: function() {
+	connect() {
 		if (this.mode === 'after') {
 			this.id = this.site.connect_after(this.name, this.boundCall);
 		}
@@ -180,7 +180,7 @@ var SignalConnection = new Lang.Class({
 		return false;
 	},
 
-	disconnect: function(remove = true) {
+	disconnect(remove = true) {
 		if (remove) {
 			this.manager._connections.delete(this);
 		}

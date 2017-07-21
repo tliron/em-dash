@@ -39,7 +39,7 @@ const log = LoggingUtils.logger('draggable');
 var Draggable = new Lang.Class({
 	Name: 'EmDash.Draggable',
 
-	_init: function(actor) {
+	_init(actor) {
 		log('_init');
 		this.actor = actor;
 
@@ -57,17 +57,17 @@ var Draggable = new Lang.Class({
 		this._signalManager.connect(this._draggable, 'drag-end', this._onDragEnded);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
 		this._patchManager.destroy();
 	},
 
-	fakeRelease: function() {
+	fakeRelease() {
 		this._draggable.fakeRelease();
 	},
 
-	_onDragBegan: function(draggable, time) {
+	_onDragBegan(draggable, time) {
 		if (this.actor._delegate && this.actor._delegate.handleDragBegin) {
 			this.actor._delegate.handleDragBegin();
 		}
@@ -76,7 +76,7 @@ var Draggable = new Lang.Class({
 	/**
 	 * Monkey patched.
 	 */
-	_cancelDrag: function(original, eventTime) {
+	_cancelDrag(original, eventTime) {
 		if (this.actor._delegate && this.actor._delegate.handleDragCancelling) {
 			this.actor._delegate.handleDragCancelling();
 		}
@@ -86,21 +86,21 @@ var Draggable = new Lang.Class({
 	/**
 	 * Monkey patched.
 	 */
-	_getRestoreLocation: function(original) {
+	_getRestoreLocation(original) {
 		if (this.actor._delegate && this.actor._delegate.getDragRestoreLocation) {
 			return this.actor._delegate.getDragRestoreLocation();
 		}
 		original();
 	},
 
-	_onDragCancelled: function(draggable, time) {
+	_onDragCancelled(draggable, time) {
 		// Likely unnecessary, because _onDragEnded will be called anyway with dropped=false
 		if (this.actor._delegate && this.actor._delegate.handleDragCancelled) {
 			this.actor._delegate.handleDragCancelled();
 		}
 	},
 
-	_onDragEnded: function(draggable, time, dropped) {
+	_onDragEnded(draggable, time, dropped) {
 		if (this.actor._delegate && this.actor._delegate.handleDragEnd) {
 			this.actor._delegate.handleDragEnd(dropped);
 		}

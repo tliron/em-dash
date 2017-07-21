@@ -4,8 +4,7 @@ Em—Dash
 
 **WORK IN PROGRESS, DO NOT USE**
 
-An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension, for GNOME Shell
-version 3.24 and above. 
+An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension.
 
 Its primary function is to move the dash out of the overview and into the **top panel** or dock it
 on an **edge** of one of the **monitors**.
@@ -35,6 +34,8 @@ Optional features for the dash icons' popup menus:
 
 * Show **media controls** for supported applications (MPRIS).
 * Move the **application menu** from the top panel into the relevant icon's popup menu.
+
+Requires GNOME Shell 3.24 and above. Written in ECMAScript 6 (2015). 
 
 
 What does the name mean?
@@ -126,7 +127,7 @@ reference material:
   [default CSS](https://github.com/GNOME/gnome-shell/blob/master/data/theme/gnome-shell.css).
 * The general `imports` (`imports.lang`, `imports.gettext`, `imports.tweener`) come from the
   [gjs source code](https://git.gnome.org/browse/gjs/tree/modules).
-* All the `imports.gi` come from the GObject-Introspection system, which uses language-neutral XML
+* All the `imports.gi` come from the GObject-Introspection system, which uses language-neutral
   descriptors for installed GObject libraries. (On Ubuntu, you can find the
   automatically-generated descriptors in `/usr/share/gir-1.0/` and compiled ones in
   `/usr/lib/girepository-1.0/` and `/usr/lib/x86_64-linux-gnu/girepository-1.0/`.) The
@@ -147,11 +148,11 @@ reference material:
     `/schemas/` files. The `type` fields use GLib's
     [GVariant format](https://developer.gnome.org/glib/stable/gvariant-format-strings.html).
 * Though Clutter supports animations, the GNOME Shell code tends to prefer its own gjs
-  [tweener](https://git.gnome.org/browse/gjs/tree/modules/tweener) (based on
+  [tweener](https://git.gnome.org/browse/gjs/tree/modules/tweener) implementation (based on
   [this API](http://hosted.zeh.com.br/tweener/docs/en-us/)).
 * The preferences page is quite different from all the above, as it's actually a GTK+ widget. The
   [Glade designer](https://glade.gnome.org/) can be used to edit the `prefs.ui` file used by the
-  GTK+ builder. [This documentation](http://lazka.github.io/pgi-docs/Gtk-3.0) is useful.
+  GTK+ builder. [This documentation](https://people.gnome.org/~gcampagna/docs/Gtk-3.0/) is useful.
 
 
 TODO

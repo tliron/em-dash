@@ -38,7 +38,6 @@ function moveFavoriteToPos(appId, fromPos, toPos) {
 
 	let favorites = AppFavorites.getAppFavorites();
 	delete favorites._favorites[appId];
-//	favorites._removeFavorite(appId);
 	favorites._addFavorite(appId, toPos);
 }
 

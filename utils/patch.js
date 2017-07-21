@@ -25,12 +25,12 @@ const Lang = imports.lang;
 var PatchManager = new Lang.Class({
 	Name: 'EmDash.PatchManager',
 
-	_init: function(self) {
+	_init(self) {
 		this.self = self;
 		this._patches = new Set();
 	},
 
-	destroy: function() {
+	destroy() {
 		for (let patch of this._patches) {
 			patch.destroy();
 		}
@@ -41,12 +41,12 @@ var PatchManager = new Lang.Class({
 		this._patches.add(new Patch(this.self, site, name, fn));
 	},
 
-	callOriginal: function(site, name, ...args) {
+	callOriginal(site, name, ...args) {
 		let patch = this.get(site, name);
 		return patch.callOriginal(...args);
 	},
 
-	get: function(site, name) {
+	get(site, name) {
 		for (let patch of this._patches) {
 			if ((patch.site === site) && (patch.name === name)) {
 				return patch;
@@ -63,7 +63,7 @@ var PatchManager = new Lang.Class({
 var Patch = new Lang.Class({
 	Name: 'EmDash.Patch',
 
-	_init: function(self, site, name, fn) {
+	_init(self, site, name, fn) {
 		this.self = self;
 		this.site = site;
 		this.name = name;
@@ -74,11 +74,11 @@ var Patch = new Lang.Class({
 		site[name] = Lang.bind(this, this.call);
 	},
 
-	destroy: function() {
+	destroy() {
 		this.site[this.name] = this.originalFn;
 	},
 
-	call: function(...args) {
+	call(...args) {
 		args.unshift(this.callOriginal);
 		return this.fn.apply(this.self, args);
 	}

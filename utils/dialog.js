@@ -38,7 +38,7 @@ const ANIMATION_TIME = 0.1;
 var MessageDialog = new Lang.Class({
 	Name: 'EmDash.MessageDialog',
 
-	_init: function() {
+	_init() {
 		log('_init');
 
 		this._overlay = null;
@@ -128,7 +128,7 @@ var MessageDialog = new Lang.Class({
 		this._signalManager.connect(this._cancel, 'clicked', this._onCancel);
 	},
 
-	destroy: function() {
+	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
 		this.emit('destroy');
@@ -148,7 +148,7 @@ var MessageDialog = new Lang.Class({
 		});
 	},
 
-	open: function() {
+	open() {
 		log('open');
 
 		let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
@@ -180,7 +180,7 @@ var MessageDialog = new Lang.Class({
 		});
 	},
 
-	addTitle: function(text) {
+	addTitle(text) {
 		let label = new St.Label({
 			text: text,
 			style_class: 'prompt-dialog-headline', // GNOME theme styling
@@ -193,7 +193,7 @@ var MessageDialog = new Lang.Class({
 		});
 	},
 
-	addMessage: function(text) {
+	addMessage(text) {
 		let label = new St.Label({
 			text: text,
 			x_align: Clutter.ActorAlign.CENTER
@@ -205,13 +205,13 @@ var MessageDialog = new Lang.Class({
 		});
 	},
 
-	_onCancel: function(actor) {
+	_onCancel(actor) {
 		log('cancel "clicked" signal');
 		this.emit('cancel');
 		this.destroy();
 	},
 
-	_onButtonPressed: function(actor, buttonEvent) {
+	_onButtonPressed(actor, buttonEvent) {
 		log('"button-press-event" signal');
 		this.emit('cancel');
 		this.destroy();
