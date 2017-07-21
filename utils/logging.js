@@ -13,8 +13,17 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
+const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
+
+/*
+ * Why not use global "let" vars here, and instead put our global values in the extension object?
+ * Because we found global "let" to be weirdly unreliable. A bug somewhere in the import mechanism
+ * causes the globals to sometimes *not* be shared with other files. Our extension.js would enable
+ * logging via a global "let" defined here, but some imported modules failed to log, while others
+ * logged just fine. We could not find a way to reproduce the bug reliably.
+ */
 
 
 /**
@@ -29,10 +38,15 @@ function logger(name) {
 }
 
 
-/*
- * Why not use global "let" vars here, and instead put our global values in the extension object?
- * Because we found global "let" to be weirdly unreliable. A bug somewhere in the import mechanism
- * causes the globals to sometimes *not* be shared with other files. Our extension.js would enable
- * logging via a global "let" defined here, but some imported modules failed to log, while others
- * logged just fine. We could not find a way to reproduce the bug reliably.
+/**
+ * Annoyingly, in prefs.js the global.log implementation will not work. This implementation
+ * essentially recreates it while keeping the same format as in GNOME Shell's environment.js.
  */
+function implementation(message) {
+	GLib.log_structured(Me.metadata.name, GLib.LogLevelFlags.LEVEL_MESSAGE, {
+		MESSAGE: message,
+		GNOME_SHELL_EXTENSION_UUID: Me.uuid,
+		GNOME_SHELL_EXTENSION_NAME: Me.metadata.name
+		// The domain is automatically added as GLIB_DOMAIN
+	});
+}

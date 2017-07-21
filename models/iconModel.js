@@ -119,8 +119,9 @@ var IconModel = new Lang.Class({
 		// App windows
 		let appWindows = this.app.get_windows();
 		for (let window of appWindows) {
-			if ((workspaceIndex !== undefined) &&
-				(window.get_workspace().index() != workspaceIndex)) {
+			if (window.skip_taskbar ||
+				((workspaceIndex !== undefined) &&
+				(window.get_workspace().index() != workspaceIndex))) {
 				continue;
 			}
 			windows.push(window);

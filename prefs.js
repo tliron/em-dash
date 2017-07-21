@@ -47,7 +47,7 @@ var PrefsWidget = new Lang.Class({
 		this._settings = Convenience.getSettings();
 
 		Me.LOGGING_ENABLED = this._settings.get_boolean('debug');
-		Me.LOGGING_IMPLEMENTATION = _log;
+		Me.LOGGING_IMPLEMENTATION = LoggingUtils.implementation;
 
 		log('_init')
 
@@ -687,20 +687,6 @@ var PrefsWidget = new Lang.Class({
 		this._settings.set_value('icons-window-matchers', windowMatchers);
 	}
 });
-
-
-/**
- * Annoyingly, in prefs.js the global.log function will not work. Instead we will redefine it here
- * while keeping the same format as in GNOME Shell's environment.js.
- */
-function _log(message) {
-	GLib.log_structured(Me.metadata.name, GLib.LogLevelFlags.LEVEL_MESSAGE, {
-		MESSAGE: message,
-		GNOME_SHELL_EXTENSION_UUID: Me.uuid,
-		GNOME_SHELL_EXTENSION_NAME: Me.metadata.name
-		// The domain is automatically added as GLIB_DOMAIN
-	});
-}
 
 
 function _escape(text) {

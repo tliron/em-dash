@@ -14,10 +14,7 @@
  */
 
 const Lang = imports.lang;
-const Main = imports.ui.main;
 const Shell = imports.gi.Shell;
-const Clutter = imports.gi.Clutter;
-const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
@@ -89,56 +86,5 @@ var FixedBin = new Lang.Class({
 	_onGetPreferredHeight(actor, forWidth, alloc) {
 		alloc.min_size = 0;
 		alloc.natural_size = this.preferred_height;
-	}
-});
-
-
-/**
- * An St container for a single child which makes sure that the child is rendered at scale. This
- * is especially necessary for avoiding blurry text.
- *
- * It achieves this effect by constraining its bounds to those of the stage. It is placed behind
- * all other actors to avoid affecting DND.
- *
- * Note that though it's not a subclass of St.Bin, it behaves similarly.
- *
- * Note also that this is a GObject class!
- */
-var StageBin = new Lang.Class({
-	Name: 'EmDash-StageBin', // can't use "." with GObject classes
-	Extends: St.Widget,
-
-	_init(params) {
-		params = params || {};
-
-		let child = null;
-
-		// Parse/remove our extra params
-		if ('child' in params) {
-			child = params['child'];
-			delete params['child'];
-		}
-		if (!('layout_manager' in params)) {
-			params.layout_manager = new Clutter.BinLayout();
-		}
-
-		this.parent(params);
-
-		if (child !== null) {
-			this.add_child(child);
-		}
-
-		this.width = 500;
-		this.height = 500;
-
-//		this.add_constraint(new Clutter.BindConstraint({
-//			source: global.stage,
-//			coordinate: Clutter.BindCoordinate.ALL
-//		}));
-	},
-
-	addChrome() {
-		//Main.layoutManager.uiGroup.insert_child_at_index(this, 0);
-		Main.layoutManager.uiGroup.add_child(this);
 	}
 });

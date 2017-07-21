@@ -16,6 +16,7 @@
 const Lang = imports.lang;
 const Signals = imports.signals;
 const Main = imports.ui.main;
+const PopupMenu = imports.ui.popupMenu;
 const Tweener = imports.ui.tweener;
 const Shell = imports.gi.Shell;
 const St = imports.gi.St;
@@ -28,6 +29,7 @@ const TimeoutUtils = Me.imports.utils.timeout;
 const ClutterUtils = Me.imports.utils.clutter;
 const BacklightUtils = Me.imports.utils.backlight;
 const StUtils = Me.imports.utils.st;
+const DashMenu = Me.imports.views.dashMenu;
 const IconView = Me.imports.views.iconView;
 const ShowAppsIcon = Me.imports.views.showAppsIcon;
 const GrabDialog = Me.imports.views.grabDialog;
@@ -47,7 +49,7 @@ const HOVER_TIMEOUT = 300;
 var DashView = new Lang.Class({
 	Name: 'EmDash.DashView',
 
-	_init(modelManager, scalingManager, styleClass, vertical, logicalIconSize, quantize) {
+	_init(modelManager, scalingManager, styleClass, side, logicalIconSize, quantize) {
 		log('_init');
 
 		this.modelManager = modelManager;
@@ -63,7 +65,8 @@ var DashView = new Lang.Class({
 
 		// Actor: contains dash and arrow
 		this.actor = new St.Widget({
-			layout_manager: new Clutter.BinLayout()
+			layout_manager: new Clutter.BinLayout(),
+			reactive: true
 		});
 
 		// Icon box
@@ -89,6 +92,10 @@ var DashView = new Lang.Class({
 		});
 		this.actor.add_child(this._fader);
 
+		// Menu
+		this._menuManager = new PopupMenu.PopupMenuManager(this);
+		this._menu = null;
+
 		this._timeoutManager = new TimeoutUtils.TimeoutManager(this);
 
 		// Signals
@@ -98,13 +105,15 @@ var DashView = new Lang.Class({
 			// We need to wait until we're painted before calling _updateFocusApp (backlight
 			// highlighting needs theme information)
 
-			this.setVertical(vertical);
+			this.setSide(side);
 			this.setIconSize(logicalIconSize);
 
 			let appSystem = Shell.AppSystem.get_default();
 			let windowTracker = Shell.WindowTracker.get_default();
 			let textureCache = St.TextureCache.get_default();
 
+			this._signalManager.connect(this.actor, 'button-press-event', this._onButtonPressed);
+			this._signalManager.connect(Main.overview, 'hiding', this._onOverviewHiding);
 			this._signalManager.connectProperty(this.box, 'allocation',
 				this._onBoxAllocationPropertyChanged);
 			this._signalManager.connect(this.dash, 'style-changed', this._onStyleChanged);
@@ -138,6 +147,9 @@ var DashView = new Lang.Class({
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
 		this.actor.destroy();
+		if (this._menu !== null) {
+			this._menu.destroy();
+		}
 		if (this._tooltip !== null) {
 			this._tooltip.destroy();
 		}
@@ -196,7 +208,8 @@ var DashView = new Lang.Class({
 		return lastGoodChildIndex;
 	},
 
-	setVertical(vertical) {
+	setSide(side) {
+		let vertical = (side === St.Side.LEFT) || (side === St.Side.RIGHT);
 		if (this.box.vertical !== vertical) {
 			this.box.vertical = vertical;
 			if (vertical) {
@@ -206,6 +219,13 @@ var DashView = new Lang.Class({
 				this.box.remove_style_class_name('vertical');
 			}
 		}
+
+		if (this._menu !== null) {
+			this._menuManager.removeMenu(this._menu);
+			this._menu.destroy();
+		}
+		this._menu = new DashMenu.DashMenu(this.actor, side);
+		this._menuManager.addMenu(this._menu);
 	},
 
 	setIconSize(logicalIconSize) {
@@ -335,18 +355,31 @@ var DashView = new Lang.Class({
 				let [iconX, iconY] = actor.get_transformed_position();
 				let [dashX, dashY] = this.actor.get_transformed_position();
 
-				// Note: we tried to reuse the same St.Label, but found that subsequent uses after
-				// the first one resulted in oddly blurred text
+				if (this._tooltip !== null) {
+					this._tooltip.destroy();
+				}
+
 				this._tooltip = new St.Label({
 					text: iconView.app.get_name(),
 					style_class: 'dash-label',
 					visible: false,
 					opacity: 0
 				});
-				Main.layoutManager.addChrome(this._tooltip);
+				Main.layoutManager.addChrome(this._tooltip, {
+					affectsInputRegion: false
+				});
 
 				if (this.box.vertical) {
 					y = iconY + actor.height / 2 - this._tooltip.height / 2;
+					if (y < margin) {
+						y = margin;
+					}
+					else {
+						let edge = global.stage.height - margin - 1;
+						if (y > edge) {
+							y = edge;
+						}
+					}
 
 					// Try on left side
 					x = dashX - this._tooltip.width - margin;
@@ -358,6 +391,15 @@ var DashView = new Lang.Class({
 				}
 				else {
 					x = iconX + actor.width / 2 - this._tooltip.width / 2;
+					if (x < margin) {
+						x = margin;
+					}
+					else {
+						let edge = global.stage.width - margin - 1;
+						if (x > edge) {
+							x = edge;
+						}
+					}
 
 					// Try on top
 					y = dashY - this._tooltip.height - margin;
@@ -367,7 +409,8 @@ var DashView = new Lang.Class({
 					}
 				}
 
-				this._tooltip.set_position(x, y);
+				// Note: use integers for position to avoid blurry text
+				this._tooltip.set_position(Math.floor(x), Math.floor(y));
 				this._tooltip.show();
 				Tweener.addTween(this._tooltip, {
 					time: ANIMATION_TIME,
@@ -631,6 +674,25 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			tween.translation_x = this._scrollTranslation;
 		}
 		Tweener.addTween(this.box, tween);
+	},
+
+	_onButtonPressed(actor, event) {
+		log('"button-press-event" signal');
+		let button = event.get_button();
+		if (button === 3) {
+			if (this._menu !== null) {
+				this._menu.open();
+			}
+			return Clutter.EVENT_STOP;
+		}
+		return Clutter.EVENT_PROPAGATE;
+	},
+
+	_onOverviewHiding() {
+		log('overview "hiding" signal');
+		if (this._menu !== null) {
+			this._menu.close();
+		}
 	},
 
 	_onBoxAllocationPropertyChanged(actor, allocation) {

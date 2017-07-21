@@ -177,6 +177,7 @@ TODO
 
 ### Tooltip
 
+* Might go out of screen in horizontal
 * Window list
 * Window previews
 

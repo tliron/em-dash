@@ -30,10 +30,10 @@ const DashView = Me.imports.views.dashView;
 var Dash = new Lang.Class({
 	Name: 'EmDash.Dash',
 
-	_init(dashManager, styleClass, vertical, iconSize, quantize) {
+	_init(dashManager, styleClass, side, logicalIconSize, quantize) {
 		this._dashManager = dashManager;
 		this._view = new DashView.DashView(dashManager.modelManager, dashManager.scalingManager,
-			styleClass, vertical, iconSize, quantize);
+			styleClass, side, logicalIconSize, quantize);
 		this._signalManager = new SignalUtils.SignalManager(this);
 	},
 

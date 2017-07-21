@@ -38,7 +38,7 @@ var TopBarDash = new Lang.Class({
 	_init(dashManager, location) {
 		log('_init');
 
-		this.parent(dashManager, 'top-bar', false,
+		this.parent(dashManager, 'top-bar', St.Side.TOP,
 			dashManager.scalingManager.toLogical(Main.panel.actor.height), false);
 
 		this._view.dash.x_align = St.Align.START;

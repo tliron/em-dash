@@ -36,15 +36,15 @@ var DockableDash = new Lang.Class({
 	_init(dashManager, location) {
 		log('_init');
 
-		let side = getMutterSideForLocation(location);
 		let align = getStAlignForAlignment(dashManager.settings.get_enum('dock-alignment'));
 		let stretch = dashManager.settings.get_boolean('dock-stretch');
 		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_REVEAL';
 
-		let vertical = (side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT);
-		this.parent(dashManager, 'dock', vertical, dashManager.settings.get_uint('dock-icon-size'),
+		let side = getStSideForLocation(location);
+		this.parent(dashManager, 'dock', side, dashManager.settings.get_uint('dock-icon-size'),
 			false);
 
+		side = getMutterSideForLocation(location);
 		this._dockable = new DockableUtils.Dockable(this._view.actor, this._view.dash,
 			side, align, stretch, toggle);
 
@@ -72,9 +72,10 @@ var DockableDash = new Lang.Class({
 	},
 
 	setLocation(location) {
-		let side = getMutterSideForLocation(location);
-		this._view.setVertical((side === Meta.Side.LEFT) || (side === Meta.Side.RIGHT));
+		let side = getStSideForLocation(location);
+		this._view.setSide(side);
 		this._view.refresh();
+		side = getMutterSideForLocation(location);
 		this._dockable.setSide(side);
 		this._updateStyle(side);
 	},
@@ -196,6 +197,19 @@ function getMutterSideForLocation(location) {
 		return rtl ? Meta.Side.LEFT : Meta.Side.RIGHT;
 	case 'EDGE_BOTTOM':
 		return Meta.Side.BOTTOM;
+	}
+}
+
+
+function getStSideForLocation(location) {
+	let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
+	switch (location) {
+	case 'EDGE_NEAR':
+		return rtl ? St.Side.RIGHT : St.Side.LEFT;
+	case 'EDGE_FAR':
+		return rtl ? St.Side.LEFT : St.Side.RIGHT;
+	case 'EDGE_BOTTOM':
+		return St.Side.BOTTOM;
 	}
 }
 

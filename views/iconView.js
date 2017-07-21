@@ -83,6 +83,7 @@ var IconView = new Lang.Class({
 			y_align: Clutter.ActorAlign.END,
 			visible: false
 		});
+		this._enhancedDot.connect('repaint', Lang.bind(this, this._onEnhancedDotRepainted));
 		this._iconContainer.add_child(this._enhancedDot);
 
 		if (dashView.modelManager.settings.get_boolean('icons-indicate-number-of-windows')) {
@@ -110,7 +111,6 @@ var IconView = new Lang.Class({
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHoverPropertyChanged);
-		this._signalManager.connect(this._enhancedDot, 'repaint', this._onEnhancedDotRepainted);
 	},
 
 	/**
@@ -399,6 +399,7 @@ background-gradient-end: ${backlight.dark};`;
 	 * Override to support our custom middle-click actions.
 	 */
 	_onButtonPress(actor, event) {
+		log('"button-press-event" signal');
 		if (this.dashView.grabSourceIconView !== null) {
 			// We are in grab selection mode
 			this.dashView.endGrab(this);
