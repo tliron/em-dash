@@ -86,10 +86,11 @@ var IconView = new Lang.Class({
 		this._enhancedDot.connect('repaint', Lang.bind(this, this._onEnhancedDotRepainted));
 		this._iconContainer.add_child(this._enhancedDot);
 
+		// Select dot
 		if (dashView.modelManager.settings.get_boolean('icons-indicate-number-of-windows')) {
 			this._simpleDot.hide();
 			this._dot = this._enhancedDot;
-			this._updateRunningStyle();
+			this._updateRunningStyle(); // this was done in parent's _init, but we need to redo
 		}
 		else {
 			this._enhancedDot.hide();
@@ -97,7 +98,7 @@ var IconView = new Lang.Class({
 
 		// Simple name
 		this._simpleName = null;
-		let id = model.app.id;
+		const id = model.app.id;
 		if (id.endsWith('.desktop')) {
 			this._simpleName = id.substring(0, id.length - '.desktop'.length);
 		}
@@ -137,8 +138,8 @@ var IconView = new Lang.Class({
 			return;
 		}
 		this._appearing = true;
-		let originalWidth = this.actor.width;
-		let originalHeight = this.actor.height;
+		const originalWidth = this.actor.width;
+		const originalHeight = this.actor.height;
 		this.actor.set_size(0, 0);
 		Tweener.addTween(this.actor, {
 			time: ANIMATION_TIME,
@@ -153,7 +154,7 @@ var IconView = new Lang.Class({
 
 	_dissolve(destroy = false) {
 		log(`_dissolve: ${this.app.id}`);
-		let position = this.icon.icon.get_transformed_position();
+		const position = this.icon.icon.get_transformed_position();
 		this._originalX = position[0];
 		this._originalY = position[1];
 		this._originalWidth = this.actor.width;
@@ -222,18 +223,18 @@ var IconView = new Lang.Class({
 
 	focus() {
 		log(`focus: ${this.app.id}`);
-		let icon = this.icon.icon;
+		const icon = this.icon.icon;
 		if (icon !== null) {
-			let backlight = BacklightUtils.getBacklight(this.app.id, () => {
+			const backlight = BacklightUtils.getBacklight(this.app.id, () => {
 				if (icon instanceof St.Icon) {
 					return IconUtils.getStIconPixbuf(icon);
 				}
 				log('focus: not an St.Icon');
 				return null;
 			});
-			log(`backlight: l=${backlight.light} n=${backlight.normal} d=${backlight.dark}`);
+			log(`backlight: ${this.app.id} l=${backlight.light} n=${backlight.normal} d=${backlight.dark}`);
 
-			let settings = this.dashView.modelManager.settings;
+			const settings = this.dashView.modelManager.settings;
 			if (settings.get_boolean('icons-highlight-focused-gradient')) {
 				this.actor.style = `
 background-gradient-direction: vertical;
@@ -247,6 +248,7 @@ background-gradient-end: ${backlight.dark};`;
 			this._simpleDot.style = `background-color: ${backlight.normal};`;
 		}
 		this.actor.add_style_class_name('focused');
+		this._updateRunningStyle();
 	},
 
 	unfocus() {
@@ -254,18 +256,17 @@ background-gradient-end: ${backlight.dark};`;
 		this.actor.remove_style_class_name('focused');
 		this.actor.style = null;
 		this._simpleDot.style = null;
+		this._updateRunningStyle();
 	},
 
 	// Running dot
 
 	setRunningDot(enhanced) {
 		if (enhanced) {
-			this._enhancedDot.show();
 			this._simpleDot.hide();
 			this._dot = this._enhancedDot;
 		}
 		else {
-			this._simpleDot.show();
 			this._enhancedDot.hide();
 			this._dot = this._simpleDot;
 		}
@@ -273,17 +274,17 @@ background-gradient-end: ${backlight.dark};`;
 	},
 
 	_onEnhancedDotRepainted(drawingArea) {
-		let dotSpacing = 2;
+		const dotSpacing = 2;
 		let dotMinWidth = 2;
 
-		let number = this.model.getWindows(this.dashView.modelManager.workspaceIndex).length;
+		let number = this.model.windows.length;
 		if (number === 0) {
 			return;
 		}
 
-		let themeNode = this._simpleDot.get_theme_node();
-		let color = themeNode.get_background_color();
-		let [width, height] = drawingArea.get_surface_size();
+		const themeNode = this._simpleDot.get_theme_node();
+		const color = themeNode.get_background_color();
+		const [width, height] = drawingArea.get_surface_size();
 
 		if (dotMinWidth > width) {
 			dotMinWidth = width;
@@ -294,9 +295,9 @@ background-gradient-end: ${backlight.dark};`;
 			number = Math.max(Math.floor((width + dotSpacing) / (dotMinWidth + dotSpacing)), 1);
 			dotWidth = (width - (number - 1) * dotSpacing) / number;
 		}
-		let dotDistance = dotWidth + dotSpacing;
+		const dotDistance = dotWidth + dotSpacing;
 
-		let cr = drawingArea.get_context();
+		const cr = drawingArea.get_context();
 		try {
 			cr.save();
 			Clutter.cairo_set_source_color(cr, color);
@@ -316,15 +317,19 @@ background-gradient-end: ${backlight.dark};`;
 	 * Override to check for grabbed windows, too.
 	 */
 	_updateRunningStyle() {
-		let windows = this.model.getWindows(this.dashView.modelManager.workspaceIndex);
+		const windows = this.model.windows;
 		if (windows.length > 0) {
 			this._dot.show();
 			if ('queue_repaint' in this._dot) {
-				// For enhanced dot only
+				log(`_updateRunningStyle: ${this.app.id} show enhanced`);
 				this._dot.queue_repaint();
+			}
+			else {
+				log(`_updateRunningStyle: ${this.app.id} show simple`);
 			}
 		}
 		else {
+			log(`_updateRunningStyle: ${this.app.id} hide`);
 			this._dot.hide();
 		}
 	},
@@ -353,7 +358,7 @@ background-gradient-end: ${backlight.dark};`;
 					this._onMenuPoppedDown();
 				}
 			});
-			let id = Main.overview.connect('hiding', () => {
+			const id = Main.overview.connect('hiding', () => {
 				this._menu.close();
 			});
 			this.actor.connect('destroy', () => {
@@ -379,11 +384,11 @@ background-gradient-end: ${backlight.dark};`;
 	 * Override to support our custom left-click actions.
 	 */
 	activate(button) {
-		let settings = this.dashView.modelManager.settings;
+		const settings = this.dashView.modelManager.settings;
 		let iconsLeftClick = settings.get_string('icons-left-click');
 
 		// CTRL forces launch
-		let event = Clutter.get_current_event();
+		const event = Clutter.get_current_event();
 		if (event !== null) {
 			if ((event.get_state() & Clutter.ModifierType.CONTROL_MASK) !== 0) {
 				iconsLeftClick = 'LAUNCH';
@@ -406,14 +411,14 @@ background-gradient-end: ${backlight.dark};`;
 			return Clutter.EVENT_STOP;
 		}
 
-		let button = event.get_button();
+		const button = event.get_button();
 		switch (button) {
 		case 1:
 			this._setPopupTimeout();
 			break;
 		case 2:
-			let settings = this.dashView.modelManager.settings;
-			let iconsMiddleClick = settings.get_string('icons-middle-click');
+			const settings = this.dashView.modelManager.settings;
+			const iconsMiddleClick = settings.get_string('icons-middle-click');
 			if (iconsMiddleClick !== 'NOTHING') {
 				this._clickAction(iconsMiddleClick);
 			}
@@ -439,11 +444,11 @@ background-gradient-end: ${backlight.dark};`;
 		switch (scrollEvent.get_scroll_direction()) {
 		case Clutter.ScrollDirection.UP:
 			log(`actor "scroll-event" signal: ${this.app.id} up`);
-			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, false);
+			this.model.cycleFocus(false);
 			break;
 		case Clutter.ScrollDirection.DOWN:
 			log(`actor "scroll-event" signal: ${this.app.id} down`);
-			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, true);
+			this.model.cycleFocus(true);
 			break;
 		default:
 			log(`actor "scroll-event" signal: ${this.app.id}`);
@@ -483,16 +488,15 @@ background-gradient-end: ${backlight.dark};`;
 	launchOrShow() {
 		log(`launchOrShow: ${this.app.id}`);
 		if (!this._openNewWindow()) {
-			this.model.focus(this.dashView.modelManager.workspaceIndex);
+			this.model.focus();
 		}
 	},
 
 	launchOrToggle() {
 		log(`launchOrToggle: ${this.app.id}`);
 		if (!this._openNewWindow()) {
-			let workspaceIndex = this.dashView.modelManager.workspaceIndex;
-			if (!this.model.hideIfHasFocus(workspaceIndex)) {
-				this.model.focus(workspaceIndex);
+			if (!this.model.hideIfHasFocus()) {
+				this.model.focus();
 			}
 		}
 	},
@@ -500,13 +504,13 @@ background-gradient-end: ${backlight.dark};`;
 	launchOrCycle() {
 		log(`launchOrCycle: ${this.app.id}`);
 		if (!this._openNewWindow()) {
-			this.model.cycleFocus(this.dashView.modelManager.workspaceIndex, true, true);
+			this.model.cycleFocus(true, true);
 		}
 	},
 
 	_openNewWindow(force = false) {
 		if (force ||
-			(this.model.getWindows(this.dashView.modelManager.workspaceIndex).length === 0)) {
+			(this.model.windows.length === 0)) {
 			this.animateLaunch();
 			if (this.app.can_open_new_window()) {
 				this.app.open_new_window(-1);
@@ -541,7 +545,7 @@ background-gradient-end: ${backlight.dark};`;
 	 * Hooked from DND using our actor._delegate.
 	 */
 	getDragActor() {
-		let size = this.icon.icon.icon_size;
+		const size = this.icon.icon.icon_size;
 		log(`getDragActor hook: ${this.app.id} ${size}`);
 		return this.app.create_icon_texture(size);
 	},
@@ -597,15 +601,15 @@ background-gradient-end: ${backlight.dark};`;
 			return DND.DragMotionResult.NO_DROP;
 		}
 
-		let vertical = this.dashView.box.vertical;
-		let after = vertical ? (y > this.actor.height / 2) : (x > this.actor.width / 2);
+		const vertical = this.dashView.box.vertical;
+		const after = vertical ? (y > this.actor.height / 2) : (x > this.actor.width / 2);
 
 		let app = null;
 		if (after || (this.modelIndex === 0)) {
 			app = this.app;
 		}
 		else {
-			let iconView = this.dashView.getIconViewForModelIndex(this.modelIndex - 1);
+			const iconView = this.dashView.getIconViewForModelIndex(this.modelIndex - 1);
 			if (iconView !== null) {
 				app = iconView.app;
 			}

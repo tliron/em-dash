@@ -108,9 +108,9 @@ var DashView = new Lang.Class({
 			this.setSide(side);
 			this.setIconSize(logicalIconSize);
 
-			let appSystem = Shell.AppSystem.get_default();
-			let windowTracker = Shell.WindowTracker.get_default();
-			let textureCache = St.TextureCache.get_default();
+			const appSystem = Shell.AppSystem.get_default();
+			const windowTracker = Shell.WindowTracker.get_default();
+			const textureCache = St.TextureCache.get_default();
 
 			this._signalManager.connect(this.actor, 'button-press-event', this._onButtonPressed);
 			this._signalManager.connect(Main.overview, 'hiding', this._onOverviewHiding);
@@ -160,7 +160,7 @@ var DashView = new Lang.Class({
 
 	getIconViewForModelIndex(modelIndex) {
 		for (let actor of this.box.get_children()) {
-			let iconView = actor._delegate;
+			const iconView = actor._delegate;
 			if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
 				(iconView.modelIndex == modelIndex)) {
 				return iconView;
@@ -170,9 +170,9 @@ var DashView = new Lang.Class({
 	},
 
 	getIconViewForApp(app) {
-		let id = app.id;
+		const id = app.id;
 		for (let actor of this.box.get_children()) {
-			let iconView = actor._delegate;
+			const iconView = actor._delegate;
 			if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
 				(iconView.app.id === id)) {
 				return iconView;
@@ -183,9 +183,9 @@ var DashView = new Lang.Class({
 
 	getChildIndexForModelIndex(modelIndex) {
 		let lastGoodChildIndex = 0;
-		let nChildren = this.box.get_n_children();
+		const nChildren = this.box.get_n_children();
 		for (let i = 0; i < nChildren; i++) {
-			let actor = this.box.get_child_at_index(i);
+			const actor = this.box.get_child_at_index(i);
 
 			// Skip ShowAppIcons
 			if (actor instanceof ShowAppsIcon.ShowAppsIcon) {
@@ -193,7 +193,7 @@ var DashView = new Lang.Class({
 				continue;
 			}
 
-			let iconView = actor._delegate;
+			const iconView = actor._delegate;
 			if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
 				if (modelIndex === iconView.modelIndex) {
 					return i;
@@ -209,7 +209,7 @@ var DashView = new Lang.Class({
 	},
 
 	setSide(side) {
-		let vertical = (side === St.Side.LEFT) || (side === St.Side.RIGHT);
+		const vertical = (side === St.Side.LEFT) || (side === St.Side.RIGHT);
 		if (this.box.vertical !== vertical) {
 			this.box.vertical = vertical;
 			if (vertical) {
@@ -236,18 +236,18 @@ var DashView = new Lang.Class({
 	},
 
 	refresh(force = false, workspaceIndex) {
-		let physicalActorHeight = this._scalingManager.toPhysical(this._logicalIconSize);
+		const physicalActorHeight = this._scalingManager.toPhysical(this._logicalIconSize);
 		let physicalIconSize = physicalActorHeight * 0.75;
 		if (this.quantize) {
 			physicalIconSize = this._scalingManager.getSafeIconSize(physicalIconSize);
 		}
-		let logicalIconSize = this._scalingManager.toLogical(physicalIconSize);
+		const logicalIconSize = this._scalingManager.toLogical(physicalIconSize);
 		log(`refresh: height=${physicalActorHeight} icon=${physicalIconSize}`);
 
 		if (workspaceIndex === undefined) {
 			workspaceIndex = global.screen.get_active_workspace().index();
 		}
-		let dashModel = this.modelManager.getDashModel(workspaceIndex);
+		const dashModel = this.modelManager.getDashModel(workspaceIndex);
 
 		//this.modelManager.log();
 
@@ -259,7 +259,7 @@ var DashView = new Lang.Class({
 		else {
 			// Remove icons that don't exist anymore
 			for (let actor of this.box.get_children()) {
-				let iconView = actor._delegate;
+				const iconView = actor._delegate;
 				if ((iconView instanceof IconView.IconView) && !iconView.dissolving &&
 					!dashModel.has(iconView.app)) {
 					log(`removed: ${iconView.app.id}`);
@@ -270,10 +270,11 @@ var DashView = new Lang.Class({
 			// Refresh existing icons
 			let moved = false;
 			for (let modelIndex = 0; modelIndex < dashModel.icons.length; modelIndex++) {
-				let iconModel = dashModel.icons[modelIndex];
-				let iconView = this.getIconViewForApp(iconModel.app);
+				const iconModel = dashModel.icons[modelIndex];
+				const iconView = this.getIconViewForApp(iconModel.app);
 				if ((iconView !== null) && !iconView.dissolving) {
 					// Refresh model
+					log(`refreshed: ${iconView.app.id}`);
 					iconView.model = iconModel;
 
 					// Moved?
@@ -287,9 +288,9 @@ var DashView = new Lang.Class({
 
 			// Sort icons after moving them
 			if (moved) {
-				let actors = [];
+				const actors = [];
 				for (let actor of this.box.get_children()) {
-					let iconView = actor._delegate;
+					const iconView = actor._delegate;
 					if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
 						this.box.remove_child(actor);
 						actors.push(actor);
@@ -303,10 +304,9 @@ var DashView = new Lang.Class({
 			}
 
 			// Update running style for existing icons (might have been changes to window grabs)
-			for (let modelIndex = 0; modelIndex < dashModel.icons.length; modelIndex++) {
-				let iconModel = dashModel.icons[modelIndex];
-				let iconView = this.getIconViewForApp(iconModel.app);
-				if ((iconView !== null) && !iconView.dissolving) {
+			for (let actor of this.box.get_children()) {
+				const iconView = actor._delegate;
+				if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
 					iconView._updateRunningStyle();
 				}
 			}
@@ -314,16 +314,16 @@ var DashView = new Lang.Class({
 
 		// Additions
 		for (let modelIndex = 0; modelIndex < dashModel.icons.length; modelIndex++) {
-			let iconModel = dashModel.icons[modelIndex];
+			const iconModel = dashModel.icons[modelIndex];
 			if (this.getIconViewForApp(iconModel.app) !== null) {
 				// Already have it
 				continue;
 			}
 
-			let iconView = new IconView.IconView(this, iconModel, modelIndex,
+			const iconView = new IconView.IconView(this, iconModel, modelIndex,
 				physicalActorHeight, logicalIconSize);
 
-			let childIndex = this.getChildIndexForModelIndex(modelIndex);
+			const childIndex = this.getChildIndexForModelIndex(modelIndex);
 			this.box.insert_child_at_index(iconView.actor, childIndex);
 
 			// We will *not* use the signal manager for this connection, because we don't want to
@@ -343,17 +343,17 @@ var DashView = new Lang.Class({
 
 	updateTooltip(enable, iconView) {
 		if (enable) {
-			let hover = this.modelManager.settings.get_string('icons-hover');
+			const hover = this.modelManager.settings.get_string('icons-hover');
 			if (hover === 'NOTHING') {
 				return;
 			}
 
 			this._timeoutManager.cancelAndAdd(HOVER_TIMEOUT, 'DashView.updateTooltip', () => {
-				let margin = 6;
+				const margin = 6;
+				const actor = iconView.actor;
+				const [iconX, iconY] = actor.get_transformed_position();
+				const [dashX, dashY] = this.actor.get_transformed_position();
 				let x, y;
-				let actor = iconView.actor;
-				let [iconX, iconY] = actor.get_transformed_position();
-				let [dashX, dashY] = this.actor.get_transformed_position();
 
 				if (this._tooltip !== null) {
 					this._tooltip.destroy();
@@ -375,7 +375,7 @@ var DashView = new Lang.Class({
 						y = margin;
 					}
 					else {
-						let edge = global.stage.height - margin - 1;
+						const edge = global.stage.height - margin - 1;
 						if (y > edge) {
 							y = edge;
 						}
@@ -395,7 +395,7 @@ var DashView = new Lang.Class({
 						x = margin;
 					}
 					else {
-						let edge = global.stage.width - margin - 1;
+						const edge = global.stage.width - margin - 1;
 						if (x > edge) {
 							x = edge;
 						}
@@ -422,7 +422,7 @@ var DashView = new Lang.Class({
 		else {
 			this._timeoutManager.cancel('DashView.updateTooltip');
 			if (this._tooltip !== null) {
-				let tooltip = this._tooltip;
+				const tooltip = this._tooltip;
 				this._tooltip = null;
 				Tweener.addTween(tooltip, {
 					time: ANIMATION_TIME,
@@ -459,7 +459,7 @@ var DashView = new Lang.Class({
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
 		}
-		let windows = this.grabSourceIconView.model.getWindows(this.modelManager.workspaceIndex);
+		const windows = this.grabSourceIconView.model.windows;
 		if (grabTargetIconView.model.addMatchersFor(windows)) {
 			grabTargetIconView.model.save();
 		}
@@ -467,7 +467,7 @@ var DashView = new Lang.Class({
 	},
 
 	_updateApplicationsButton(logicalIconSize) {
-		let applicationsButton = this.modelManager.settings.get_string('applications-button');
+		const applicationsButton = this.modelManager.settings.get_string('applications-button');
 		if (applicationsButton === 'HIDE') {
 			this._removeApplicationsButton();
 		}
@@ -475,14 +475,14 @@ var DashView = new Lang.Class({
 			if (applicationsButton === 'NEAR') {
 				if (!(this.box.get_first_child() instanceof ShowAppsIcon.ShowAppsIcon)) {
 					this._removeApplicationsButton();
-					let showAppsIcon = new ShowAppsIcon.ShowAppsIcon(logicalIconSize);
+					const showAppsIcon = new ShowAppsIcon.ShowAppsIcon(logicalIconSize);
 					this.box.insert_child_at_index(showAppsIcon, 0);
 				}
 			}
 			else { // FAR
 				if (!(this.box.get_last_child() instanceof ShowAppsIcon.ShowAppsIcon)) {
 					this._removeApplicationsButton();
-					let showAppsIcon = new ShowAppsIcon.ShowAppsIcon(logicalIconSize);
+					const showAppsIcon = new ShowAppsIcon.ShowAppsIcon(logicalIconSize);
 					this.box.add_child(showAppsIcon);
 				}
 			}
@@ -500,11 +500,11 @@ var DashView = new Lang.Class({
 
 	_updateClip() {
 		// Clutter does not normally take into account translation when clipping
-		let x = -this.box.translation_x;
-		let y = -this.box.translation_y;
-		let allocation = this.box.allocation;
-		let width = allocation.x2 - allocation.x1;
-		let height = allocation.y2 - allocation.y1;
+		const x = -this.box.translation_x;
+		const y = -this.box.translation_y;
+		const allocation = this.box.allocation;
+		const width = allocation.x2 - allocation.x1;
+		const height = allocation.y2 - allocation.y1;
 		log(`_updateClip: x=${x} y=${y} w=${width} h=${height}`);
 		this.box.clip_rect = ClutterUtils.newRect(x, y, width, height);
 	},
@@ -512,8 +512,8 @@ var DashView = new Lang.Class({
 	_updateFader() {
 		this._updateClip();
 
+		const allocation = this.box.allocation;
 		let desiredSize, actualSize;
-		let allocation = this.box.allocation;
 		if (this.box.vertical) {
 			desiredSize = ClutterUtils.getMiniumHeight(this.box);
 			actualSize = allocation.y2 - allocation.y1;
@@ -523,18 +523,18 @@ var DashView = new Lang.Class({
 			actualSize = allocation.x2 - allocation.x1;
 		}
 		log(`_updateFader: desired=${desiredSize} actual=${actualSize}`);
-		let delta = desiredSize - actualSize;
+		const delta = desiredSize - actualSize;
 
 		if (delta > 0) {
 			// Size
-			let physicalIconSize = this._scalingManager.toPhysical(this._logicalIconSize);
-			let size = physicalIconSize * 2; // arbitrary multiplier for comfort
+			const physicalIconSize = this._scalingManager.toPhysical(this._logicalIconSize);
+			const size = physicalIconSize * 2; // arbitrary multiplier for comfort
 
 			// Gradient
-			let themeNode = this.dash.get_theme_node();
-			let start = themeNode.get_background_color();
+			const themeNode = this.dash.get_theme_node();
+			const start = themeNode.get_background_color();
 			start.alpha = 0;
-			let end = new Clutter.Color({
+			const end = new Clutter.Color({
 				red: start.red / 2,
 				green: start.green / 2,
 				blue: start.blue / 2,
@@ -605,7 +605,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			iconsWheelScroll = this.modelManager.settings.get_boolean('icons-wheel-scroll');
 		}
 		for (let actor of this.box.get_children()) {
-			let iconView = actor._delegate;
+			const iconView = actor._delegate;
 			if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
 				if (iconsWheelScroll) {
 					iconView.enableWheelScrolling();
@@ -619,7 +619,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 
 	_updateIndicateNumberOfWindows(indicateNumberOfWindows) {
 		for (let actor of this.box.get_children()) {
-			let iconView = actor._delegate;
+			const iconView = actor._delegate;
 			if ((iconView instanceof IconView.IconView) && !iconView.dissolving) {
 				iconView.setRunningDot(indicateNumberOfWindows);
 			}
@@ -632,11 +632,11 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 				app = Shell.WindowTracker.get_default().focus_app;
 			}
 			if (app !== null) {
-				let workspaceIndex = global.screen.get_active_workspace().index();
-				let dashModel = this.modelManager.getDashModel(workspaceIndex);
-				let modelIndex = dashModel.getIndexOfRepresenting(app);
+				const workspaceIndex = global.screen.get_active_workspace().index();
+				const dashModel = this.modelManager.getDashModel(workspaceIndex);
+				const modelIndex = dashModel.getIndexOfRepresenting(app);
 				if (modelIndex !== -1) {
-					let iconView = this.getIconViewForModelIndex(modelIndex);
+					const iconView = this.getIconViewForModelIndex(modelIndex);
 					if (iconView !== null) {
 						if (this._focused !== iconView) {
 							this._removeFocusApp();
@@ -659,7 +659,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 	},
 
 	_scroll(callback = null) {
-		let tween = {
+		const tween = {
 			time: ANIMATION_TIME,
 			transition: 'easeOutQuad',
 			onUpdate: () => {
@@ -678,7 +678,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 
 	_onButtonPressed(actor, event) {
 		log('"button-press-event" signal');
-		let button = event.get_button();
+		const button = event.get_button();
 		if (button === 3) {
 			if (this._menu !== null) {
 				this._menu.open();

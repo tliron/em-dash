@@ -42,7 +42,7 @@ var PatchManager = new Lang.Class({
 	},
 
 	callOriginal(site, name, ...args) {
-		let patch = this.get(site, name);
+		const patch = this.get(site, name);
 		return patch.callOriginal(...args);
 	},
 

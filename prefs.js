@@ -34,7 +34,7 @@ function init() {
 
 
 function buildPrefsWidget() {
-	let prefsWidget = new PrefsWidget();
+	const prefsWidget = new PrefsWidget();
 	prefsWidget.widget.show_all();
 	return prefsWidget.widget;
 }
@@ -73,7 +73,7 @@ var PrefsWidget = new Lang.Class({
 			this._builder.get_object('applications_button_bottom').label;
 
 		// Update labels according to direction
-		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
+		const rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 		if (rtl) {
 			this._builder.get_object('location_edge_near').label = this._locationEdgeRight;
 			this._builder.get_object('location_edge_far').label = this._locationEdgeLeft;
@@ -211,9 +211,9 @@ var PrefsWidget = new Lang.Class({
 
 	_onDashLocationSettingChanged(settings, dashLocation) {
 		log(`"dash-location" setting changed signal: ${dashLocation}`);
-		let rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
+		const rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 
-		let updateApplicationsButton = (vertical) => {
+		const updateApplicationsButton = (vertical) => {
 			if (vertical) {
 				this._builder.get_object('applications_button_near').label =
 					this._applicationsButtonTop;
@@ -275,7 +275,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onLocationTopBarToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"location_top_bar" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dash-location', 'TOP_BAR');
@@ -283,7 +283,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onLocationEdgeNearToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"location_edge_start" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_NEAR');
@@ -291,7 +291,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onLocationEdgeFarToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"location_edge_end" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_FAR');
@@ -299,7 +299,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onLocationEdgeBottomToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"location_edge_bottom" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_BOTTOM');
@@ -310,8 +310,8 @@ var PrefsWidget = new Lang.Class({
 
 	_onDashLocationMonitorSettingChanged(settings, dashLocationMonitor) {
 		log(`"dash-location-monitor" setting changed signal: ${dashLocationMonitor}`);
-		let combo = this._builder.get_object('location_monitor');
-		let id = String(dashLocationMonitor);
+		const combo = this._builder.get_object('location_monitor');
+		const id = String(dashLocationMonitor);
 		combo.active_id = id;
 		if (combo.active_id !== id) {
 			// Changing the active entry failed, meaning that our combo does not have an entry
@@ -322,7 +322,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onLocationMonitorChanged(combo) {
-		let locationMonitor = combo.active_id;
+		const locationMonitor = combo.active_id;
 		log(`"location_monitor" combo box "changed" signal: ${locationMonitor}`);
 		this._settings.set_uint('dash-location-monitor', parseInt(locationMonitor));
 	},
@@ -342,7 +342,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onTopBarDefaultHeightToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"top_bar_default_height" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_boolean('top-bar-custom-height', false);
@@ -350,7 +350,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onTopBarCustomHeightToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"top_bar_custom_height" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_boolean('top-bar-custom-height', true);
@@ -365,7 +365,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onTopBarHeightValueChanged(scale) {
-		let panelHeight = scale.get_value();
+		const panelHeight = scale.get_value();
 		log(`"top_bar_height" scale value changed signal: ${panelHeight}`);
 		this._settings.set_uint('top-bar-height', panelHeight);
 	},
@@ -378,7 +378,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onDockIconSizeValueChanged(scale) {
-		let dockIconSize = scale.get_value();
+		const dockIconSize = scale.get_value();
 		log(`"dock_icon_size" scale value changed signal: ${dockIconSize}`);
 		this._settings.set_uint('dock-icon-size', dockIconSize);
 	},
@@ -401,7 +401,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onAlignmentNearToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"alignment_near" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dock-alignment', 'NEAR');
@@ -409,7 +409,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onAlignmentMiddleToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"alignment_middle" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dock-alignment', 'MIDDLE');
@@ -417,7 +417,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onAlignmentFarToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"alignment_far" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dock-alignment', 'FAR');
@@ -439,7 +439,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onVisibilityAlwaysVisibleToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"visibility_always_visible" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dock-visibility', 'ALWAYS');
@@ -447,7 +447,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onVisibilityTouchToRevealToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"visibility_touch_to_reveal" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('dock-visibility', 'TOUCH_TO_REVEAL');
@@ -467,7 +467,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onSingleDashToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`location_single_dash radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_boolean('dash-per-workspace', false);
@@ -475,7 +475,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onDashPerWorkspaceToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"location_dash_per_workspace" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_boolean('dash-per-workspace', true);
@@ -485,7 +485,7 @@ var PrefsWidget = new Lang.Class({
 	// Highlight check button
 
 	_onIconsHighlightFocusedToggled(button) {
-		let highlightFocused = button.active;
+		const highlightFocused = button.active;
 		log(`"icons_highlight_focused" check button "toggled" signal: ${highlightFocused}`);
 		this._builder.get_object('icons_highlight_focused_gradient').sensitive = highlightFocused;
 	},
@@ -508,7 +508,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onApplicationsButtonNearToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"applications_button_near" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('applications-button', 'NEAR');
@@ -516,7 +516,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onApplicationsButtonFarToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"applications_button_far" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('applications-button', 'FAR');
@@ -524,7 +524,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onApplicationsButtonHideToggled(button) {
-		let active = button.active;
+		const active = button.active;
 		log(`"applications_button_hide" radio button "toggled" signal: ${active}`);
 		if (active) {
 			this._settings.set_string('applications-button', 'HIDE');
@@ -539,7 +539,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onIconsLeftClickChanged(combo) {
-		let leftClick = combo.active_id;
+		const leftClick = combo.active_id;
 		log(`"icons_left_click" combo box "changed" signal: ${leftClick}`);
 		this._settings.set_string('icons-left-click', leftClick);
 	},
@@ -552,7 +552,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onIconsMiddleClickChanged(combo) {
-		let middleClick = combo.active_id;
+		const middleClick = combo.active_id;
 		log(`"icons_middle_click" combo box "changed" signal: ${middleClick}`);
 		this._settings.set_string('icons-middle-click', middleClick);
 	},
@@ -565,7 +565,7 @@ var PrefsWidget = new Lang.Class({
 	},
 
 	_onIconsHoverChanged(combo) {
-		let hover = combo.active_id;
+		const hover = combo.active_id;
 		log(`"icons_hover" combo box "changed" signal: ${hover}`);
 		this._settings.set_string('icons-hover', hover);
 	},
@@ -575,29 +575,29 @@ var PrefsWidget = new Lang.Class({
 	_onIconsWindowMatchersSettingChanged(settings, windowMatchers) {
 		log('"icons-window-matchers" setting changed signal');
 
-		let store = this._builder.get_object('window_grabbing_store');
+		const store = this._builder.get_object('window_grabbing_store');
 		store.clear();
 
 		windowMatchers = windowMatchers.deep_unpack();
 		for (let appId in windowMatchers) {
-			let appInfo = Gio.DesktopAppInfo.new(appId);
-			let appWindowMatchers = windowMatchers[appId];
-			let appIter = store.append(null);
-			let text = appInfo !== null ?
+			const appInfo = Gio.DesktopAppInfo.new(appId);
+			const appWindowMatchers = windowMatchers[appId];
+			const appIter = store.append(null);
+			const text = appInfo !== null ?
 				`<b>${_escape(appInfo.get_name())}</b>` :
 				`<b>${_escape(appId)}</b>`;
-			let data = {a: appId};
+			const data = {a: appId};
 			store.set_value(appIter, 0, text);
 			store.set_value(appIter, 1, JSON.stringify(data));
 
 			for (let i in appWindowMatchers) {
-				let appWindowMatcher = appWindowMatchers[i];
+				const appWindowMatcher = appWindowMatchers[i];
 				if (appWindowMatcher.length > 2) {
 					log(`WARNING: window matcher for ${app.id} has more than two strings: ${appWindowMatcher.join(', ')}`);
 					continue;
 				}
-				let iter = store.append(appIter);
-				let text = `WM_CLASS: <i>${_escape(appWindowMatcher[0])}</i>`;
+				const iter = store.append(appIter);
+				const text = `WM_CLASS: <i>${_escape(appWindowMatcher[0])}</i>`;
 				if (appWindowMatcher.length > 1) {
 					text += `; WM_CLASS_INSTANCE: <i>${_escape(appWindowMatcher[1])}</i>`;
 				}
@@ -607,16 +607,16 @@ var PrefsWidget = new Lang.Class({
 			}
 		}
 
-		let view = this._builder.get_object('window_grabbing');
+		const view = this._builder.get_object('window_grabbing');
 		view.expand_all();
 
-		let [notEmpty] = store.get_iter_first();
+		const [notEmpty] = store.get_iter_first();
 		this._builder.get_object('window_grabbing_delete_all').sensitive = notEmpty;
 	},
 
 	_onWindowGrabbingSelectionChanged(selection) {
 		log('"window_grabbing" selection "changed" signal');
-		let [selected] = selection.get_selected();
+		const [selected] = selection.get_selected();
 		this._builder.get_object('window_grabbing_delete').sensitive = selected;
 	},
 
@@ -638,28 +638,27 @@ var PrefsWidget = new Lang.Class({
 
 	_onWindowGrabbingDeleteAllClicked(button) {
 		log('"window_grabbing_delete_all" button "clicked" signal');
-		let windowMatchers = new GLib.Variant('a{saas}', {});
+		const windowMatchers = new GLib.Variant('a{saas}', {});
 		this._settings.set_value('icons-window-matchers', windowMatchers);
 	},
 
 	_deleteWindowGrabbingSelection() {
-		let selection = this._builder.get_object('window_grabbing').get_selection();
-		let [, store, iter] = selection.get_selected();
+		const selection = this._builder.get_object('window_grabbing').get_selection();
+		const [, store, iter] = selection.get_selected();
 		if (iter === null) {
 			return;
 		}
 
-		let data = store.get_value(iter, 1);
+		const data = store.get_value(iter, 1);
 		data = JSON.parse(data);
-		let windowMatchers = this._settings.get_value('icons-window-matchers');
-		windowMatchers = windowMatchers.deep_unpack();
+		let windowMatchers = this._settings.get_value('icons-window-matchers').deep_unpack();
 
 		if ('m' in data) {
 			// Delete matcher
-			let appWindowMatchers = windowMatchers[data.a];
+			const appWindowMatchers = windowMatchers[data.a];
 			for (let i = 0; i < appWindowMatchers.length; i++) {
-				let matcher = appWindowMatchers[i];
-				let equals = matcher.length === data.m.length;
+				const matcher = appWindowMatchers[i];
+				const equals = (matcher.length === data.m.length);
 				if (equals) {
 					for (let ii = 0; ii < matcher.length; ii++) {
 						if (matcher[ii] !== data.m[ii]) {

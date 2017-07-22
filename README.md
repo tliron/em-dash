@@ -96,7 +96,7 @@ To enable logging:
 
 	gsettings set org.gnome.shell.extensions.em-dash debug true
 
-You need to restart GNOME Shell for logs to being. See the logs with
+You need to restart GNOME Shell for logs to begin. See the logs with
 [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html). You can filter
 specifically for the extension, e.g.:
 
@@ -177,7 +177,6 @@ TODO
 
 ### Tooltip
 
-* Might go out of screen in horizontal
 * Window list
 * Window previews
 

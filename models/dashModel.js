@@ -59,7 +59,7 @@ var DashModel = new Lang.Class({
 	 */
 	getIndexOf(app) {
 		for (let i = 0; i < this.icons.length; i++) {
-			let icon = this.icons[i];
+			const icon = this.icons[i];
 			if (icon.isFor(app)) {
 				return i;
 			}
@@ -72,7 +72,7 @@ var DashModel = new Lang.Class({
 	 */
 	getIndexOfRepresenting(app) {
 		for (let i = 0; i < this.icons.length; i++) {
-			let icon = this.icons[i];
+			const icon = this.icons[i];
 			if (icon.isRepresenting(app)) {
 				return i;
 			}
@@ -96,7 +96,7 @@ var DashModel = new Lang.Class({
 	 */
 	addFavorites() {
 		let changed = false;
-		let favorites = AppFavorites.getAppFavorites().getFavorites();
+		const favorites = AppFavorites.getAppFavorites().getFavorites();
 		for (let app of favorites) {
 			if (this.add(app)) {
 				changed = true;
@@ -111,8 +111,8 @@ var DashModel = new Lang.Class({
 	 */
 	addRunning(workspaceIndex) {
 		let changed = false;
-		let appSystem = Shell.AppSystem.get_default();
-		let running = appSystem.get_running(); // will be empty when the shell is restarted
+		const appSystem = Shell.AppSystem.get_default();
+		const running = appSystem.get_running(); // will be empty when the shell is restarted
 		for (let app of running) {
 			if ((workspaceIndex === undefined) || AppUtils.isAppOnWorkspace(app, workspaceIndex)) {
 				if (this.add(app)) {
@@ -129,7 +129,7 @@ var DashModel = new Lang.Class({
 	 */
 	remove(app) {
 		for (let i = 0; i < this.icons.length; i++) {
-			let icon = this.icons[i];
+			const icon = this.icons[i];
 			if (icon.isFor(app)) {
 				this.icons.splice(i, 1);
 				return true;
@@ -142,7 +142,7 @@ var DashModel = new Lang.Class({
 	 * Removes an icon.
 	 */
 	removeIcon(icon) {
-		let i = this.icons.indexOf(icon);
+		const i = this.icons.indexOf(icon);
 		if (i !== -1) {
 			this.icons.splice(i, 1);
 			return true;
@@ -154,7 +154,7 @@ var DashModel = new Lang.Class({
 	 * Removes icons that are no longer favorites.
 	 */
 	prune() {
-		let prunables = [];
+		const prunables = [];
 		for (let icon of this.icons) {
 			if (icon.isPrunable) {
 				prunables.push(icon);
@@ -170,7 +170,7 @@ var DashModel = new Lang.Class({
 	},
 
 	toString(workspaceIndex) {
-		let iconStrings = [];
+		const iconStrings = [];
 		for (let icon of this.icons) {
 			iconStrings.push(icon.toString(workspaceIndex));
 		}

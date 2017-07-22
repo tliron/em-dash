@@ -131,9 +131,10 @@ var Dockable = new Lang.Class({
 	},
 
 	_reinitialize() {
-		let x, y, width = -1, height = -1, translationX = 0, translationY = 0, barrier = {};
-		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
-		let monitor = Main.layoutManager.monitors[this._monitorIndex];
+		let x, y, width = -1, height = -1, translationX = 0, translationY = 0;
+		const barrier = {};
+		const workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
+		const monitor = Main.layoutManager.monitors[this._monitorIndex];
 
 		// Let's do our changes without affecting struts
 		this._untrack();
@@ -182,7 +183,7 @@ var Dockable = new Lang.Class({
 			}
 		}
 
-		let child = this.actor.child;
+		const child = this.actor.child;
 		if (this._collapsed) {
 			child.hide();
 			this._setPressureBarrier(barrier);
@@ -228,7 +229,7 @@ var Dockable = new Lang.Class({
 	_refreshAlign() {
 		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine.
 
-		let vertical = (this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT);
+		const vertical = (this._side === Meta.Side.LEFT) || (this._side === Meta.Side.RIGHT);
 
 		if (this._stretch) {
 			if (vertical) {
@@ -329,7 +330,7 @@ var Dockable = new Lang.Class({
 	},
 
 	_hasWorkAreaChanged() {
-		let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
+		const workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
 		if ((workArea.x === this._workArea.x) &&
 			(workArea.y === this._workArea.y) &&
 			(workArea.width === this._workArea.width) &&

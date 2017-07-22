@@ -35,9 +35,9 @@ var GrabDialog = new Lang.Class({
 	_init(iconView) {
 		this.parent();
 
-		let app = iconView.app;
+		const app = iconView.app;
+		const name = GLib.markup_escape_text(app.get_name(), -1);
 
-		let name = GLib.markup_escape_text(app.get_name(), -1);
 		this.addTitle(_('Em—Dash'));
 		this.addMessage(_('Click on the dash icon that should'
 			.format(name)));

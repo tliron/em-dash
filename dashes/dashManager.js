@@ -46,7 +46,7 @@ var DashManager = new Lang.Class({
 		this.removeBuiltInDash();
 
 		// Remember original location of app menu
-		let appMenu = Main.panel.statusArea.appMenu.container;
+		const appMenu = Main.panel.statusArea.appMenu.container;
 		this._appMenuIndex = ClutterUtils.getIndexOfChild(Main.panel._leftBox, appMenu);
 		this._appMenuParent = null;
 		if (this._appMenuIndex !== -1) {
@@ -99,7 +99,7 @@ var DashManager = new Lang.Class({
 
 	removeAppMenu() {
 		if (this._appMenuParent !== null) {
-			let appMenu = Main.panel.statusArea.appMenu.container;
+			const appMenu = Main.panel.statusArea.appMenu.container;
 			if (this._appMenuParent.contains(appMenu)) {
 				this._appMenuParent.remove_child(appMenu);
 			}
@@ -108,7 +108,7 @@ var DashManager = new Lang.Class({
 
 	restoreAppMenu() {
 		if (this._appMenuParent !== null) {
-			let appMenu = Main.panel.statusArea.appMenu.container;
+			const appMenu = Main.panel.statusArea.appMenu.container;
 			if (!this._appMenuParent.contains(appMenu)) {
 				this._appMenuParent.insert_child_at_index(appMenu, this._appMenuIndex);
 			}
@@ -117,7 +117,7 @@ var DashManager = new Lang.Class({
 
 	_onDashLocationChanged(settings, dashLocation) {
 		log(`"dash-location" setting changed signal: ${dashLocation}`);
-		let DashClass = this._dashClasses[dashLocation];
+		const DashClass = this._dashClasses[dashLocation];
 		if (this.dash !== null) {
 			if (this.dash instanceof DashClass) {
 				this.dash.setLocation(dashLocation);

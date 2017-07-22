@@ -36,9 +36,9 @@ var DockableDash = new Lang.Class({
 	_init(dashManager, location) {
 		log('_init');
 
-		let align = getStAlignForAlignment(dashManager.settings.get_enum('dock-alignment'));
-		let stretch = dashManager.settings.get_boolean('dock-stretch');
-		let toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_REVEAL';
+		const align = getStAlignForAlignment(dashManager.settings.get_enum('dock-alignment'));
+		const stretch = dashManager.settings.get_boolean('dock-stretch');
+		const toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_REVEAL';
 
 		let side = getStSideForLocation(location);
 		this.parent(dashManager, 'dock', side, dashManager.settings.get_uint('dock-icon-size'),
@@ -81,8 +81,8 @@ var DockableDash = new Lang.Class({
 	},
 
 	_updateStyle(side) {
-		let actor = this._view.dash;
-		let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
+		const actor = this._view.dash;
+		const rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 		switch (side) {
 		case Meta.Side.RIGHT:
 			if (rtl) {
@@ -122,17 +122,17 @@ var DockableDash = new Lang.Class({
 		log('dash "style-changed" signal');
 
 		// Block this signal connection while changing the style to avoid recursion
-		let connection = this._signalManager.get(this._onStyleChanged);
+		const connection = this._signalManager.get(this._onStyleChanged);
 		connection.blocked = true;
 
 		actor.style = null;
 
-		let location = this._dashManager.settings.get_string('dash-location');
-		let side = getMutterSideForLocation(location);
+		const location = this._dashManager.settings.get_string('dash-location');
+		const side = getMutterSideForLocation(location);
 		if ((side === Meta.Side.BOTTOM) && this._dashManager.settings.get_boolean('dock-borders')) {
 			// Rotate the corner radiuses from side to top
-			let themeNode = actor.get_theme_node();
-			let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
+			const themeNode = actor.get_theme_node();
+			const rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 			let topLeft, topRight;
 			if (rtl) {
 				topLeft = themeNode.get_border_radius(St.Corner.BOTTOMLEFT);
@@ -161,19 +161,19 @@ var DockableDash = new Lang.Class({
 
 	_onDockBordersSettingChanged(setting, dockBorders) {
 		log(`"dock-borders" setting changed signal: ${dockBorders}`);
-		let location = this._dashManager.settings.get_string('dash-location');
+		const location = this._dashManager.settings.get_string('dash-location');
 		this._updateStyle(getMutterSideForLocation(location));
 	},
 
 	_onDockAlignmentSettingChanged(settings, dockAlignment) {
 		log(`"dock-alignment" setting changed signal: ${dockAlignment}`);
-		let align = getStAlignForAlignment(dockAlignment);
+		const align = getStAlignForAlignment(dockAlignment);
 		this._dockable.setAlign(align);
 	},
 
 	_onDockVisibilitySettingChanged(settings, dockVisibility) {
 		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
-		let toggle = dockVisibility === 'TOUCH_TO_REVEAL';
+		const toggle = dockVisibility === 'TOUCH_TO_REVEAL';
 		this._dockable.setToggle(toggle);
 	},
 
@@ -189,7 +189,7 @@ var DockableDash = new Lang.Class({
  */
 
 function getMutterSideForLocation(location) {
-	let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
+	const rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 	switch (location) {
 	case 'EDGE_NEAR':
 		return rtl ? Meta.Side.RIGHT : Meta.Side.LEFT;
@@ -202,7 +202,7 @@ function getMutterSideForLocation(location) {
 
 
 function getStSideForLocation(location) {
-	let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
+	const rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 	switch (location) {
 	case 'EDGE_NEAR':
 		return rtl ? St.Side.RIGHT : St.Side.LEFT;

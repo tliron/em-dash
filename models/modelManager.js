@@ -54,8 +54,8 @@ var ModelManager = new Lang.Class({
 		this._initialized = false;
 
 		// Signals
-		let appFavorites = AppFavorites.getAppFavorites();
-		let appSystem = Shell.AppSystem.get_default();
+		const appFavorites = AppFavorites.getAppFavorites();
+		const appSystem = Shell.AppSystem.get_default();
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connectSetting(settings, 'dash-per-workspace', 'boolean',
 			this._onDashPerWorkspaceSettingChanged);
@@ -66,7 +66,7 @@ var ModelManager = new Lang.Class({
 		this._signalManager.connect(global.screen, 'workspace-added', this._onWorkspaceAdded);
 		this._signalManager.connect(global.screen, 'workspace-removed', this._onWorkspaceRemoved);
 
-		let nWorkspaces = global.screen.n_workspaces;
+		const nWorkspaces = global.screen.n_workspaces;
 		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
 			this._onWorkspaceAdded(global.screen, workspaceIndex);
 		}
@@ -79,13 +79,6 @@ var ModelManager = new Lang.Class({
 		this._signalManager.destroy();
 	},
 
-	get workspaceIndex() {
-		if (this.single) {
-			return undefined;
-		}
-		return global.screen.get_active_workspace().index();
-	},
-
 	refresh() {
 		this._reset();
 		if (this._initialized) {
@@ -95,12 +88,13 @@ var ModelManager = new Lang.Class({
 
 	getDashModel(workspaceIndex) {
 		if (this.single) {
+			// Single index for all workspaces
 			workspaceIndex = SINGLE_WORKSPACE_INDEX;
 		}
 		if (this._dashModels.has(workspaceIndex)) {
 			return this._dashModels.get(workspaceIndex);
 		}
-		let dashModel = new DashModel.DashModel(this);
+		const dashModel = new DashModel.DashModel(this);
 		this._dashModels.set(workspaceIndex, dashModel);
 		dashModel.addFavorites();
 		if (workspaceIndex === SINGLE_WORKSPACE_INDEX) {
@@ -133,7 +127,7 @@ var ModelManager = new Lang.Class({
 			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
-		let nWorkspaces = global.screen.n_workspaces;
+		const nWorkspaces = global.screen.n_workspaces;
 		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
@@ -151,7 +145,7 @@ var ModelManager = new Lang.Class({
 			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
-		let workspaceIndexes = AppUtils.getWorkspacesForApp(app);
+		const workspaceIndexes = AppUtils.getWorkspacesForApp(app);
 		for (let workspaceIndex of workspaceIndexes) {
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
@@ -190,7 +184,7 @@ var ModelManager = new Lang.Class({
 	log() {
 		if (this.single) {
 			if (this._dashModels.has(SINGLE_WORKSPACE_INDEX)) {
-				let dashModel = this._dashModels.get(SINGLE_WORKSPACE_INDEX);
+				const dashModel = this._dashModels.get(SINGLE_WORKSPACE_INDEX);
 				log(`single: ${dashModel}`);
 			}
 		}
@@ -207,7 +201,7 @@ var ModelManager = new Lang.Class({
 
 	_onDashPerWorkspaceSettingChanged(settings, dashPerWorkspace) {
 		log(`"dash-per-workspace" setting changed signal: ${dashPerWorkspace}`);
-		let single = !dashPerWorkspace;
+		const single = !dashPerWorkspace;
 		if (this.single !== single) {
 			this.single = single;
 			this.refresh();
@@ -220,8 +214,8 @@ var ModelManager = new Lang.Class({
 	},
 
 	_onAppStateChanged(appSystem, app) {
-		let id = app.id;
-		let state = app.state;
+		const id = app.id;
+		const state = app.state;
 		if (state == Shell.AppState.STARTING) {
 			log(`app system "app-state-changed" signal: ${id} starting`);
 		}
@@ -252,7 +246,7 @@ var ModelManager = new Lang.Class({
 		// Note: new workspaces-per-dash are created on demand
 
 		// Signals
-		let workspace = screen.get_workspace_by_index(workspaceIndex);
+		const workspace = screen.get_workspace_by_index(workspaceIndex);
 		this._signalManager.connect(workspace, 'window-added', this._onWindowAdded);
 		this._signalManager.connect(workspace, 'window-removed', this._onWindowRemoved);
 	},
@@ -262,7 +256,7 @@ var ModelManager = new Lang.Class({
 		this.removeDashModel(workspaceIndex);
 
 		// Signals
-		let workspace = screen.get_workspace_by_index(workspaceIndex);
+		const workspace = screen.get_workspace_by_index(workspaceIndex);
 		this._signalManager.getFor(workspace, 'window-added').disconnect();
 		this._signalManager.getFor(workspace, 'window-removed').disconnect();
 	},

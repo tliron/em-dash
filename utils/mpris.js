@@ -90,8 +90,8 @@ var MPRIS = new Lang.Class({
 		log(`_onGetOwner: ${this._ownerName}`);
 
 		// Create proxies
-		let onProxyCreated = Lang.bind(this, this._onProxyCreated);
-		let interfacePath = '/org/mpris/MediaPlayer2';
+		const onProxyCreated = Lang.bind(this, this._onProxyCreated);
+		const interfacePath = '/org/mpris/MediaPlayer2';
 		createProxy(MediaPlayerPlayerWrapper, this._busName, interfacePath,
 				'mediaPlayerPlayer', onProxyCreated);
 
@@ -271,6 +271,6 @@ function createProxy(wrapperClass, objectPath, interfacePath, name, callback) {
 
 
 function getOwner(name, callback) {
-	let dbus = new DBusWrapper(Gio.DBus.session, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+	const dbus = new DBusWrapper(Gio.DBus.session, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
 	dbus.GetNameOwnerRemote(name, callback);
 }

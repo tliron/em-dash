@@ -117,11 +117,11 @@ var TopBarDash = new Lang.Class({
 			// last to be called in the original _allocate, so we postpone the previous two and do
 			// the actual allocation of left and center boxes here as we want them.
 
-			let centerWidth = ClutterUtils.getNaturalWidth(Main.panel._centerBox);
-			let rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
+			const centerWidth = ClutterUtils.getNaturalWidth(Main.panel._centerBox);
+			const rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
 
 			// Left box extends to left edge of center box
-			let leftChildBox = new Clutter.ActorBox();
+			const leftChildBox = new Clutter.ActorBox();
 			leftChildBox.x1 = 0;
 			leftChildBox.x2 = rightChildBox.x1 - centerWidth;
 			leftChildBox.y1 = rightChildBox.y1;
@@ -129,7 +129,7 @@ var TopBarDash = new Lang.Class({
 			this._patchManager.callOriginal(Main.panel._leftBox, 'allocate', leftChildBox, flags);
 
 			// Center box pushed all the way to right box
-			let centerChildBox = new Clutter.ActorBox();
+			const centerChildBox = new Clutter.ActorBox();
 			centerChildBox.x1 = leftChildBox.x2;
 			centerChildBox.x2 = rightChildBox.x1;
 			centerChildBox.y1 = rightChildBox.y1;

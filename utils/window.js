@@ -26,24 +26,24 @@ function getFocusedWindowIndex(windows) {
 }
 
 
-function hideWindows(windows) {
+function hide(windows) {
 	for (let window of windows) {
 		window.minimize();
 	}
 }
 
 
-function focusWindow(window) {
+function focus(window) {
 	window.activate(global.get_current_time());
 }
 
 
-function raiseWindowsAndFocusPrimary(windows) {
+function raiseAndFocus(windows) {
 	// Adapted from shell_app_activate_window in
 	// https://github.com/GNOME/gnome-shell/blob/master/src/shell-app.c
 
 	if (windows.length === 0) {
-		log('raiseWindowsAndFocusPrimary: do nothing');
+		log('raiseAndFocus: do nothing');
 		return;
 	}
 
@@ -53,32 +53,32 @@ function raiseWindowsAndFocusPrimary(windows) {
 	});
 	let window = windows.shift();
 
-	let display = global.screen.get_display();
+	const display = global.screen.get_display();
 
 	// Is the display newer? (I don't understand what this is for...)
-	let time = global.get_current_time();
-	let displayTime = display.get_last_user_time();
+	const time = global.get_current_time();
+	const displayTime = display.get_last_user_time();
 	if (display.xserver_time_is_before(time, displayTime)) {
-		log('raiseWindowsAndFocusPrimary: display is newer');
+		log('raiseAndFocus: display is newer');
 		window.set_demands_attention();
 		return;
 	}
 
-	let activeWorkspace = global.screen.get_active_workspace();
+	const currentWorkspace = global.screen.get_active_workspace();
 
-	// Raise windows in this workspace (in reverse order to preserve stacking)
+	// Raise windows in current workspace (in reverse order to preserve stacking)
 	windows.reverse();
 	for (let window of windows) {
-		if (window.get_workspace() === activeWorkspace) {
+		if (window.get_workspace() === currentWorkspace) {
 			window.unminimize();
 			window.raise();
 		}
 	}
 
-	// Find our newest transient in this workspace
+	// Find our newest transient in current workspace
 	let transients = [];
 	window.foreach_transient((transient) => {
-		if (transient.get_workspace() === activeWorkspace) {
+		if (transient.get_workspace() === currentWorkspace) {
 			let type = transient.window_type;
 			if ((type === Meta.WindowType.NORMAL) || (type === Meta.WindowType.DIALOG)) {
 				transients.push(transient);
@@ -86,18 +86,18 @@ function raiseWindowsAndFocusPrimary(windows) {
 		}
 	});
 	transients = display.sort_windows_by_stacking(transients);
-	let transient = transients.pop();
+	const transient = transients.pop();
 
 	// Is the transient newer than us?
 	if ((transient !== undefined) &&
 			display.xserver_time_is_before(window.get_user_time(), transient.get_user_time())) {
 		window = transient;
-		log('raiseWindowsAndFocusPrimary: transient is newer');
+		log('raiseAndFocus: transient is newer');
 	}
 
 	// Focus
-	let workspace = window.get_workspace();
-	if (workspace === activeWorkspace) {
+	const workspace = window.get_workspace();
+	if (workspace === currentWorkspace) {
 		window.activate(time);
 	}
 	else {

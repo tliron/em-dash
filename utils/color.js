@@ -38,7 +38,7 @@ function getVariationsAsHex(r, g, b) {
  */
 function toHexWithLuminance(r, g, b, lum = 0) {
 	let rgb = '#';
-	let array = [r, g, b];
+	const array = [r, g, b];
 	for (let i = 0; i < 3; i++) {
 		let c = array[i];
 		c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
@@ -52,11 +52,11 @@ function toHexWithLuminance(r, g, b, lum = 0) {
  * Convert HSV (hue, saturation, value) to RGB (red, green, blue).
  */
 function fromHSV(h, s, v) {
-	let i = Math.floor(h * 6);
-	let f = h * 6 - i;
-	let p = v * (1 - s);
-	let q = v * (1 - f * s);
-	let t = v * (1 - (1 - f) * s);
+	const i = Math.floor(h * 6);
+	const f = h * 6 - i;
+	const p = v * (1 - s);
+	const q = v * (1 - f * s);
+	const t = v * (1 - (1 - f) * s);
 
 	let r, g, b;
 	switch (i % 6) {
@@ -100,12 +100,12 @@ function fromHSV(h, s, v) {
  * Convert RGB (red, green, blue) to HSV (hue, saturation, value).
  */
 function toHSV(r, g, b) {
-	let max = Math.max(r, g, b);
-	let min = Math.min(r, g, b);
-	let d = max - min;
+	const max = Math.max(r, g, b);
+	const min = Math.min(r, g, b);
+	const d = max - min;
 	let h;
-	let s = (max === 0 ? 0 : d / max);
-	let v = max / 255;
+	const s = (max === 0 ? 0 : d / max);
+	const v = max / 255;
 
 	switch (max) {
 		case min:

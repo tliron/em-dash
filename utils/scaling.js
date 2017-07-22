@@ -121,7 +121,7 @@ var ScalingManager = new Lang.Class({
 
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
-		let themeContext = St.ThemeContext.get_for_stage(global.stage);
+		const themeContext = St.ThemeContext.get_for_stage(global.stage);
 		this._signalManager.connectProperty(themeContext, 'scale-factor',
 			this._onStThemeContextScaleFactorChanged);
 		this._signalManager.connectSetting(this._interfaceSettings, 'scaling-factor', 'uint',
@@ -188,7 +188,7 @@ var ScalingManager = new Lang.Class({
 	},
 
 	get gdkFactor() {
-		let overrides = this._xSettings.get_value('overrides');
+		const overrides = this._xSettings.get_value('overrides');
 		return getGdkWindowScalingFactor(overrides);
 	},
 
@@ -235,7 +235,7 @@ var ScalingManager = new Lang.Class({
 	},
 
 	_onXOverridesSettingChanged(settings, overrides) {
-		let gdkWindowScalingFactor = getGdkWindowScalingFactor(overrides);
+		const gdkWindowScalingFactor = getGdkWindowScalingFactor(overrides);
 		log(`GNOME Settings Daemon overrides "Gdk/WindowScalingFactor" setting changed signal: ${gdkWindowScalingFactor}`);
 		if (gdkWindowScalingFactor !== null) {
 			if (gdkWindowScalingFactor < 1) {
@@ -272,7 +272,7 @@ function setStScaleFactor(scaleFactor) {
 
 function getGdkWindowScalingFactor(overrides) {
 	if (overrides !== null) {
-		let gdkWindowScalingFactor = overrides.lookup_value('Gdk/WindowScalingFactor',
+		const gdkWindowScalingFactor = overrides.lookup_value('Gdk/WindowScalingFactor',
 			new GLib.VariantType('i'));
 		if (gdkWindowScalingFactor !== null) {
 			return gdkWindowScalingFactor.get_int32();

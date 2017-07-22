@@ -27,9 +27,9 @@ function isDescendent(actor, ancestor) {
 
 
 function getIndexOfChild(actor, child) {
-	let nChildren = actor.get_n_children();
+	const nChildren = actor.get_n_children();
 	for (let i = 0; i < nChildren; i++) {
-		let theChild = actor.get_child_at_index(i);
+		const theChild = actor.get_child_at_index(i);
 		if (theChild === child) {
 			return i;
 		}
@@ -47,30 +47,30 @@ function newRect(x, y, width, height) {
 
 
 function getMinimumWidth(actor, height = -1) {
-	let [minimum] = actor.get_preferred_width(height);
+	const [minimum] = actor.get_preferred_width(height);
 	return minimum;
 }
 
 
 function getMiniumHeight(actor, width = -1) {
-	let [minimum] = actor.get_preferred_height(width);
+	const [minimum] = actor.get_preferred_height(width);
 	return minimum;
 }
 
 
 function getNaturalWidth(actor, height = -1) {
-	let [, natural] = actor.get_preferred_width(height);
+	const [, natural] = actor.get_preferred_width(height);
 	return natural;
 }
 
 
 function getNaturalHeight(actor, width = -1) {
-	let [, natural] = actor.get_preferred_height(width);
+	const [, natural] = actor.get_preferred_height(width);
 	return natural;
 }
 
 
-const eventTypeAsString = new Map([
+var eventTypeAsString = new Map([
 	[Clutter.EventType.NOTHING, 'NOTHING'],
 	[Clutter.EventType.KEY_PRESS, 'KEY_PRESS'],
 	[Clutter.EventType.KEY_RELEASE, 'KEY_RELEASE'],

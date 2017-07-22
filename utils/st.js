@@ -72,7 +72,7 @@ var FixedBin = new Lang.Class({
 	},
 
 	_onAllocate(actor, box, flags) {
-        let child = actor.get_first_child();
+        const child = actor.get_first_child();
         if (child !== null) {
 	        child.allocate(box, flags);
         }

@@ -18,7 +18,7 @@ const AppFavorites = imports.ui.appFavorites;
 
 
 function isFavoriteApp(app) {
-	let favorites = AppFavorites.getAppFavorites().getFavorites();
+	const favorites = AppFavorites.getAppFavorites().getFavorites();
 	return favorites.indexOf(app) != -1;
 }
 
@@ -36,18 +36,18 @@ function moveFavoriteToPos(appId, fromPos, toPos) {
 		return;
 	}
 
-	let favorites = AppFavorites.getAppFavorites();
+	const favorites = AppFavorites.getAppFavorites();
 	delete favorites._favorites[appId];
 	favorites._addFavorite(appId, toPos);
 }
 
 
 function getWorkspacesForApp(app) {
-	let workspaceIndexes = [];
+	const workspaceIndexes = [];
 
-	let nWorkspaces = global.screen.n_workspaces;
+	const nWorkspaces = global.screen.n_workspaces;
 	for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
-		let workspace = global.screen.get_workspace_by_index(workspaceIndex);
+		const workspace = global.screen.get_workspace_by_index(workspaceIndex);
 		if (app.is_on_workspace(workspace)) {
 			workspaceIndexes.push(workspaceIndex);
 		}
@@ -57,6 +57,6 @@ function getWorkspacesForApp(app) {
 }
 
 function isAppOnWorkspace(app, workspaceIndex) {
-	let workspace = global.screen.get_workspace_by_index(workspaceIndex);
+	const workspace = global.screen.get_workspace_by_index(workspaceIndex);
 	return app.is_on_workspace(workspace);
 }

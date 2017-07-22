@@ -77,7 +77,7 @@ var SignalManager = new Lang.Class({
 	},
 
 	disconnect(callback) {
-		let connection = this.get(callback);
+		const connection = this.get(callback);
 		if (connection !== null) {
 			connection.disconnect();
 			return connection;
@@ -108,7 +108,7 @@ var SignalManager = new Lang.Class({
 	_connect(site, name, callback, single, mode) {
 		mode = mode || null;
 		single = single || false;
-		let connection = new SignalConnection(this, site, name, callback, single, mode);
+		const connection = new SignalConnection(this, site, name, callback, single, mode);
 		if (connection.connect()) {
 			return connection;
 		}
@@ -155,16 +155,16 @@ var SignalConnection = new Lang.Class({
 		}
 		else if (this.mode === 'property') {
 			this.id = this.site.connect(`notify::${this.name}`, (site, paramSpec) => {
-				let value = site[paramSpec.name];
+				const value = site[paramSpec.name];
 				this.call(site, value);
 			});
 		}
 		else if ((this.mode !== null) && this.mode.startsWith('setting.')) {
-			let signalName = `changed::${this.name}`;
-			let type = this.mode.substring('setting.'.length);
-			let getterName = `get_${type}`;
+			const signalName = `changed::${this.name}`;
+			const type = this.mode.substring('setting.'.length);
+			const getterName = `get_${type}`;
 			this.id = this.site.connect(signalName, (settings, name) => {
-				let value = settings[getterName](name);
+				const value = settings[getterName](name);
 				this.call(settings, value);
 			});
 			this.site.emit(signalName, this.name);

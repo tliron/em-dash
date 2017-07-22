@@ -56,7 +56,7 @@ var LaterManager = new Lang.Class({
 	 *   redrawing applications)
 	 */
 	later(callback, type = Meta.LaterType.BEFORE_REDRAW) {
-		let later = new Later(this._self, callback, type);
+		const later = new Later(this._self, callback, type);
 		if (later.initialize()) {
 			this._laters.add(later);
 			return true;

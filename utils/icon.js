@@ -36,13 +36,13 @@ const log = LoggingUtils.logger('icon');
  * https://github.com/GNOME/gnome-shell/tree/master/src/st/st-texture-cache.c.
  */
 function getStIconPixbuf(stIcon, physicalSize = 64) {
-	let gIcon = stIcon.gicon;
+	const gIcon = stIcon.gicon;
 	if (gIcon === null) {
 		log('getStIconPixbuf: no GIcon');
 		return null;
 	}
 
-	let themeNode = stIcon.get_theme_node();
+	const themeNode = stIcon.get_theme_node();
 	if (themeNode === null) {
 		log('getStIconPixbuf: no theme node');
 		return null;
@@ -67,8 +67,8 @@ function getStIconPixbuf(stIcon, physicalSize = 64) {
 		break;
 	}
 
-	let iconTheme = Gtk.IconTheme.get_default();
-	let iconInfo = iconTheme.lookup_by_gicon_for_scale(gIcon, physicalSize, 1, lookupFlags);
+	const iconTheme = Gtk.IconTheme.get_default();
+	const iconInfo = iconTheme.lookup_by_gicon_for_scale(gIcon, physicalSize, 1, lookupFlags);
 	return iconInfo.load_icon();
 }
 
@@ -81,12 +81,12 @@ function getStIconPixbuf(stIcon, physicalSize = 64) {
  * See st_icon_update in https://github.com/GNOME/gnome-shell/tree/master/src/st/st-icon.c.
  */
 function getStIconClutterTexture(stIcon, physicalSize) {
-	let themeNode = stIcon.get_theme_node();
+	const themeNode = stIcon.get_theme_node();
 	if (themeNode == null) {
 		return null;
 	}
-	let cache = St.TextureCache.get_default();
-	let gIcon = stIcon.gicon;
+	const cache = St.TextureCache.get_default();
+	const gIcon = stIcon.gicon;
 	return cache.load_gicon(themeNode, gIcon, physicalSize, 1);
 }
 
@@ -98,23 +98,23 @@ function getStIconClutterTexture(stIcon, physicalSize) {
  */
 function getGIconPixbuf(gIcon, physicalSize) {
 	if (gIcon instanceof Gio.ThemedIcon) {
-		let names = gIcon.names;
+		const names = gIcon.names;
 		log(`Gio.ThemedIcon: ${names.join(', ')}`);
 		if (names.length > 0) {
-			let name = names[0];
-			let iconTheme = Gtk.IconTheme.get_default();;
+			const name = names[0];
+			const iconTheme = Gtk.IconTheme.get_default();
 			return iconTheme.load_icon(name, 64, 0);
 		}
 	}
 	else if (gIcon instanceof Gio.FileIcon) {
-		let path = gIcon.file.path;
+		const path = gIcon.file.path;
 		log(`Gio.FileIcon: ${path}`);
 		return GdkPixbuf.Pixbuf.new_from_file(path);
 	}
 	else if (gIcon instanceof Gio.BytesIcon) {
 		log('Gio.BytesIcon');
 		// TODO
-		let bytes = gIcon.bytes;
+		const bytes = gIcon.bytes;
 		//GdkPixbuf.Pixbuf.new_from_bytes(bytes, ...);
 	}
 	return null

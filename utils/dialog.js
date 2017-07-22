@@ -151,7 +151,7 @@ var MessageDialog = new Lang.Class({
 	open() {
 		log('open');
 
-		let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+		const workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
 
 		// Reactive overlay (for click events)
 		this._overlay = new Clutter.Actor({
@@ -181,7 +181,7 @@ var MessageDialog = new Lang.Class({
 	},
 
 	addTitle(text) {
-		let label = new St.Label({
+		const label = new St.Label({
 			text: text,
 			style_class: 'prompt-dialog-headline', // GNOME theme styling
 			x_align: Clutter.ActorAlign.CENTER
@@ -194,7 +194,7 @@ var MessageDialog = new Lang.Class({
 	},
 
 	addMessage(text) {
-		let label = new St.Label({
+		const label = new St.Label({
 			text: text,
 			x_align: Clutter.ActorAlign.CENTER
 		});

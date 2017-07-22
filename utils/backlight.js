@@ -41,9 +41,9 @@ function getBacklight(id, pixbufGetter) {
 	}
 
 	let backlight;
-	let pixbuf = pixbufGetter();
+	const pixbuf = pixbufGetter();
 	if (pixbuf !== null) {
-		let [r, g, b] = getBacklightColor(pixbuf);
+		const [r, g, b] = getBacklightColor(pixbuf);
 		backlight = ColorUtils.getVariationsAsHex(r, g, b);
 	}
 	else {
@@ -123,9 +123,9 @@ function getBacklightColor(pixbuf) {
 		}
 	}
 
-	let r = (rTotal / total) * 255;
-	let g = (gTotal / total) * 255;
-	let b = (bTotal / total) * 255;
+	const r = (rTotal / total) * 255;
+	const g = (gTotal / total) * 255;
+	const b = (bTotal / total) * 255;
 
 	let [h, s, v] = ColorUtils.toHSV(r, g, b);
 
@@ -145,11 +145,11 @@ function getBacklightColor(pixbuf) {
  * Fast resampling of pixels.
  */
 function resamplePixels(pixbuf, pixels, resampleX, resampleY) {
-	let resampledPixels = [];
-	let limit = pixbuf.get_height() * pixbuf.get_width() / (resampleX * resampleY);
+	const resampledPixels = [];
+	const limit = pixbuf.get_height() * pixbuf.get_width() / (resampleX * resampleY);
 
 	for (let i = 0; i < limit; i++) {
-		let pixel = i * resampleX * resampleY;
+		const pixel = i * resampleX * resampleY;
 		resampledPixels.push(pixels[pixel * 4]);
 		resampledPixels.push(pixels[pixel * 4 + 1]);
 		resampledPixels.push(pixels[pixel * 4 + 2]);

@@ -93,10 +93,9 @@ var IconMenu = new Lang.Class({
 
 		this.parent();
 
-		let windows = this._source.model.getWindows(
-			this._source.model.dashModel.modelManager.workspaceIndex);
+		const windows = this._source.model.windows;
 		if (windows.length > 0) {
-			let item = new PopupMenu.PopupMenuItem(
+			const item = new PopupMenu.PopupMenuItem(
 				windows.length > 1 ? _('Grab These Windows...') : _('Grab This Window...'));
 			item.connect('activate', Lang.bind(this, this._onGrab));
 			this.addMenuItem(item);
@@ -104,8 +103,8 @@ var IconMenu = new Lang.Class({
 
 		// Application menu
 		if (this._settings.get_boolean('menu-application')) {
-			let menuModel = this._source.app.menu; // Gio.DBusMenuModel
-			let actionGroup = this._source.app.action_group;
+			const menuModel = this._source.app.menu; // Gio.DBusMenuModel
+			const actionGroup = this._source.app.action_group;
 			if ((menuModel !== null) && (actionGroup !== null)) {
 				this._appMenu = new AppMenu(actionGroup, menuModel);
 				this.addMenuItem(this._appMenu.item);
@@ -167,11 +166,11 @@ var TrackingContainer = new Lang.Class({
 	_onInsertItem(menu, trackerItem, position) {
 		log(`menu tracker insert item: ${position} "${trackerItem.label||''}"`);
 
-		let submenu = this.item instanceof PopupSubMenuMenuItem;
+		const submenu = this.item instanceof PopupSubMenuMenuItem;
 
 		if (!submenu && (this._startPosition == 0)) {
 			// Add a separator before the first item
-			let item = new PopupMenu.PopupSeparatorMenuItem();
+			const item = new PopupMenu.PopupSeparatorMenuItem();
 			this._items.push(item);
 			this._menu.addMenuItem(item);
 			alwaysShowMenuSeparator(this._signalManager, this._menu, item);
@@ -179,12 +178,12 @@ var TrackingContainer = new Lang.Class({
 		}
 
 		if (trackerItem.is_separator) {
-			let item = new PopupMenu.PopupSeparatorMenuItem(stripMnemonics(trackerItem.label));
+			const item = new PopupMenu.PopupSeparatorMenuItem(stripMnemonics(trackerItem.label));
 			this._items.push(item);
 			this._menu.addMenuItem(item, this._startPosition + position);
 		}
 		else {
-			let item = new AppMenuItem(trackerItem);
+			const item = new AppMenuItem(trackerItem);
 			this._items.push(item);
 			this._menu.addMenuItem(item.item, this._startPosition + position);
 		}
@@ -197,7 +196,7 @@ var TrackingContainer = new Lang.Class({
 
 	_onRemoveItem(menu, position) {
 		log(`menu tracker remove item: ${position}`);
-		let items = this._menu._getMenuItems();
+		const items = this._menu._getMenuItems();
 		items[position].destroy();
 	}
 });
@@ -231,7 +230,7 @@ var AppMenuItem = new Lang.Class({
 		this.parent();
 		this._trackerItem = trackerItem;
 
-		let label = stripMnemonics(trackerItem.label);
+		const label = stripMnemonics(trackerItem.label);
 		if (trackerItem.has_submenu) {
 			this.item = new PopupSubMenuMenuItem(label);
 			this._signalManager.connect(this.item, 'open', this._onOpen, true);
@@ -358,7 +357,7 @@ var MediaControlsMenu = new Lang.Class({
 
 	_appendItem(labelText, iconName, callback) {
 		log(`MediaControlsMenu._appendItem: ${labelText}`)
-		let item = new PopupImageMenuItem(labelText, iconName);
+		const item = new PopupImageMenuItem(labelText, iconName);
 		this.item.addMenuItem(item);
 		this._signalManager.connect(item, 'activate', callback);
 	},

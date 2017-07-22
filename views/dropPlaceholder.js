@@ -48,7 +48,7 @@ var DropPlaceholder = new Lang.Class({
 		this.nextActor = null;
 		this.nextAfter = null;
 
-		let vertical = this._iconView.dashView.box.vertical;
+		const vertical = this._iconView.dashView.box.vertical;
 
 		this.actor = new St.Widget({
 			name: 'drop-placeholder',
@@ -59,8 +59,8 @@ var DropPlaceholder = new Lang.Class({
 		this.actor._delegate = this; // hook for DND
 
 		// Before or after actor?
-		let container = this._iconView.dashView.box;
-		let index = ClutterUtils.getIndexOfChild(container, actor);
+		const container = this._iconView.dashView.box;
+		const index = ClutterUtils.getIndexOfChild(container, actor);
 		if (after) {
 			this._neighbor = container.get_child_at_index(index + 1);
 			this.modelIndex = this._iconView.modelIndex + 1;
@@ -78,7 +78,7 @@ var DropPlaceholder = new Lang.Class({
 		DND.addDragMonitor(this._dragMonitor);
 
 		// Appear
-		let tween = {
+		const tween = {
 			time: ANIMATION_TIME,
 			transition: 'easeOutQuad'
 		};
@@ -102,8 +102,8 @@ var DropPlaceholder = new Lang.Class({
 		DND.removeDragMonitor(this._dragMonitor);
 
 		// Dissolve
-		let vertical = this._iconView.dashView.box.vertical;
-		let tween = {
+		const vertical = this._iconView.dashView.box.vertical;
+		const tween = {
 			time: this._dropped ? 0 : ANIMATION_TIME,
 			transition: 'easeOutQuad',
 			onComplete: () => {
@@ -137,7 +137,7 @@ var DropPlaceholder = new Lang.Class({
 	acceptDrop(source, actor, x, y, time) {
 		// Hooked from DND using our actor._delegate
 		this._dropped = true;
-		let appId = source.app.id;
+		const appId = source.app.id;
 		if ((source.modelIndex === this.modelIndex) ||
 			(source.modelIndex === this.modelIndex - 1)) {
 			log(`acceptDrop hook: ${appId} on self`);
@@ -145,13 +145,13 @@ var DropPlaceholder = new Lang.Class({
 		else if (!('modelIndex' in source)) {
 			// Dragged from elsewhere (likely the overview)
 			log(`acceptDrop hook: ${appId} from elsewhere to ${this.modelIndex}`);
-			let favorites = AppFavorites.getAppFavorites();
+			const favorites = AppFavorites.getAppFavorites();
 			favorites.addFavoriteAtPos(appId, this.modelIndex);
 		}
 		else {
 			// Moved within the dash
 			log(`acceptDrop hook: ${appId} from ${source.modelIndex} to ${this.modelIndex}`);
-			let sourceModelIndex = source.modelIndex;
+			const sourceModelIndex = source.modelIndex;
 			AppUtils.moveFavoriteToPos(appId, sourceModelIndex, this.modelIndex);
 		}
 		remove(); // this destroys us!

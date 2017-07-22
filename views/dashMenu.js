@@ -28,6 +28,9 @@ const N_ = e => e;
 const log = LoggingUtils.logger('dashMenu');
 
 
+/**
+ * Dash menu.
+ */
 var DashMenu = new Lang.Class({
 	Name: 'EmDash.DashMenu',
 	Extends: PopupMenu.PopupMenu,
