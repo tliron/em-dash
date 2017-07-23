@@ -347,6 +347,8 @@ var Dockable = new Lang.Class({
 		return true;
 	},
 
+	// Signals
+
 	_onPressureBarrierTriggered(pressureBarrier) {
 		log('pressure barrier "trigger" signal');
 		this._collapsed = false;

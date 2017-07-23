@@ -126,9 +126,9 @@ var IconModel = new Lang.Class({
 		// App windows
 		const appWindows = this.app.get_windows();
 		for (let window of appWindows) {
-//			if (!window.skip_taskbar &&
-			if ((workspaceIndex === ALL_WORKSPACES) ||
-				(window.get_workspace().index() === workspaceIndex)) {
+			if (!window.skip_taskbar &&
+				((workspaceIndex === ALL_WORKSPACES) ||
+				(window.get_workspace().index() === workspaceIndex))) {
 				windows.push(window);
 			}
 		}
@@ -160,7 +160,6 @@ var IconModel = new Lang.Class({
 
 		return windows;
 	},
-
 
 	/**
 	 * Checks if we are grabbing a window.

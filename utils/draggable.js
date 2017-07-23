@@ -31,9 +31,9 @@ const log = LoggingUtils.logger('draggable');
  * The following functions are supported on the actor's delegate:
  *
  * * handleDragBegin()
- * * handleDragCancelling()
+ * * handleDragCanceling()
  * * getDragRestoreLocation()
- * * handleDragCancelled()
+ * * handleDragCanceled()
  * * handleDragEnd(dropped)
  */
 var Draggable = new Lang.Class({
@@ -53,8 +53,11 @@ var Draggable = new Lang.Class({
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this._draggable, 'drag-begin', this._onDragBegan);
-		this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCancelled);
+		this._signalManager.connect(this._draggable, 'drag-cancelled', this._onDragCanceled);
 		this._signalManager.connect(this._draggable, 'drag-end', this._onDragEnded);
+
+		// (Note our switch from "cancelled" to "canceled": we arbitrarily choose to use American
+		// English here.)
 	},
 
 	destroy() {
@@ -67,18 +70,12 @@ var Draggable = new Lang.Class({
 		this._draggable.fakeRelease();
 	},
 
-	_onDragBegan(draggable, time) {
-		if (this.actor._delegate && this.actor._delegate.handleDragBegin) {
-			this.actor._delegate.handleDragBegin();
-		}
-	},
-
 	/**
 	 * Monkey patched.
 	 */
 	_cancelDrag(original, eventTime) {
-		if (this.actor._delegate && this.actor._delegate.handleDragCancelling) {
-			this.actor._delegate.handleDragCancelling();
+		if (this.actor._delegate && this.actor._delegate.handleDragCanceling) {
+			this.actor._delegate.handleDragCanceling();
 		}
 		original(eventTime);
 	},
@@ -93,10 +90,18 @@ var Draggable = new Lang.Class({
 		original();
 	},
 
-	_onDragCancelled(draggable, time) {
+	// Signals
+
+	_onDragBegan(draggable, time) {
+		if (this.actor._delegate && this.actor._delegate.handleDragBegin) {
+			this.actor._delegate.handleDragBegin();
+		}
+	},
+
+	_onDragCanceled(draggable, time) {
 		// Likely unnecessary, because _onDragEnded will be called anyway with dropped=false
-		if (this.actor._delegate && this.actor._delegate.handleDragCancelled) {
-			this.actor._delegate.handleDragCancelled();
+		if (this.actor._delegate && this.actor._delegate.handleDragCanceled) {
+			this.actor._delegate.handleDragCanceled();
 		}
 	},
 

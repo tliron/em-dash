@@ -21,7 +21,7 @@ const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
+const ExtensionUtils = Me.imports.utils.extension;
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 
@@ -29,7 +29,7 @@ const log = LoggingUtils.logger('prefs');
 
 
 function init() {
-	Convenience.initTranslations();
+	ExtensionUtils.initTranslations();
 }
 
 
@@ -44,7 +44,7 @@ var PrefsWidget = new Lang.Class({
 	Name: 'EmDash.PrefsWidget',
 
 	_init() {
-		this._settings = Convenience.getSettings();
+		this._settings = ExtensionUtils.getSettings();
 
 		Me.LOGGING_ENABLED = this._settings.get_boolean('debug');
 		Me.LOGGING_IMPLEMENTATION = LoggingUtils.implementation;

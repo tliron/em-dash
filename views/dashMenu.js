@@ -52,6 +52,8 @@ var DashMenu = new Lang.Class({
 		this.close();
 	},
 
+	// Signals
+
 	_onSettings() {
 		log('settings item "activate" signal');
 		Util.spawn(['gnome-shell-extension-prefs', Me.metadata.uuid]);

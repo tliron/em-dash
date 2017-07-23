@@ -67,6 +67,8 @@ var FixedBin = new Lang.Class({
 		this._signalManager.connect(this, 'get-preferred-height', this._onGetPreferredHeight);
 	},
 
+	// Signals
+
 	_onDestroy() {
 		this._signalManager.destroy();
 	},

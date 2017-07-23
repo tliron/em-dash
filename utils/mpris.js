@@ -76,6 +76,8 @@ var MPRIS = new Lang.Class({
 		this._mediaPlayerPlayer.PreviousRemote();
 	},
 
+	// Callbacks
+
 	_onGetOwner(owner) {
 		if (this._destroyed) {
 			log('_onGetOwner: destroyed!');

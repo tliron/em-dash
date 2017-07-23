@@ -132,7 +132,7 @@ var DropPlaceholder = new Lang.Class({
 		return (actor === this._iconView.actor) && (after == this._after);
 	},
 
-	// Dropping on us
+	// Hooks
 
 	acceptDrop(source, actor, x, y, time) {
 		// Hooked from DND using our actor._delegate

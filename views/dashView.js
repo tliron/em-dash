@@ -54,7 +54,6 @@ var DashView = new Lang.Class({
 
 		this.modelManager = modelManager;
 		this.quantize = quantize;
-		this.grabSourceIconView = null;
 
 		this._scalingManager = scalingManager;
 		this._logicalIconSize = null;
@@ -62,6 +61,7 @@ var DashView = new Lang.Class({
 		this._scrollTranslation = 0;
 		this._tooltip = null;
 		this._grabDialog = null;
+		this._grabSourceIconView = null;
 
 		// Actor: contains dash and arrow
 		this.actor = new St.Widget({
@@ -146,15 +146,22 @@ var DashView = new Lang.Class({
 		log('destroy');
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
-		this.actor.destroy();
 		if (this._menu !== null) {
+			this._menuManager.removeMenu(this._menu); // must be done *before* we destroy our actor
 			this._menu.destroy();
 		}
+		this.actor.destroy();
 		if (this._tooltip !== null) {
 			this._tooltip.destroy();
 		}
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
+		}
+	},
+
+	closeMenu() {
+		if (this._menu !== null) {
+			this._menu.close();
 		}
 	},
 
@@ -438,7 +445,7 @@ var DashView = new Lang.Class({
 
 	startGrab(grabSourceIconView) {
 		log(`startGrab: grabbing from ${grabSourceIconView.app.id}`);
-		this.grabSourceIconView = grabSourceIconView;
+		this._grabSourceIconView = grabSourceIconView;
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
 		}
@@ -449,21 +456,25 @@ var DashView = new Lang.Class({
 		});
 		this._grabDialog.connect('cancel', () => {
 			log('grabDialog "cancel" signal');
-			this.grabSourceIconView = null;
+			this._grabSourceIconView = null;
 		});
 		this._grabDialog.open();
 	},
 
 	endGrab(grabTargetIconView) {
-		log(`endGrab: grabbing from ${this.grabSourceIconView.app.id} to ${grabTargetIconView.app.id}`);
+		log(`endGrab: grabbing from ${this._grabSourceIconView.app.id} to ${grabTargetIconView.app.id}`);
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
 		}
-		const windows = this.grabSourceIconView.model.windows;
+		const windows = this._grabSourceIconView.model.windows;
 		if (grabTargetIconView.model.addMatchersFor(windows)) {
 			grabTargetIconView.model.save();
 		}
-		this.grabSourceIconView = null;
+		this._grabSourceIconView = null;
+	},
+
+	get isGrabbing() {
+		return this._grabSourceIconView !== null;
 	},
 
 	_updateApplicationsButton(logicalIconSize) {
@@ -676,6 +687,8 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 		Tweener.addTween(this.box, tween);
 	},
 
+	// Signals
+
 	_onButtonPressed(actor, event) {
 		log('"button-press-event" signal');
 		const button = event.get_button();
@@ -690,9 +703,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 
 	_onOverviewHiding() {
 		log('overview "hiding" signal');
-		if (this._menu !== null) {
-			this._menu.close();
-		}
+		this.closeMenu();
 	},
 
 	_onBoxAllocationPropertyChanged(actor, allocation) {

@@ -118,6 +118,8 @@ var IconMenu = new Lang.Class({
 		}
 	},
 
+	// Signals
+
 	_onGrab() {
 		this._source.dashView.startGrab(this._source);
 	}
@@ -162,6 +164,8 @@ var TrackingContainer = new Lang.Class({
 			this._onInsertItem.bind(this, this),
 			this._onRemoveItem.bind(this, this));
 	},
+
+	// Hooks
 
 	_onInsertItem(menu, trackerItem, position) {
 		log(`menu tracker insert item: ${position} "${trackerItem.label||''}"`);
@@ -275,6 +279,8 @@ var AppMenuItem = new Lang.Class({
 		}
 	},
 
+	// Signals
+
 	_onOpen(item) {
 		log(`menu item "${this.item.label.text||''}" "open" signal`);
 		this._trackSubmenu(this.item.menu, this._trackerItem);
@@ -334,6 +340,15 @@ var MediaControlsMenu = new Lang.Class({
 		this.item.destroy();
 	},
 
+	_appendItem(labelText, iconName, callback) {
+		log(`MediaControlsMenu._appendItem: ${labelText}`)
+		const item = new PopupImageMenuItem(labelText, iconName);
+		this.item.addMenuItem(item);
+		this._signalManager.connect(item, 'activate', callback);
+	},
+
+	// Signals
+
 	_onInitialized(mpris) {
 		log('mpris "initialize" signal');
 
@@ -353,13 +368,6 @@ var MediaControlsMenu = new Lang.Class({
 		if (this._mpris.canGoPrevious) {
 			this._appendItem(_('Previous track'), 'media-skip-backward', this._onPrevious);
 		}
-	},
-
-	_appendItem(labelText, iconName, callback) {
-		log(`MediaControlsMenu._appendItem: ${labelText}`)
-		const item = new PopupImageMenuItem(labelText, iconName);
-		this.item.addMenuItem(item);
-		this._signalManager.connect(item, 'activate', callback);
 	},
 
 	_onPlay() {
@@ -390,7 +398,7 @@ var MediaControlsMenu = new Lang.Class({
 
 
 /**
- * Popup sub-menu item, with support for an "open" signal.
+ * Override popup sub-menu item, adding support for an "open" signal.
  */
 var PopupSubMenuMenuItem = new Lang.Class({
 	Name: 'EmDash.PopupSubMenuMenuItem',

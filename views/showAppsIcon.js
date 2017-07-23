@@ -55,6 +55,8 @@ var ShowAppsIcon = new Lang.Class({
 		this.parent();
 	},
 
+	// Signals
+
 	_onButtonCheckedChanged(button, checked) {
 		log(`"checked" property changed signal: ${checked}`);
 		if (Main.overview.viewSelector._showAppsButton.checked !== checked) {

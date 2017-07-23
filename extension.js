@@ -14,7 +14,7 @@
  */
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
+const ExtensionUtils = Me.imports.utils.extension;
 const LoggingUtils = Me.imports.utils.logging;
 const DashManager = Me.imports.dashes.dashManager;
 const TopBarDash = Me.imports.dashes.topBarDash;
@@ -27,12 +27,12 @@ var dashManager = null;
 
 
 function init() {
-	Convenience.initTranslations();
+	ExtensionUtils.initTranslations();
 }
 
 
 function enable() {
-    settings = Convenience.getSettings();
+    settings = ExtensionUtils.getSettings();
 
     Me.LOGGING_ENABLED = settings.get_boolean('debug');
     Me.LOGGING_IMPLEMENTATION = global.log;

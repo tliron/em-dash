@@ -15,6 +15,11 @@
 
 const Lang = imports.lang;
 
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const LoggingUtils = Me.imports.utils.logging;
+
+const log = LoggingUtils.logger('signal');
+
 
 /**
  * Manages signal connections.
@@ -36,6 +41,7 @@ var SignalManager = new Lang.Class({
 	},
 
 	destroy() {
+		log(`destroy: ${this.self}`);
 		for (let connection of this._connections) {
 			connection.disconnect(false);
 		}

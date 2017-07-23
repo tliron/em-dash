@@ -199,6 +199,8 @@ var ModelManager = new Lang.Class({
 		this._dashModels.clear();
 	},
 
+	// Signals
+
 	_onDashPerWorkspaceSettingChanged(settings, dashPerWorkspace) {
 		log(`"dash-per-workspace" setting changed signal: ${dashPerWorkspace}`);
 		const single = !dashPerWorkspace;
@@ -243,22 +245,17 @@ var ModelManager = new Lang.Class({
 
 	_onWorkspaceAdded(screen, workspaceIndex) {
 		log(`screen "workspace-added" signal: ${workspaceIndex}`);
-		// Note: new workspaces-per-dash are created on demand
 
 		// Signals
 		const workspace = screen.get_workspace_by_index(workspaceIndex);
-		this._signalManager.connect(workspace, 'window-added', this._onWindowAdded);
-		this._signalManager.connect(workspace, 'window-removed', this._onWindowRemoved);
+		workspace.connect('window-added', Lang.bind(this, this._onWindowAdded));
+		workspace.connect('window-removed', Lang.bind(this, this._onWindowRemoved));
 	},
 
 	_onWorkspaceRemoved(screen, workspaceIndex) {
+		// Note: this seems to never be called!
 		log(`screen "workspace-removed" signal: ${workspaceIndex}`);
 		this.removeDashModel(workspaceIndex);
-
-		// Signals
-		const workspace = screen.get_workspace_by_index(workspaceIndex);
-		this._signalManager.getFor(workspace, 'window-added').disconnect();
-		this._signalManager.getFor(workspace, 'window-removed').disconnect();
 	},
 
 	_onWindowAdded(workspace, window) {

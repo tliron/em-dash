@@ -405,7 +405,10 @@ background-gradient-end: ${backlight.dark};`;
 	 */
 	_onButtonPress(actor, event) {
 		log('"button-press-event" signal');
-		if (this.dashView.grabSourceIconView !== null) {
+
+		this.dashView.closeMenu();
+
+		if (this.dashView.isGrabbing) {
 			// We are in grab selection mode
 			this.dashView.endGrab(this);
 			return Clutter.EVENT_STOP;
@@ -561,9 +564,9 @@ background-gradient-end: ${backlight.dark};`;
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
 	 */
-	handleDragCancelling() {
+	handleDragCanceling() {
 		// Called as soon as the mouse button is released
-		log(`handleDragCancelling hook: ${this.app.id}`);
+		log(`handleDragCanceling hook: ${this.app.id}`);
 		// Note: handleDragEnd may be called *before* the appear animation is complete
 		this._appear();
 	},
@@ -572,12 +575,12 @@ background-gradient-end: ${backlight.dark};`;
 	 * Hooked from EmDash.Draggable using our actor._delegate.
 	 */
 	handleDragEnd(dropped) {
-		// When cancelling, called when the draggable *finishes* "snapping back"
-		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'cancelled'}`);
+		// When canceling, called when the draggable *finishes* "snapping back"
+		log(`handleDragEnd hook: ${this.app.id} ${dropped?'dropped':'canceled'}`);
 		DropPlaceholder.remove();
 		this.actor.child.show();
 		if (dropped) {
-			// If cancelled, then the animation was already started in handleDragCancelling
+			// If canceled, then the animation was already started in handleDragCanceling
 			this._appear(true);
 		}
 	},

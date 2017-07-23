@@ -205,6 +205,8 @@ var ScalingManager = new Lang.Class({
 		}
 	},
 
+	// Signals
+
 	_onStThemeContextScaleFactorChanged(themeContext, scaleFactor) {
 		// Note: this is called whenever the theme context is changed, even if scale-factor
 		// itself has *not* changed

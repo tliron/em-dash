@@ -205,6 +205,8 @@ var MessageDialog = new Lang.Class({
 		});
 	},
 
+	// Signals
+
 	_onCancel(actor) {
 		log('cancel "clicked" signal');
 		this.emit('cancel');
