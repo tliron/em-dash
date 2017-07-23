@@ -597,11 +597,11 @@ var PrefsWidget = new Lang.Class({
 					continue;
 				}
 				const iter = store.append(appIter);
-				const text = `WM_CLASS: <i>${_escape(appWindowMatcher[0])}</i>`;
+				let text = `WM_CLASS: <i>${_escape(appWindowMatcher[0])}</i>`;
 				if (appWindowMatcher.length > 1) {
 					text += `; WM_CLASS_INSTANCE: <i>${_escape(appWindowMatcher[1])}</i>`;
 				}
-				data = {a: appId, m: appWindowMatcher};
+				const data = {a: appId, m: appWindowMatcher};
 				store.set_value(iter, 0, text);
 				store.set_value(iter, 1, JSON.stringify(data));
 			}
@@ -649,8 +649,7 @@ var PrefsWidget = new Lang.Class({
 			return;
 		}
 
-		const data = store.get_value(iter, 1);
-		data = JSON.parse(data);
+		const data = JSON.parse(store.get_value(iter, 1));
 		let windowMatchers = this._settings.get_value('icons-window-matchers').deep_unpack();
 
 		if ('m' in data) {
@@ -658,7 +657,7 @@ var PrefsWidget = new Lang.Class({
 			const appWindowMatchers = windowMatchers[data.a];
 			for (let i = 0; i < appWindowMatchers.length; i++) {
 				const matcher = appWindowMatchers[i];
-				const equals = (matcher.length === data.m.length);
+				let equals = (matcher.length === data.m.length);
 				if (equals) {
 					for (let ii = 0; ii < matcher.length; ii++) {
 						if (matcher[ii] !== data.m[ii]) {
