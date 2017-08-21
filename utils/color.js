@@ -18,6 +18,11 @@
  *
  * SavageTiger's note: "Most of this code comes from reposts on StackOverflow. I was unable to trace
  * the original authors, otherwise I would have credited them here."
+ *
+ * The HSV/RGB conversion functions were written by Michele G following the algorithm in
+ * https://en.wikipedia.org/wiki/HSL_and_HSV:
+ *
+ *   https://github.com/micheleg/dash-to-dock/blob/master/utils.js
  */
 
 
@@ -52,44 +57,41 @@ function toHexWithLuminance(r, g, b, lum = 0) {
  * Convert HSV (hue, saturation, value) to RGB (red, green, blue).
  */
 function fromHSV(h, s, v) {
-	const i = Math.floor(h * 6);
-	const f = h * 6 - i;
-	const p = v * (1 - s);
-	const q = v * (1 - f * s);
-	const t = v * (1 - (1 - f) * s);
+	const c = v * s;
+	const h1 = h * 6;
+	const x = c * (1 - Math.abs(h1 % 2 - 1));
+	const m = v - c;
 
 	let r, g, b;
-	switch (i % 6) {
-		case 0:
-			r = v;
-			g = t;
-			b = p;
-			break;
-		case 1:
-			r = q;
-			g = v;
-			b = p;
-			break;
-		case 2:
-			r = p;
-			g = v;
-			b = t;
-			break;
-		case 3:
-			r = p;
-			g = q;
-			 b = v;
-			break;
-		case 4:
-			r = t;
-			g = p;
-			b = v;
-			break;
-		case 5:
-			r = v;
-			g = p;
-			b = q;
-			break;
+	if (h1 <= 1) {
+		r = c + m;
+		g = x + m;
+		b = m;
+	}
+	else if (h1 <= 2) {
+		r = x + m;
+		g = c + m;
+		b = m;
+	}
+	else if (h1 <= 3) {
+		r = m;
+		g = c + m;
+		b = x + m;
+	}
+	else if (h1 <= 4) {
+		r = m;
+		g = x + m;
+		b = c + m;
+	}
+	else if (h1 <= 5) {
+		r = x + m;
+		g = m;
+		b = c + m;
+	}
+	else {
+		r = c + m;
+		g = m;
+		b = x + m;
 	}
 
 	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
@@ -100,28 +102,31 @@ function fromHSV(h, s, v) {
  * Convert RGB (red, green, blue) to HSV (hue, saturation, value).
  */
 function toHSV(r, g, b) {
-	const max = Math.max(r, g, b);
-	const min = Math.min(r, g, b);
-	const d = max - min;
-	let h;
-	const s = (max === 0 ? 0 : d / max);
-	const v = max / 255;
+	let M = Math.max(r, g, b);
+	let m = Math.min(r, g, b);
+	let c = M - m;
 
-	switch (max) {
-		case min:
-			h = 0;
-			break;
-		case r:
-			h = (g - b) + d * (g < b ? 6: 0);
-			h /= 6 * d;
-			break;
-		case g:
-			h = (b - r) + d * 2; h /= 6 * d;
-			break;
-		case b:
-			h = (r - g) + d * 4;
-			h /= 6 * d;
-			break;
+	let h;
+	if (c == 0) {
+		h = 0;
+	}
+	else if (M == r) {
+		h = ((g - b) / c) % 6;
+	}
+	else if (M == g) {
+		h = (b - r) / c + 2;
+	}
+	else {
+		h = (r - g) / c + 4;
+	}
+
+	h = h / 6;
+	v = M / 255;
+	if (M !== 0) {
+		s = c/M;
+	}
+	else {
+		s = 0;
 	}
 
 	return [h, s, v];
