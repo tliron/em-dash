@@ -93,8 +93,12 @@ function fromHSV(h, s, v) {
 		g = m;
 		b = x + m;
 	}
+	
+	r = Math.round(r * 255);
+	g = Math.round(g * 255);
+	b = Math.round(b * 255);
 
-	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+	return [r, g, b];
 }
 
 
@@ -102,32 +106,34 @@ function fromHSV(h, s, v) {
  * Convert RGB (red, green, blue) to HSV (hue, saturation, value).
  */
 function toHSV(r, g, b) {
-	let M = Math.max(r, g, b);
-	let m = Math.min(r, g, b);
-	let c = M - m;
+	let max = Math.max(r, g, b);
+	let min = Math.min(r, g, b);
+	let c = max - min;
 
 	let h;
 	if (c == 0) {
 		h = 0;
 	}
-	else if (M == r) {
+	else if (max == r) {
 		h = ((g - b) / c) % 6;
 	}
-	else if (M == g) {
+	else if (max == g) {
 		h = (b - r) / c + 2;
 	}
 	else {
 		h = (r - g) / c + 4;
 	}
-
 	h = h / 6;
-	v = M / 255;
-	if (M !== 0) {
-		s = c/M;
+
+	let s;
+	if (max !== 0) {
+		s = c / max;
 	}
 	else {
 		s = 0;
 	}
+
+	let v = max / 255;
 
 	return [h, s, v];
 }

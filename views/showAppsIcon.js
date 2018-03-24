@@ -72,6 +72,8 @@ var ShowAppsIcon = new Lang.Class({
 
 	_onBuiltInButtonCheckedChanged(button, checked) {
 		log(`built-in ShowAppsIcon "checked" property changed signal: ${checked}`);
+		// TODO: occasionally this causes an error: reference to undefined property "checked"
+		// how to replicate?
 		if (this.toggleButton.checked !== checked) {
 			this.toggleButton.checked = checked;
 		}
