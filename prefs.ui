@@ -1108,8 +1108,8 @@
                             <items>
                               <item id="NOTHING" translatable="yes">Do nothing</item>
                               <item id="APPLICATION_NAME" translatable="yes">Application name</item>
-                              <item id="WINDOW_LIST" translatable="yes">Window list</item>
-                              <item id="WINDOW_PREVIEWS" translatable="yes">Window previews</item>
+                              <item id="WINDOW_LIST" translatable="yes">Window list [NOT IMPLEMENTED]</item>
+                              <item id="WINDOW_PREVIEWS" translatable="yes">Window previews [NOT IMPLEMENTED]</item>
                             </items>
                             <signal name="changed" handler="IconsHoverChanged" swapped="no"/>
                           </object>

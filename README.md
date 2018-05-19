@@ -2,8 +2,6 @@
 Em—Dash
 =======
 
-**WORK IN PROGRESS, DO NOT USE**
-
 An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension.
 
 Its primary function is to move the dash out of the overview and into the **top panel** or dock it
@@ -47,10 +45,6 @@ dash. Hilariously, the "Em—Dash" name is stylized with an em dash inside of it
 
 Help Testing
 ------------
-
-Dependencies for Debian/Ubuntu:
-
-	sudo apt install git make
 
 You can install the extension for the current user like so:
 

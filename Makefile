@@ -8,7 +8,7 @@ SCHEMA = em-dash
 INSTALLNAME = $(UUID)
 
 BASE_MODULES = extension.js stylesheet.css metadata.json COPYING README.md
-EXTRA_MODULES = convenience.js dashes/ models/ utils/ views/
+EXTRA_MODULES = dashes/ models/ utils/ views/
 EXTRA_IMAGES =
 TOLOCALIZE = prefs.js views/dashMenu.js views/iconMenu.js views/grabDialog.js
 
