@@ -4,8 +4,16 @@ Em—Dash
 
 An enhanced GNOME Shell desktop dash, implemented as a GNOME Shell extension.
 
-Its primary function is to move the dash out of the overview and into the **top panel** or dock it
-on an **edge** of one of the **monitors**.
+![Screenshot](https://github.com/tliron/em-dash/raw/master/screenshot.png)
+
+Released on [GNOME Extensions](https://extensions.gnome.org/extension/1433/emdash/).
+
+
+Features
+--------
+
+Em—Dash's primary function is to move the dash out of the overview and into the **top panel** or
+dock it on an **edge** of one of the **monitors**.
 
 Also, Em—Dash provides the following *optional* features for the icons:
 
