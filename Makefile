@@ -7,7 +7,7 @@ TRANSLATIONS_EMAIL = tal.liron@gmail.com
 SCHEMA = em-dash
 INSTALLNAME = $(UUID)
 
-BASE_MODULES = extension.js stylesheet.css metadata.json COPYING README.md
+BASE_MODULES = extension.js prefs.js prefs.ui stylesheet.css metadata.json COPYING README.md
 EXTRA_MODULES = dashes/ models/ utils/ views/
 EXTRA_IMAGES =
 TOLOCALIZE = prefs.js views/dashMenu.js views/iconMenu.js views/grabDialog.js
