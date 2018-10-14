@@ -688,5 +688,5 @@ var PrefsWidget = new Lang.Class({
 
 
 function _escape(text) {
-	return GLib.markup_escape_text(text, -1);
+	return GLib.markup_escape_text(String(text), -1);
 }

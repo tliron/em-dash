@@ -1574,7 +1574,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Copyright 2017 by Tal Liron</property>
+            <property name="label" translatable="yes">Copyright 2017-2018 by Tal Liron</property>
             <property name="use_markup">True</property>
           </object>
           <packing>
