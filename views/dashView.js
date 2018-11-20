@@ -33,6 +33,7 @@ const DashMenu = Me.imports.views.dashMenu;
 const IconView = Me.imports.views.iconView;
 const ShowAppsIcon = Me.imports.views.showAppsIcon;
 const GrabDialog = Me.imports.views.grabDialog;
+const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('dashView');
 
@@ -123,7 +124,7 @@ var DashView = new Lang.Class({
 			this._signalManager.connect(this.modelManager, 'changed', this._onDashModelChanged);
 			this._signalManager.connect(appSystem, 'installed-changed',
 				this._onInstalledChanged);
-			this._signalManager.connect(global.screen, 'workspace-switched',
+			this._signalManager.connect(Screen.workspaceManager, 'workspace-switched',
 				this._onWorkspaceSwitched);
 			this._signalManager.connectProperty(windowTracker, 'focus-app',
 				this._onFocusAppChanged);
@@ -147,8 +148,8 @@ var DashView = new Lang.Class({
 		this._timeoutManager.destroy();
 		this._signalManager.destroy();
 		if (this._menu !== null) {
-			this._menuManager.removeMenu(this._menu); // must be done *before* we destroy our actor
-			this._menu.destroy();
+			// Removing the menu should also destroy it
+			this._menuManager.removeMenu(this._menu);
 		}
 		this.actor.destroy();
 		if (this._tooltip !== null) {
@@ -252,7 +253,7 @@ var DashView = new Lang.Class({
 		log(`refresh: height=${physicalActorHeight} icon=${physicalIconSize}`);
 
 		if (workspaceIndex === undefined) {
-			workspaceIndex = global.screen.get_active_workspace().index();
+			workspaceIndex = Screen.workspaceManager.get_active_workspace_index();
 		}
 		const dashModel = this.modelManager.getDashModel(workspaceIndex);
 
@@ -643,7 +644,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 				app = Shell.WindowTracker.get_default().focus_app;
 			}
 			if (app !== null) {
-				const workspaceIndex = global.screen.get_active_workspace().index();
+				const workspaceIndex = Screen.workspaceManager.get_active_workspace_index();
 				const dashModel = this.modelManager.getDashModel(workspaceIndex);
 				const modelIndex = dashModel.getIndexOfRepresenting(app);
 				if (modelIndex !== -1) {
@@ -743,7 +744,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 	},
 
 	_onWorkspaceSwitched(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
-		log(`screen "workspace-switched" signal: from ${oldWorkspaceIndex} to ${newWorkspaceIndex} (${direction})`);
+		log(`workspace manager "workspace-switched" signal: from ${oldWorkspaceIndex} to ${newWorkspaceIndex} (${direction})`);
 		if (!this.modelManager.single) {
 			this.refresh(true, newWorkspaceIndex);
 		}

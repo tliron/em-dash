@@ -26,6 +26,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const ClutterUtils = Me.imports.utils.clutter;
+const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('dockable');
 
@@ -83,7 +84,7 @@ var Dockable = new Lang.Class({
 
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
-		this._signalManager.connect(global.screen, 'workareas-changed', this._onWorkAreasChanged);
+		this._signalManager.connect(Screen.displayManager, 'workareas-changed', this._onWorkAreasChanged);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover);
 	},
 
@@ -369,7 +370,7 @@ var Dockable = new Lang.Class({
 	},
 
 	_onWorkAreasChanged(screen) {
-		log('screen "workareas-changed" signal');
+		log('display "workareas-changed" signal');
 		if (this._hasWorkAreaChanged()) {
 			this._reinitialize();
 		}

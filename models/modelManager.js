@@ -23,6 +23,7 @@ const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const AppUtils = Me.imports.utils.app;
 const DashModel = Me.imports.models.dashModel;
+const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('modelManager');
 
@@ -63,12 +64,12 @@ var ModelManager = new Lang.Class({
 			this._onIconsWindowMatchersSettingChanged);
 		this._signalManager.connect(appSystem, 'app-state-changed', this._onAppStateChanged);
 		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);
-		this._signalManager.connect(global.screen, 'workspace-added', this._onWorkspaceAdded);
-		this._signalManager.connect(global.screen, 'workspace-removed', this._onWorkspaceRemoved);
+		this._signalManager.connect(Screen.workspaceManager, 'workspace-added', this._onWorkspaceAdded);
+		this._signalManager.connect(Screen.workspaceManager, 'workspace-removed', this._onWorkspaceRemoved);
 
-		const nWorkspaces = global.screen.n_workspaces;
+		const nWorkspaces = Screen.workspaceManager.n_workspaces;
 		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
-			this._onWorkspaceAdded(global.screen, workspaceIndex);
+			this._onWorkspaceAdded(Screen.workspaceManager, workspaceIndex);
 		}
 
 		this._initialized = true;
@@ -127,7 +128,7 @@ var ModelManager = new Lang.Class({
 			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
-		const nWorkspaces = global.screen.n_workspaces;
+		const nWorkspaces = Screen.workspaceManager.n_workspaces;
 		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
@@ -244,7 +245,7 @@ var ModelManager = new Lang.Class({
 	},
 
 	_onWorkspaceAdded(screen, workspaceIndex) {
-		log(`screen "workspace-added" signal: ${workspaceIndex}`);
+		log(`workspace manager "workspace-added" signal: ${workspaceIndex}`);
 
 		// Signals
 		const workspace = screen.get_workspace_by_index(workspaceIndex);
@@ -254,7 +255,7 @@ var ModelManager = new Lang.Class({
 
 	_onWorkspaceRemoved(screen, workspaceIndex) {
 		// Note: this seems to never be called!
-		log(`screen "workspace-removed" signal: ${workspaceIndex}`);
+		log(`workspace manager "workspace-removed" signal: ${workspaceIndex}`);
 		this.removeDashModel(workspaceIndex);
 	},
 

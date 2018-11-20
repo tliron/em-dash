@@ -20,6 +20,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const AppUtils = Me.imports.utils.app;
 const WindowUtils = Me.imports.utils.window;
+const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('iconModel');
 
@@ -113,7 +114,7 @@ var IconModel = new Lang.Class({
 	 * Associated windows, including those we grab, in all workspaces or in a specific workspace.
 	 */
 	get windowsInCurrentWorkspace() {
-		const workspaceIndex = global.screen.get_active_workspace().index();
+		const workspaceIndex = Screen.workspaceManager.get_active_workspace_index();
 		return this.getWindowsIn(workspaceIndex);
 	},
 
@@ -146,14 +147,14 @@ var IconModel = new Lang.Class({
 			}
 
 			if (workspaceIndex === ALL_WORKSPACES) {
-				const nWorkspaces = global.screen.n_workspaces;
+				const nWorkspaces = Screen.workspaceManager.n_workspaces;
 				for (let i = 0; i < nWorkspaces; i++) {
-					const workspace = global.screen.get_workspace_by_index(i);
+					const workspace = Screen.workspaceManager.get_workspace_by_index(i);
 					addGrabbed(workspace);
 				}
 			}
 			else {
-				const workspace = global.screen.get_active_workspace();
+				const workspace = Screen.workspaceManager.get_active_workspace();
 				addGrabbed(workspace);
 			}
 		}

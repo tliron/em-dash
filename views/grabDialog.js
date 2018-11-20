@@ -19,6 +19,7 @@ const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const DialogUtils = Me.imports.utils.dialog;
+const Screen = Me.imports.utils.screen;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
@@ -49,11 +50,11 @@ var GrabDialog = new Lang.Class({
 
 	open() {
 		this.parent();
-		global.screen.set_cursor(Meta.Cursor.POINTING_HAND);
+		Screen.displayManager.set_cursor(Meta.Cursor.POINTING_HAND);
 	},
 
 	destroy() {
 		this.parent();
-		global.screen.set_cursor(Meta.Cursor.DEFAULT);
+		Screen.displayManager.set_cursor(Meta.Cursor.DEFAULT);
 	}
 });
