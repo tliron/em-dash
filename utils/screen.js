@@ -20,7 +20,7 @@ const Meta = imports.gi.Meta;
 
 var displayManager = global.screen || global.display;
 
-var display = global.screen ? global.screen.display : global.display;
+var display = global.screen ? global.screen.get_display() : global.display;
 
 var workspaceManager = global.screen || global.workspace_manager;
 
