@@ -16,6 +16,7 @@
 const Lang = imports.lang;
 const Main = imports.ui.main;
 const Dash = imports.ui.dash;
+const GObject = imports.gi.GObject;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
@@ -29,12 +30,10 @@ const log = LoggingUtils.logger('showAppsIcon');
  *
  * Note that this is a GObject class!
  */
-var ShowAppsIcon = new Lang.Class({
-	Name: 'EmDash-ShowAppsIcon', // can't use "." with GObject classes
-	Extends: Dash.ShowAppsIcon,
-
+var ShowAppsIcon = GObject.registerClass(
+class EmDash_ShowAppsIcon extends Dash.ShowAppsIcon {
 	_init(logicalIconSize) {
-		this.parent();
+		super._init();
 
 		this.childScale = 1;
 		this.childOpacity = 255;
@@ -48,12 +47,12 @@ var ShowAppsIcon = new Lang.Class({
 			this._onBuiltInButtonCheckedChanged);
 
 		this.child.add_style_class_name('show-apps-minimal');
-	},
+	}
 
 	destroy() {
 		this._signalManager.destroy();
-		this.parent();
-	},
+		super.destroy();
+	}
 
 	// Signals
 
@@ -68,7 +67,7 @@ var ShowAppsIcon = new Lang.Class({
 		else {
 			Main.overview.hide();
 		}
-	},
+	}
 
 	_onBuiltInButtonCheckedChanged(button, checked) {
 		log(`built-in ShowAppsIcon "checked" property changed signal: ${checked}`);
@@ -79,3 +78,4 @@ var ShowAppsIcon = new Lang.Class({
 		}
 	}
 });
+

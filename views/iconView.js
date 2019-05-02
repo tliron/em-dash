@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Main = imports.ui.main;
 const AppDisplay = imports.ui.appDisplay;
 const Tweener = imports.ui.tweener;
@@ -45,12 +44,15 @@ const ANIMATION_TIME = 0.1;
  *
  *   https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
  */
-var IconView = new Lang.Class({
-	Name: 'EmDash.IconView',
-	Extends: AppDisplay.AppIcon,
+var IconView = class IconView extends AppDisplay.AppIcon {
+	constructor(dashView, model, modelIndex, physicalActorHeight, logicalIconSize) {
+		log(`constructor: ${modelIndex} ${model.app.id}`);
 
-	_init(dashView, model, modelIndex, physicalActorHeight, logicalIconSize) {
-		log(`_init: ${modelIndex} ${model.app.id}`);
+		super(model.app, {
+			showLabel: false,
+			isDraggable: false // we will handle draggable ourselves
+		});
+
 		this.dashView = dashView;
 		this.model = model;
 		this.modelIndex = modelIndex;
@@ -65,11 +67,6 @@ var IconView = new Lang.Class({
 		this._originalStyleClass = null;
 		this._originalStyle = null;
 
-		this.parent(model.app, {
-			showLabel: false,
-			isDraggable: false // we will handle draggable ourselves
-		});
-
 		this.actor.height = physicalActorHeight;
 
 		// Enhanced dot
@@ -83,7 +80,7 @@ var IconView = new Lang.Class({
 			y_align: Clutter.ActorAlign.END,
 			visible: false
 		});
-		this._enhancedDot.connect('repaint', Lang.bind(this, this._onEnhancedDotRepainted));
+		this._enhancedDot.connect('repaint', this._onEnhancedDotRepainted.bind(this));
 		this._iconContainer.add_child(this._enhancedDot);
 
 		// Select dot
@@ -112,7 +109,7 @@ var IconView = new Lang.Class({
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHoverPropertyChanged);
-	},
+	}
 
 	/**
 	 * Override.
@@ -123,15 +120,15 @@ var IconView = new Lang.Class({
 		if (this._draggable !== null) {
 			this._draggable.destroy();
 		}
-		this.parent();
-	},
+		super._onDestroy();
+	}
 
 	// Animations
 
 	dissolve() {
 		this.dissolving = true;
 		this._dissolve(true);
-	},
+	}
 
 	appear() {
 		if (this._appearing) {
@@ -150,7 +147,7 @@ var IconView = new Lang.Class({
 				this._appearing = false;
 			}
 		});
-	},
+	}
 
 	_dissolve(destroy = false) {
 		log(`_dissolve: ${this.app.id}`);
@@ -183,7 +180,7 @@ var IconView = new Lang.Class({
 				}
 			}
 		});
-	},
+	}
 
 	_appear(immediate = false) {
 		if (this._appearing) {
@@ -204,7 +201,7 @@ var IconView = new Lang.Class({
 				this.actor.style = this._originalStyle;
 			}
 		});
-	},
+	}
 
 	// Icon
 
@@ -216,8 +213,8 @@ var IconView = new Lang.Class({
 			iconSize = this._logicalIconSize;
 		}
 		// Usually creates St.Icon, but for some system windows it could be Clutter.Texture
-		return this.parent(iconSize);
-	},
+		return super._createIcon(iconSize);
+	}
 
 	// Focus
 
@@ -249,7 +246,7 @@ background-gradient-end: ${backlight.dark};`;
 		}
 		this.actor.add_style_class_name('focused');
 		this._updateRunningStyle();
-	},
+	}
 
 	unfocus() {
 		log(`unfocus: ${this.app.id}`);
@@ -257,7 +254,7 @@ background-gradient-end: ${backlight.dark};`;
 		this.actor.style = null;
 		this._simpleDot.style = null;
 		this._updateRunningStyle();
-	},
+	}
 
 	// Running dot
 
@@ -271,7 +268,7 @@ background-gradient-end: ${backlight.dark};`;
 			this._dot = this._simpleDot;
 		}
 		this._updateRunningStyle();
-	},
+	}
 
 	_onEnhancedDotRepainted(drawingArea) {
 		const dotSpacing = 2;
@@ -311,12 +308,16 @@ background-gradient-end: ${backlight.dark};`;
 			cr.restore();
 			cr.$dispose();
 		}
-	},
+	}
 
 	/**
 	 * Override to check for grabbed windows, too.
 	 */
 	_updateRunningStyle() {
+		if (this.model === undefined) {
+			// We've been called from super constructor
+			return;
+		}
 		const windows = this.model.windows;
 		if (windows.length > 0) {
 			this._dot.show();
@@ -332,7 +333,7 @@ background-gradient-end: ${backlight.dark};`;
 			log(`_updateRunningStyle: ${this.app.id} hide`);
 			this._dot.hide();
 		}
-	},
+	}
 
 	// Menu
 
@@ -376,7 +377,7 @@ background-gradient-end: ${backlight.dark};`;
 		this.emit('sync-tooltip');
 
 		return false;
-	},
+	}
 
 	// Mouse actions
 
@@ -398,7 +399,7 @@ background-gradient-end: ${backlight.dark};`;
 		if (iconsLeftClick !== 'NOTHING') {
 			this._clickAction(iconsLeftClick);
 		}
-	},
+	}
 
 	/**
 	 * Override to support our custom middle-click actions.
@@ -431,17 +432,17 @@ background-gradient-end: ${backlight.dark};`;
 			return Clutter.EVENT_STOP;
 		}
 		return Clutter.EVENT_PROPAGATE;
-	},
+	}
 
 	enableWheelScrolling() {
 		if (this._signalManager.get(this._onScrollEvent) === null) {
 			this._signalManager.connect(this.actor, 'scroll-event', this._onScrollEvent);
 		}
-	},
+	}
 
 	disableWheelScrolling() {
 		this._signalManager.disconnect(this._onScrollEvent);
-	},
+	}
 
 	_onScrollEvent(actor, scrollEvent) {
 		switch (scrollEvent.get_scroll_direction()) {
@@ -458,12 +459,12 @@ background-gradient-end: ${backlight.dark};`;
 			return false;
 		}
 		return true;
-	},
+	}
 
 	_onHoverPropertyChanged(actor, hover) {
 		log(`"hover" property changed signal: ${this.app.id} ${hover}`);
 		this.dashView.updateTooltip(hover, this);
-	},
+	}
 
 	_clickAction(action) {
 		Main.overview.hide();
@@ -481,19 +482,19 @@ background-gradient-end: ${backlight.dark};`;
 			this.launchOrCycle();
 			break;
 		}
-	},
+	}
 
 	launch() {
 		log(`launch: ${this.app.id}`);
 		this._openNewWindow(true);
-	},
+	}
 
 	launchOrShow() {
 		log(`launchOrShow: ${this.app.id}`);
 		if (!this._openNewWindow()) {
 			this.model.focus();
 		}
-	},
+	}
 
 	launchOrToggle() {
 		log(`launchOrToggle: ${this.app.id}`);
@@ -502,14 +503,14 @@ background-gradient-end: ${backlight.dark};`;
 				this.model.focus();
 			}
 		}
-	},
+	}
 
 	launchOrCycle() {
 		log(`launchOrCycle: ${this.app.id}`);
 		if (!this._openNewWindow()) {
 			this.model.cycleFocus(true, true);
 		}
-	},
+	}
 
 	_openNewWindow(force = false) {
 		if (force ||
@@ -529,7 +530,7 @@ background-gradient-end: ${backlight.dark};`;
 			return true;
 		}
 		return false;
-	},
+	}
 
 	// Dragging us
 
@@ -540,7 +541,7 @@ background-gradient-end: ${backlight.dark};`;
 		log(`handleDragBegin hook: ${this.app.id}`);
 		this._removeMenuTimeout();
 		this._dissolve();
-	},
+	}
 
 	/*
 	 * Override to make sure the drag actor is the same size as our icon.
@@ -551,7 +552,7 @@ background-gradient-end: ${backlight.dark};`;
 		const size = this.icon.icon.icon_size;
 		log(`getDragActor hook: ${this.app.id} ${size}`);
 		return this.app.create_icon_texture(size);
-	},
+	}
 
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
@@ -559,7 +560,7 @@ background-gradient-end: ${backlight.dark};`;
 	getDragRestoreLocation() {
 		log(`getDragRestoreLocation hook: ${this.app.id}`);
 		return [this._originalX, this._originalY, 1];
-	},
+	}
 
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
@@ -569,7 +570,7 @@ background-gradient-end: ${backlight.dark};`;
 		log(`handleDragCanceling hook: ${this.app.id}`);
 		// Note: handleDragEnd may be called *before* the appear animation is complete
 		this._appear();
-	},
+	}
 
 	/**
 	 * Hooked from EmDash.Draggable using our actor._delegate.
@@ -583,7 +584,7 @@ background-gradient-end: ${backlight.dark};`;
 			// If canceled, then the animation was already started in handleDragCanceling
 			this._appear(true);
 		}
-	},
+	}
 
 	// Dragging over us
 
@@ -626,4 +627,4 @@ background-gradient-end: ${backlight.dark};`;
 		DropPlaceholder.add(this.actor, after);
 		return DND.DragMotionResult.MOVE_DROP;
 	}
-});
+};

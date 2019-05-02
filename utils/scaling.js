@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Signals = imports.signals;
 const Clutter = imports.gi.Clutter;
 const Meta = imports.gi.Meta;
@@ -102,11 +101,9 @@ const ICON_SAFE_SIZES = [8, 16, 22, 24, 32, 48, 64, 96, 128, 256, 512];
  * whatever scaling factor (like pixel sizes in CSS). Only when "dropping" to Clutter do you have
  * to convert to "physical" sizes.
  */
-var ScalingManager = new Lang.Class({
-	Name: 'EmDash.ScalingManager',
-
-	_init() {
-		log('_init');
+var ScalingManager = class ScalingManager {
+	constructor() {
+		log('constructor');
 
 		this._factor = null;
 
@@ -128,7 +125,7 @@ var ScalingManager = new Lang.Class({
 			this._onMutterScalingFactorSettingChanged);
 		this._signalManager.connectSetting(this._xSettings, 'overrides', 'value',
 			this._onXOverridesSettingChanged);
-	},
+	}
 
 	destroy() {
 		log('destroy');
@@ -136,15 +133,15 @@ var ScalingManager = new Lang.Class({
 		this._signalManager.destroy();
 		this._interfaceSettings.run_dispose();
 		this._xSettings.run_dispose();
-	},
+	}
 
 	toPhysical(logicalSize) {
 		return logicalSize * this._factor;
-	},
+	}
 
 	toLogical(physicalSize) {
 		return physicalSize / this._factor;
-	},
+	}
 
 	getSafeIconSize(physicalSize) {
 		for (let i = 1; i < ICON_SAFE_SIZES.length; i++) {
@@ -154,11 +151,11 @@ var ScalingManager = new Lang.Class({
 			}
 		}
 		return this.toPhysical(ICON_SAFE_SIZES[ICON_SAFE_SIZES.length - 1]);
-	},
+	}
 
 	get stFactor() {
 		return getStScaleFactor();
-	},
+	}
 
 	set stFactor(factor) {
 		// WARNING: setting St scaling to 0 will crash GNOME Shell
@@ -171,11 +168,11 @@ var ScalingManager = new Lang.Class({
 		this._laterManager.later(() => {
 			setStScaleFactor(factor);
 		}, Meta.LaterType.RESIZE);
-	},
+	}
 
 	get mutterFactor() {
 		return this._interfaceSettings.get_uint('scaling-factor');
-	},
+	}
 
 	set mutterFactor(factor) {
 		// Setting Mutter factor to 0 means disabling the override
@@ -185,12 +182,12 @@ var ScalingManager = new Lang.Class({
 		}
 
 		this._interfaceSettings.set_uint('scaling-factor', factor);
-	},
+	}
 
 	get gdkFactor() {
 		const overrides = this._xSettings.get_value('overrides');
 		return getGdkWindowScalingFactor(overrides);
-	},
+	}
 
 	set gdkFactor(factor) {
 		// WARNING: setting GDK scaling override to 0 will crash GNOME Shell and will prevent it
@@ -203,7 +200,7 @@ var ScalingManager = new Lang.Class({
 		if (this.gdkFactor !== factor) {
 			setGdkWindowScalingFactor(this._xSettings, factor);
 		}
-	},
+	}
 
 	// Signals
 
@@ -221,7 +218,7 @@ var ScalingManager = new Lang.Class({
 				this.emit('changed', scaleFactor);
 			}
 		}
-	},
+	}
 
 	_onMutterScalingFactorSettingChanged(settings, mutterScalingFactor) {
 		log(`Mutter "scaling-factor" setting changed signal: ${mutterScalingFactor}`);
@@ -234,7 +231,7 @@ var ScalingManager = new Lang.Class({
 			this.gdkFactor = mutterScalingFactor;
 			this.stFactor = mutterScalingFactor;
 		}
-	},
+	}
 
 	_onXOverridesSettingChanged(settings, overrides) {
 		const gdkWindowScalingFactor = getGdkWindowScalingFactor(overrides);
@@ -253,7 +250,7 @@ var ScalingManager = new Lang.Class({
 			}
 		}
 	}
-});
+};
 
 Signals.addSignalMethods(ScalingManager.prototype);
 

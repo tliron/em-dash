@@ -13,14 +13,12 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const AppUtils = Me.imports.utils.app;
 const WindowUtils = Me.imports.utils.window;
-const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('iconModel');
 
@@ -37,22 +35,20 @@ const ALL_WORKSPACES = -1;
  * An icon is associated with a list of windows. Only favorite icons are allowed to stay in the dash
  * with no windows.
  */
-var IconModel = new Lang.Class({
-	Name: 'EmDash.IconModel',
-
-	_init(dashModel, app) {
+var IconModel = class IconModel {
+	constructor(dashModel, app) {
 		this.dashModel = dashModel;
 		this.app = app;
 		this._favorite = AppUtils.isFavoriteApp(app);
 		this._matchers = null;
-	},
+	}
 
 	/**
 	 * Checks if we were created for the application.
 	 */
 	isFor(app) {
 		return this.app.id === app.id;
-	},
+	}
 
 	/**
 	 * Checks if we represent the application, either because we were created for it or we grab all
@@ -79,14 +75,14 @@ var IconModel = new Lang.Class({
 		}
 
 		return false;
-	},
+	}
 
 	/**
 	 * Checks if we used to be favorite but no longer are.
 	 */
 	get isPrunable() {
 		return this._favorite && !AppUtils.isFavoriteApp(this.app);
-	},
+	}
 
 	// Windows
 
@@ -101,22 +97,22 @@ var IconModel = new Lang.Class({
 		else {
 			return this.windowsInCurrentWorkspace;
 		}
-	},
+	}
 
 	/**
 	 * Associated windows, including those we grab, in all workspaces.
 	 */
 	get allWindows() {
 		return this.getWindowsIn(ALL_WORKSPACES);
-	},
+	}
 
 	/**
 	 * Associated windows, including those we grab, in all workspaces or in a specific workspace.
 	 */
 	get windowsInCurrentWorkspace() {
-		const workspaceIndex = Screen.workspaceManager.get_active_workspace_index();
+		const workspaceIndex = global.workspace_manager.get_active_workspace_index();
 		return this.getWindowsIn(workspaceIndex);
-	},
+	}
 
 	/**
 	 * Associated windows, including those we grab, in all workspaces or in a specific workspace.
@@ -147,20 +143,20 @@ var IconModel = new Lang.Class({
 			}
 
 			if (workspaceIndex === ALL_WORKSPACES) {
-				const nWorkspaces = Screen.workspaceManager.n_workspaces;
+				const nWorkspaces = global.workspace_manager.n_workspaces;
 				for (let i = 0; i < nWorkspaces; i++) {
-					const workspace = Screen.workspaceManager.get_workspace_by_index(i);
+					const workspace = global.workspace_manager.get_workspace_by_index(i);
 					addGrabbed(workspace);
 				}
 			}
 			else {
-				const workspace = Screen.workspaceManager.get_active_workspace();
+				const workspace = global.workspace_manager.get_active_workspace();
 				addGrabbed(workspace);
 			}
 		}
 
 		return windows;
-	},
+	}
 
 	/**
 	 * Checks if we are grabbing a window.
@@ -173,7 +169,7 @@ var IconModel = new Lang.Class({
 			}
 		}
 		return false;
-	},
+	}
 
 	/**
 	 * Hides our windows in the current workspace.
@@ -181,14 +177,14 @@ var IconModel = new Lang.Class({
 	hide() {
 		log('hide');
 		return WindowUtils.hide(this.windowsInCurrentWorkspace);
-	},
+	}
 
 	/**
 	 * Checks if any of our windows has focus.
 	 */
 	get hasFocus() {
 		return WindowUtils.getFocusedWindowIndex(this.windows) !== -1;
-	},
+	}
 
 	/**
 	 * Raises all windows in the current workspace and sets the focus to the primary window (which
@@ -197,7 +193,7 @@ var IconModel = new Lang.Class({
 	focus() {
 		// Windows for *all* workspaces, because the primary might not be on the current one
 		WindowUtils.raiseAndFocus(this.allWindows);
-	},
+	}
 
 	/**
 	 * Hides our windows if any of them has focus.
@@ -211,7 +207,7 @@ var IconModel = new Lang.Class({
 		}
 		log('hideIfHasFocus: false');
 		return false;
-	},
+	}
 
 	/**
 	 * Cycle focus to next/previous window or optionally hide when reaching the end.
@@ -262,7 +258,7 @@ var IconModel = new Lang.Class({
 				WindowUtils.focus(windows[focusedWindowIndex]);
 			}
 		}
-	},
+	}
 
 	// Matchers
 
@@ -283,7 +279,7 @@ var IconModel = new Lang.Class({
 		}
 		this._matchers.push(new Matcher(wmClass, wmClassInstance));
 		return true;
-	},
+	}
 
 	/**
 	 * Adds matchers for all the windows.
@@ -298,7 +294,7 @@ var IconModel = new Lang.Class({
 			}
 		}
 		return changed;
-	},
+	}
 
 	/**
 	 * Loads all matchers from settings.
@@ -321,7 +317,7 @@ var IconModel = new Lang.Class({
 				this.addMatcher(...windowMatcher);
 			}
 		}
-	},
+	}
 
 	/**
 	 * Saves all matchers to settings.
@@ -345,7 +341,7 @@ var IconModel = new Lang.Class({
 		windowMatchers[this.app.id] = appWindowMatchers;
 		windowMatchers = new GLib.Variant('a{saas}', windowMatchers)
 		settings.set_value('icons-window-matchers', windowMatchers);
-	},
+	}
 
 	toString(workspaceIndex) {
 		let s = '';
@@ -367,19 +363,17 @@ var IconModel = new Lang.Class({
 		}
 		return s;
 	}
-});
+};
 
 
 /**
  * Can match a window by its WM_CLASS and optionally its WM_CLASS_INSTANCE.
  */
-var Matcher = new Lang.Class({
-	Name: 'EmDash.Matcher',
-
-	_init(wmClass, wmClassInstance = null) {
+var Matcher = class Matcher {
+	constructor(wmClass, wmClassInstance = null) {
 		this.wmClass = wmClass;
 		this.wmClassInstance = wmClassInstance || null;
-	},
+	}
 
 	/**
 	 * Checks if we match a window.
@@ -396,7 +390,7 @@ var Matcher = new Lang.Class({
 			}
 		}
 		return false;
-	},
+	}
 
 	toString() {
 		if (this.wmClassInstance === null) {
@@ -404,4 +398,4 @@ var Matcher = new Lang.Class({
 		}
 		return `this.wmClass: ${this.wmClassInstance}`;
 	}
-});
+};

@@ -13,38 +13,33 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
-
-
 /**
  * Manages monkey patches.
  *
  * The patching function will receive a callable to the patched function prepended as its first
  * argument.
  */
-var PatchManager = new Lang.Class({
-	Name: 'EmDash.PatchManager',
-
-	_init(self) {
+var PatchManager = class PatchManager {
+	constructor(self) {
 		this.self = self;
 		this._patches = new Set();
-	},
+	}
 
 	destroy() {
 		for (let patch of this._patches) {
 			patch.destroy();
 		}
 		this._patches.clear();
-	},
+	}
 
 	patch(site, name, fn) {
 		this._patches.add(new Patch(this.self, site, name, fn));
-	},
+	}
 
 	callOriginal(site, name, ...args) {
 		const patch = this.get(site, name);
 		return patch.callOriginal(...args);
-	},
+	}
 
 	get(site, name) {
 		for (let patch of this._patches) {
@@ -54,32 +49,30 @@ var PatchManager = new Lang.Class({
 		}
 		return null;
 	}
-});
+};
 
 
 /**
  * A monkey patch.
  */
-var Patch = new Lang.Class({
-	Name: 'EmDash.Patch',
-
-	_init(self, site, name, fn) {
+var Patch = class Patch {
+	constructor(self, site, name, fn) {
 		this.self = self;
 		this.site = site;
 		this.name = name;
 		this.fn = fn;
 
 		this.originalFn = site[name];
-		this.callOriginal = Lang.bind(site, this.originalFn);
-		site[name] = Lang.bind(this, this.call);
-	},
+		this.callOriginal = this.originalFn.bind(site);
+		site[name] = this.call.bind(this);
+	}
 
 	destroy() {
 		this.site[this.name] = this.originalFn;
-	},
+	}
 
 	call(...args) {
 		args.unshift(this.callOriginal);
 		return this.fn.apply(this.self, args);
 	}
-});
+};

@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Signals = imports.signals;
 const Gio = imports.gi.Gio;
 
@@ -26,11 +25,9 @@ const log = LoggingUtils.logger('mpris');
 /**
  * DBus connection to an MPRIS2 player.
  */
-var MPRIS = new Lang.Class({
-	Name: 'EmDash.MPRIS',
-
-	_init(name) {
-		log('_init');
+var MPRIS = class MPRIS {
+	constructor(name) {
+		log('constructor');
 
 		this.canPause = null;
 		this.canGoNext = null;
@@ -46,35 +43,35 @@ var MPRIS = new Lang.Class({
 		this._mediaPlayerTracklist = null;
 
 		// While we can successfully create proxies without an owner, they won't work :)
-		getOwner(this._busName, Lang.bind(this, this._onGetOwner));
-	},
+		getOwner(this._busName, this._onGetOwner.bind(this));
+	}
 
 	destroy() {
 		log('destroy');
 		// There is no way to cancel the existing DBus remote calls, so we'll just make sure not to
 		// do anything if answers arrive after we've been destroyed
 		this._destroyed = true;
-	},
+	}
 
 	play() {
 		this._mediaPlayerPlayer.PlayRemote();
-	},
+	}
 
 	pause() {
 		this._mediaPlayerPlayer.PauseRemote();
-	},
+	}
 
 	stop() {
 		this._mediaPlayerPlayer.StopRemote();
-	},
+	}
 
 	next() {
 		this._mediaPlayerPlayer.NextRemote();
-	},
+	}
 
 	previous() {
 		this._mediaPlayerPlayer.PreviousRemote();
-	},
+	}
 
 	// Callbacks
 
@@ -92,7 +89,7 @@ var MPRIS = new Lang.Class({
 		log(`_onGetOwner: ${this._ownerName}`);
 
 		// Create proxies
-		const onProxyCreated = Lang.bind(this, this._onProxyCreated);
+		const onProxyCreated = this._onProxyCreated.bind(this);
 		const interfacePath = '/org/mpris/MediaPlayer2';
 		createProxy(MediaPlayerPlayerWrapper, this._busName, interfacePath,
 				'mediaPlayerPlayer', onProxyCreated);
@@ -109,7 +106,7 @@ var MPRIS = new Lang.Class({
 		createProxy(MediaPlayerTracklistWrapper, this._busName, interfacePath,
 			'mediaPlayerTracklist', onProxyCreated);
 		*/
-	},
+	}
 
 	_onProxyCreated(name, proxy) {
 		if (this._destroyed) {
@@ -128,7 +125,7 @@ var MPRIS = new Lang.Class({
 			this.emit('initialize', this);
 		}
 	}
-});
+};
 
 Signals.addSignalMethods(MPRIS.prototype);
 

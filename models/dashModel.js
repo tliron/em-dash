@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const AppFavorites = imports.ui.appFavorites;
 const Shell = imports.gi.Shell;
 
@@ -32,27 +31,25 @@ const log = LoggingUtils.logger('dashModel');
  *
  * Other icons will appear after the favorites, and only if they have a window on the workspace.
  */
-var DashModel = new Lang.Class({
-	Name: 'EmDash.DashModel',
-
-	_init(modelManager) {
+var DashModel = class DashModel {
+	constructor(modelManager) {
 		this.modelManager = modelManager;
 		this.icons = [];
-	},
+	}
 
 	/**
 	 * Check if we have an icon for the application.
 	 */
 	has(app) {
 		return this.getIndexOf(app) !== -1;
-	},
+	}
 
 	/**
 	 * Check if we have an icon representing the application.
 	 */
 	isRepresenting(app) {
 		return this.getIndexOfRepresenting(app) !== -1;
-	},
+	}
 
 	/**
 	 * Find the index of an icon for the application.
@@ -65,7 +62,7 @@ var DashModel = new Lang.Class({
 			}
 		}
 		return -1;
-	},
+	}
 
 	/**
 	 * Find the index of an icon representing the application.
@@ -78,7 +75,7 @@ var DashModel = new Lang.Class({
 			}
 		}
 		return -1;
-	},
+	}
 
 	/**
 	 * Add an icon for the application if there is no icon already representing it.
@@ -89,7 +86,7 @@ var DashModel = new Lang.Class({
 			return true;
 		}
 		return false;
-	},
+	}
 
 	/**
 	 * Adds icons for the favorite applications if there are no icons already representing them.
@@ -103,7 +100,7 @@ var DashModel = new Lang.Class({
 			}
 		}
 		return changed;
-	},
+	}
 
 	/**
 	 * Adds icons for the running applications in one or all workspaces if there are no icons
@@ -121,7 +118,7 @@ var DashModel = new Lang.Class({
 			}
 		}
 		return changed;
-	},
+	}
 
 	/**
 	 * Removes the icon created for the application. Note that it will not remove icons that are
@@ -136,7 +133,7 @@ var DashModel = new Lang.Class({
 			}
 		}
 		return false;
-	},
+	}
 
 	/**
 	 * Removes an icon.
@@ -148,7 +145,7 @@ var DashModel = new Lang.Class({
 			return true;
 		}
 		return false;
-	},
+	}
 
 	/**
 	 * Removes icons that are no longer favorites.
@@ -167,7 +164,7 @@ var DashModel = new Lang.Class({
 			}
 		}
 		return changed;
-	},
+	}
 
 	toString(workspaceIndex) {
 		const iconStrings = [];
@@ -176,4 +173,4 @@ var DashModel = new Lang.Class({
 		}
 		return iconStrings.join(', ');
 	}
-});
+};

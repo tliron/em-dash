@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Util = imports.misc.util;
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
@@ -31,26 +30,23 @@ const log = LoggingUtils.logger('dashMenu');
 /**
  * Dash menu.
  */
-var DashMenu = new Lang.Class({
-	Name: 'EmDash.DashMenu',
-	Extends: PopupMenu.PopupMenu,
+var DashMenu = class DashMenu extends PopupMenu.PopupMenu {
+	constructor(actor, side) {
+		log('constructor');
 
-	_init(actor, side) {
-		log('_init');
-
-		this.parent(actor, 0.5, side);
+		super(actor, 0.5, side);
 
 		let item = new PopupMenu.PopupSeparatorMenuItem(_('Em—Dash'));
 		this.addMenuItem(item);
 
 		item = new PopupMenu.PopupMenuItem(_('Settings...'));
 		this.addMenuItem(item);
-		item.connect('activate', Lang.bind(this, this._onSettings));
+		item.connect('activate', this._onSettings.bind(this));
 
 		Main.uiGroup.add_actor(this.actor);
 
 		this.close();
-	},
+	}
 
 	// Signals
 
@@ -58,4 +54,4 @@ var DashMenu = new Lang.Class({
 		log('settings item "activate" signal');
 		Util.spawn(['gnome-shell-extension-prefs', Me.metadata.uuid]);
 	}
-});
+};

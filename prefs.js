@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Gtk = imports.gi.Gtk;
 const Gdk = imports.gi.Gdk;
 const Gio = imports.gi.Gio;
@@ -40,16 +39,14 @@ function buildPrefsWidget() {
 }
 
 
-var PrefsWidget = new Lang.Class({
-	Name: 'EmDash.PrefsWidget',
-
-	_init() {
+var PrefsWidget = class PrefsWidget {
+	constructor() {
 		this._settings = ExtensionUtils.getSettings();
 
 		Me.LOGGING_ENABLED = this._settings.get_boolean('debug');
 		Me.LOGGING_IMPLEMENTATION = LoggingUtils.implementation;
 
-		log('_init')
+		log('constructor')
 
 		// The UI was designed using Glade
 		this._builder = new Gtk.Builder();
@@ -107,15 +104,15 @@ var PrefsWidget = new Lang.Class({
 
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
-		this._builder.connect_signals_full(Lang.bind(this, this._onConnectBuilderSignal));
+		this._builder.connect_signals_full(this._onConnectBuilderSignal.bind(this));
 		this._bindSettings();
-	},
+	}
 
 	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
 		// this._settings.run_dispose(); TODO: this causes errors
-	},
+	}
 
 	_bindSettings() {
 		this._settings.bind('top-bar-appearance-merge',
@@ -195,17 +192,17 @@ var PrefsWidget = new Lang.Class({
 			this._onIconsHoverSettingChanged);
 		this._signalManager.connectSetting(this._settings, 'icons-window-matchers', 'value',
 			this._onIconsWindowMatchersSettingChanged);
-	},
+	}
 
 	_onConnectBuilderSignal(builder, object, signal, handler) {
 		log(`connect builder signal: ${handler}`);
 		// "handler" is what we called the signal in Glade
 		this._signalManager.connect(object, signal, this[`_on${handler}`]);
-	},
+	}
 
 	_onWidgetDestroyed(widget) {
 		this.destroy();
-	},
+	}
 
 	// Location radio buttons
 
@@ -272,7 +269,7 @@ var PrefsWidget = new Lang.Class({
 			updateApplicationsButton(false);
 			break;
 		}
-	},
+	}
 
 	_onLocationTopBarToggled(button) {
 		const active = button.active;
@@ -280,7 +277,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dash-location', 'TOP_BAR');
 		}
-	},
+	}
 
 	_onLocationEdgeNearToggled(button) {
 		const active = button.active;
@@ -288,7 +285,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_NEAR');
 		}
-	},
+	}
 
 	_onLocationEdgeFarToggled(button) {
 		const active = button.active;
@@ -296,7 +293,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_FAR');
 		}
-	},
+	}
 
 	_onLocationEdgeBottomToggled(button) {
 		const active = button.active;
@@ -304,7 +301,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dash-location', 'EDGE_BOTTOM');
 		}
-	},
+	}
 
 	// Monitor combo box
 
@@ -319,13 +316,13 @@ var PrefsWidget = new Lang.Class({
 			combo.insert(-1, id, this._monitorNotConnected.format(id));
 			combo.active_id = id;
 		}
-	},
+	}
 
 	_onLocationMonitorChanged(combo) {
 		const locationMonitor = combo.active_id;
 		log(`"location_monitor" combo box "changed" signal: ${locationMonitor}`);
 		this._settings.set_uint('dash-location-monitor', parseInt(locationMonitor));
-	},
+	}
 
 	// Custom height radio buttons
 
@@ -339,7 +336,7 @@ var PrefsWidget = new Lang.Class({
 			this._builder.get_object('top_bar_default_height').active = true;
 			this._builder.get_object('top_bar_height').sensitive = false;
 		}
-	},
+	}
 
 	_onTopBarDefaultHeightToggled(button) {
 		const active = button.active;
@@ -347,7 +344,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_boolean('top-bar-custom-height', false);
 		}
-	},
+	}
 
 	_onTopBarCustomHeightToggled(button) {
 		const active = button.active;
@@ -355,33 +352,33 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_boolean('top-bar-custom-height', true);
 		}
-	},
+	}
 
 	// Height scale
 
 	_onTopBarHeightSettingChanged(settings, panelHeight) {
 		log(`"top-bar-height" setting changed signal: ${panelHeight}`);
 		this._builder.get_object('top_bar_height').set_value(panelHeight);
-	},
+	}
 
 	_onTopBarHeightValueChanged(scale) {
 		const panelHeight = scale.get_value();
 		log(`"top_bar_height" scale value changed signal: ${panelHeight}`);
 		this._settings.set_uint('top-bar-height', panelHeight);
-	},
+	}
 
 	// Icon size combo box
 
 	_onDockIconSizeSettingChanged(settings, dockIconSize) {
 		log(`"dock-icon-size" setting changed signal: ${dockIconSize}`);
 		this._builder.get_object('dock_icon_size').set_value(dockIconSize);
-	},
+	}
 
 	_onDockIconSizeValueChanged(scale) {
 		const dockIconSize = scale.get_value();
 		log(`"dock_icon_size" scale value changed signal: ${dockIconSize}`);
 		this._settings.set_uint('dock-icon-size', dockIconSize);
-	},
+	}
 
 	// Alignment radio buttons
 
@@ -398,7 +395,7 @@ var PrefsWidget = new Lang.Class({
 			this._builder.get_object('alignment_far').active = true;
 			break;
 		}
-	},
+	}
 
 	_onAlignmentNearToggled(button) {
 		const active = button.active;
@@ -406,7 +403,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dock-alignment', 'NEAR');
 		}
-	},
+	}
 
 	_onAlignmentMiddleToggled(button) {
 		const active = button.active;
@@ -414,7 +411,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dock-alignment', 'MIDDLE');
 		}
-	},
+	}
 
 	_onAlignmentFarToggled(button) {
 		const active = button.active;
@@ -422,7 +419,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dock-alignment', 'FAR');
 		}
-	},
+	}
 
 	// Visibility radio buttons
 
@@ -436,7 +433,7 @@ var PrefsWidget = new Lang.Class({
 			this._builder.get_object('visibility_touch_to_reveal').active = true;
 			break;
 		}
-	},
+	}
 
 	_onVisibilityAlwaysVisibleToggled(button) {
 		const active = button.active;
@@ -444,7 +441,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dock-visibility', 'ALWAYS');
 		}
-	},
+	}
 
 	_onVisibilityTouchToRevealToggled(button) {
 		const active = button.active;
@@ -452,7 +449,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('dock-visibility', 'TOUCH_TO_REVEAL');
 		}
-	},
+	}
 
 	// Dash per workspace radio buttons
 
@@ -464,7 +461,7 @@ var PrefsWidget = new Lang.Class({
 		else {
 			this._builder.get_object('location_single_dash').active = true;
 		}
-	},
+	}
 
 	_onSingleDashToggled(button) {
 		const active = button.active;
@@ -472,7 +469,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_boolean('dash-per-workspace', false);
 		}
-	},
+	}
 
 	_onDashPerWorkspaceToggled(button) {
 		const active = button.active;
@@ -480,7 +477,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_boolean('dash-per-workspace', true);
 		}
-	},
+	}
 
 	// Highlight check button
 
@@ -488,7 +485,7 @@ var PrefsWidget = new Lang.Class({
 		const highlightFocused = button.active;
 		log(`"icons_highlight_focused" check button "toggled" signal: ${highlightFocused}`);
 		this._builder.get_object('icons_highlight_focused_gradient').sensitive = highlightFocused;
-	},
+	}
 
 	// Applications button radio buttons
 
@@ -505,7 +502,7 @@ var PrefsWidget = new Lang.Class({
 			this._builder.get_object('applications_button_hide').active = true;
 			break;
 		}
-	},
+	}
 
 	_onApplicationsButtonNearToggled(button) {
 		const active = button.active;
@@ -513,7 +510,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('applications-button', 'NEAR');
 		}
-	},
+	}
 
 	_onApplicationsButtonFarToggled(button) {
 		const active = button.active;
@@ -521,7 +518,7 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('applications-button', 'FAR');
 		}
-	},
+	}
 
 	_onApplicationsButtonHideToggled(button) {
 		const active = button.active;
@@ -529,46 +526,46 @@ var PrefsWidget = new Lang.Class({
 		if (active) {
 			this._settings.set_string('applications-button', 'HIDE');
 		}
-	},
+	}
 
 	// Left-click combo box
 
 	_onIconsLeftClickSettingChanged(settings, iconsLeftClick) {
 		log(`"icons-left-click" setting changed signal: ${iconsLeftClick}`);
 		this._builder.get_object('icons_left_click').active_id = iconsLeftClick;
-	},
+	}
 
 	_onIconsLeftClickChanged(combo) {
 		const leftClick = combo.active_id;
 		log(`"icons_left_click" combo box "changed" signal: ${leftClick}`);
 		this._settings.set_string('icons-left-click', leftClick);
-	},
+	}
 
 	// Middle-click combo box
 
 	_onIconsMiddleClickSettingChanged(settings, iconsMiddleClick) {
 		log(`"icons-middle-click" setting changed signal: ${iconsMiddleClick}`);
 		this._builder.get_object('icons_middle_click').active_id = iconsMiddleClick;
-	},
+	}
 
 	_onIconsMiddleClickChanged(combo) {
 		const middleClick = combo.active_id;
 		log(`"icons_middle_click" combo box "changed" signal: ${middleClick}`);
 		this._settings.set_string('icons-middle-click', middleClick);
-	},
+	}
 
 	// Hover combo box
 
 	_onIconsHoverSettingChanged(settings, iconsHover) {
 		log(`"icons-hover" setting changed signal: ${iconsHover}`);
 		this._builder.get_object('icons_hover').active_id = iconsHover;
-	},
+	}
 
 	_onIconsHoverChanged(combo) {
 		const hover = combo.active_id;
 		log(`"icons_hover" combo box "changed" signal: ${hover}`);
 		this._settings.set_string('icons-hover', hover);
-	},
+	}
 
 	// Window matchers tree view
 
@@ -612,18 +609,18 @@ var PrefsWidget = new Lang.Class({
 
 		const [notEmpty] = store.get_iter_first();
 		this._builder.get_object('window_grabbing_delete_all').sensitive = notEmpty;
-	},
+	}
 
 	_onWindowGrabbingSelectionChanged(selection) {
 		log('"window_grabbing" selection "changed" signal');
 		const [selected] = selection.get_selected();
 		this._builder.get_object('window_grabbing_delete').sensitive = selected;
-	},
+	}
 
 	_onWindowGrabbingDeleteClicked(button) {
 		log('"window_grabbing_delete" button "clicked" signal');
 		this._deleteWindowGrabbingSelection()
-	},
+	}
 
 	_onWindowGrabbingKeyPressed(view, eventKey) {
 		let [, keyval] = eventKey.get_keyval();
@@ -634,13 +631,13 @@ var PrefsWidget = new Lang.Class({
 			return true;
 		}
 		return false;
-	},
+	}
 
 	_onWindowGrabbingDeleteAllClicked(button) {
 		log('"window_grabbing_delete_all" button "clicked" signal');
 		const windowMatchers = new GLib.Variant('a{saas}', {});
 		this._settings.set_value('icons-window-matchers', windowMatchers);
-	},
+	}
 
 	_deleteWindowGrabbingSelection() {
 		const selection = this._builder.get_object('window_grabbing').get_selection();
@@ -684,7 +681,7 @@ var PrefsWidget = new Lang.Class({
 		windowMatchers = new GLib.Variant('a{saas}', windowMatchers)
 		this._settings.set_value('icons-window-matchers', windowMatchers);
 	}
-});
+};
 
 
 function _escape(text) {

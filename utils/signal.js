@@ -13,8 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
-
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 
@@ -32,13 +30,11 @@ const log = LoggingUtils.logger('signal');
  * WARNING: The signal manager *will* keep references to the objects to which you connect, so
  * it will keep them from being garbage-collected.
  */
-var SignalManager = new Lang.Class({
-	Name: 'EmDash.SignalManager',
-
-	_init(self) {
+var SignalManager = class SignalManager {
+	constructor(self) {
 		this.self = self;
 		this._connections = new Set();
-	},
+	}
 
 	destroy() {
 		log(`destroy: ${this.self}`);
@@ -46,7 +42,7 @@ var SignalManager = new Lang.Class({
 			connection.disconnect(false);
 		}
 		this._connections.clear();
-	},
+	}
 
 	get(callback) {
 		for (let connection of this._connections) {
@@ -55,7 +51,7 @@ var SignalManager = new Lang.Class({
 			}
 		}
 		return null;
-	},
+	}
 
 	getFor(site, name) {
 		for (let connection of this._connections) {
@@ -64,23 +60,23 @@ var SignalManager = new Lang.Class({
 			}
 		}
 		return null;
-	},
+	}
 
 	connect(site, name, callback, single) {
 		return this._connect(site, name, callback, single);
-	},
+	}
 
 	connectAfter(site, name, callback, single) {
 		return this._connect(site, name, callback, single, 'after');
-	},
+	}
 
 	connectProperty(site, name, callback, single) {
 		return this._connect(site, name, callback, single, 'property');
-	},
+	}
 
 	connectSetting(site, name, type, callback, single) {
 		return this._connect(site, name, callback, single, `setting.${type}`);
-	},
+	}
 
 	disconnect(callback) {
 		const connection = this.get(callback);
@@ -89,7 +85,7 @@ var SignalManager = new Lang.Class({
 			return connection;
 		}
 		return null;
-	},
+	}
 
 	disconnectFor(site) {
 		for (let connection of this._connections) {
@@ -97,19 +93,19 @@ var SignalManager = new Lang.Class({
 				connection.disconnect();
 			}
 		}
-	},
+	}
 
 	block() {
 		for (let connection of this._connections) {
 			connection.block = true;
 		}
-	},
+	}
 
 	unblock() {
 		for (let connection of this._connections) {
 			connection.block = false;
 		}
-	},
+	}
 
 	_connect(site, name, callback, single, mode) {
 		mode = mode || null;
@@ -120,7 +116,7 @@ var SignalManager = new Lang.Class({
 		}
 		return null;
 	}
-});
+};
 
 
 /**
@@ -129,10 +125,8 @@ var SignalManager = new Lang.Class({
  * Set "blocked" to true to temporarily block the connection, and "blockedReturn" to return a
  * specific value while blocked.
  */
-var SignalConnection = new Lang.Class({
-	Name: 'EmDash.SignalConnection',
-
-	_init(manager, site, name, callback, single, mode) {
+var SignalConnection = class SignalConnection {
+	constructor(manager, site, name, callback, single, mode) {
 		this.manager = manager;
 		this.site = site;
 		this.name = name;
@@ -142,8 +136,8 @@ var SignalConnection = new Lang.Class({
 		this.id = 0;
 		this.blocked = false;
 		this.blockedReturn = null;
-		this.boundCall = Lang.bind(this, this.call);
-	},
+		this.boundCall = this.call.bind(this);
+	}
 
 	call(...args) {
 		if (this.blocked) {
@@ -153,7 +147,7 @@ var SignalConnection = new Lang.Class({
 			this.disconnect();
 		}
 		return this.callback.apply(this.manager.self, args);
-	},
+	}
 
 	connect() {
 		if (this.mode === 'after') {
@@ -184,7 +178,7 @@ var SignalConnection = new Lang.Class({
 			return true;
 		}
 		return false;
-	},
+	}
 
 	disconnect(remove = true) {
 		if (remove) {
@@ -195,4 +189,4 @@ var SignalConnection = new Lang.Class({
 			this.id = 0;
 		}
 	}
-});
+};

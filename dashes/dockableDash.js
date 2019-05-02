@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
@@ -29,19 +28,16 @@ const log = LoggingUtils.logger('dockableDash');
 /**
  * Dash implementation that can be docked to the sides of a monitor.
  */
-var DockableDash = new Lang.Class({
-	Name: 'EmDash.DockableDash',
-	Extends: Dash.Dash,
-
-	_init(dashManager, location) {
-		log('_init');
+var DockableDash = class DockableDash extends Dash.Dash {
+	constructor(dashManager, location) {
+		log('constructor');
 
 		const align = getStAlignForAlignment(dashManager.settings.get_enum('dock-alignment'));
 		const stretch = dashManager.settings.get_boolean('dock-stretch');
 		const toggle = dashManager.settings.get_string('dock-visibility') === 'TOUCH_TO_REVEAL';
 
 		let side = getStSideForLocation(location);
-		this.parent(dashManager, 'dock', side, dashManager.settings.get_uint('dock-icon-size'),
+		super(dashManager, 'dock', side, dashManager.settings.get_uint('dock-icon-size'),
 			false);
 
 		side = getMutterSideForLocation(location);
@@ -63,13 +59,13 @@ var DockableDash = new Lang.Class({
 		this._signalManager.connect(dashManager.scalingManager, 'changed', this._onScalingChanged);
 
 		this._updateStyle(side);
-	},
+	}
 
 	destroy() {
 		log('destroy');
 		this._dockable.destroy();
-		this.parent();
-	},
+		super.destroy();
+	}
 
 	setLocation(location) {
 		let side = getStSideForLocation(location);
@@ -78,7 +74,7 @@ var DockableDash = new Lang.Class({
 		side = getMutterSideForLocation(location);
 		this._dockable.setSide(side);
 		this._updateStyle(side);
-	},
+	}
 
 	_updateStyle(side) {
 		const actor = this._view.dash;
@@ -116,7 +112,7 @@ var DockableDash = new Lang.Class({
 		else {
 			actor.remove_style_class_name('no-border');
 		}
-	},
+	}
 
 	_onStyleChanged(actor) {
 		log('dash "style-changed" signal');
@@ -147,41 +143,41 @@ var DockableDash = new Lang.Class({
 		}
 
 		connection.blocked = false;
-	},
+	}
 
 	_onDockIconSizeSettingChanged(setting, dockIconSize) {
 		log(`"dock-icon-size" setting changed signal: ${dockIconSize}`);
 		this._view.setIconSize(dockIconSize);
-	},
+	}
 
 	_onDockStretchSettingChanged(setting, dockStretch) {
 		log(`"dock-stretch" setting changed signal: ${dockStretch}`);
 		this._dockable.setStretch(dockStretch);
-	},
+	}
 
 	_onDockBordersSettingChanged(setting, dockBorders) {
 		log(`"dock-borders" setting changed signal: ${dockBorders}`);
 		const location = this._dashManager.settings.get_string('dash-location');
 		this._updateStyle(getMutterSideForLocation(location));
-	},
+	}
 
 	_onDockAlignmentSettingChanged(settings, dockAlignment) {
 		log(`"dock-alignment" setting changed signal: ${dockAlignment}`);
 		const align = getStAlignForAlignment(dockAlignment);
 		this._dockable.setAlign(align);
-	},
+	}
 
 	_onDockVisibilitySettingChanged(settings, dockVisibility) {
 		log(`"dock-visibility" setting changed signal: ${dockVisibility}`);
 		const toggle = dockVisibility === 'TOUCH_TO_REVEAL';
 		this._dockable.setToggle(toggle);
-	},
+	}
 
 	_onScalingChanged(scaling, factor) {
 		log(`scaling "changed" signal: ${factor}`);
 		this._view.refresh();
 	}
-});
+};
 
 
 /*

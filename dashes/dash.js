@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Main = imports.ui.main;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -22,26 +21,24 @@ const DashView = Me.imports.views.dashView;
 
 
 /**
- * Base class for dash implementations, such as PanelDash and DockableDash.
+ * Base class for dash implementations, such as TopBarDash and DockableDash.
  *
  * They should be considered singletons, as only one instance ever exists, as managed by
  * DashManager.
  */
-var Dash = new Lang.Class({
-	Name: 'EmDash.Dash',
-
-	_init(dashManager, styleClass, side, logicalIconSize, quantize) {
+var Dash = class Dash {
+	constructor(dashManager, styleClass, side, logicalIconSize, quantize) {
 		this._dashManager = dashManager;
 		this._view = new DashView.DashView(dashManager.modelManager, dashManager.scalingManager,
 			styleClass, side, logicalIconSize, quantize);
 		this._signalManager = new SignalUtils.SignalManager(this);
-	},
+	}
 
 	destroy() {
 		this._signalManager.destroy();
 		this._view.destroy();
-	},
+	}
 
 	setLocation(location) {
 	}
-});
+};

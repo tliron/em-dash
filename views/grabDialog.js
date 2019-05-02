@@ -13,13 +13,11 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const DialogUtils = Me.imports.utils.dialog;
-const Screen = Me.imports.utils.screen;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
@@ -29,12 +27,9 @@ const N_ = e => e;
 /**
  * Just tells the user to click on the grabbing dash icon.
  */
-var GrabDialog = new Lang.Class({
-	Name: 'EmDash.GrabDialog',
-	Extends: DialogUtils.MessageDialog,
-
-	_init(iconView) {
-		this.parent();
+var GrabDialog = class GrabDialog extends DialogUtils.MessageDialog {
+	constructor(iconView) {
+		super();
 
 		const app = iconView.app;
 		const name = GLib.markup_escape_text(app.get_name(), -1);
@@ -46,15 +41,15 @@ var GrabDialog = new Lang.Class({
 			.format(name)));
 		this.addMessage(_('<b>%s</b>.'
 			.format(name)));
-	},
+	}
 
 	open() {
-		this.parent();
-		Screen.displayManager.set_cursor(Meta.Cursor.POINTING_HAND);
-	},
+		super.open();
+		global.display.set_cursor(Meta.Cursor.POINTING_HAND);
+	}
 
 	destroy() {
-		this.parent();
-		Screen.displayManager.set_cursor(Meta.Cursor.DEFAULT);
+		super.destroy();
+		global.display.set_cursor(Meta.Cursor.DEFAULT);
 	}
-});
+};

@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Signals = imports.signals;
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
@@ -33,7 +32,6 @@ const DashMenu = Me.imports.views.dashMenu;
 const IconView = Me.imports.views.iconView;
 const ShowAppsIcon = Me.imports.views.showAppsIcon;
 const GrabDialog = Me.imports.views.grabDialog;
-const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('dashView');
 
@@ -47,11 +45,9 @@ const HOVER_TIMEOUT = 300;
  * Note that it is a complete re-implementation, and does not inherit from GNOME Shell's built-in
  * dash (though our IconView does inherit from AppIcon).
  */
-var DashView = new Lang.Class({
-	Name: 'EmDash.DashView',
-
-	_init(modelManager, scalingManager, styleClass, side, logicalIconSize, quantize) {
-		log('_init');
+var DashView = class DashView {
+	constructor(modelManager, scalingManager, styleClass, side, logicalIconSize, quantize) {
+		log('constructor');
 
 		this.modelManager = modelManager;
 		this.quantize = quantize;
@@ -124,7 +120,7 @@ var DashView = new Lang.Class({
 			this._signalManager.connect(this.modelManager, 'changed', this._onDashModelChanged);
 			this._signalManager.connect(appSystem, 'installed-changed',
 				this._onInstalledChanged);
-			this._signalManager.connect(Screen.workspaceManager, 'workspace-switched',
+			this._signalManager.connect(global.workspace_manager, 'workspace-switched',
 				this._onWorkspaceSwitched);
 			this._signalManager.connectProperty(windowTracker, 'focus-app',
 				this._onFocusAppChanged);
@@ -141,7 +137,7 @@ var DashView = new Lang.Class({
 				'icons-indicate-number-of-windows', 'boolean',
 				this._onIconsIndicateNumberOfWindowsSettingChanged);
 		}, true);
-	},
+	}
 
 	destroy() {
 		log('destroy');
@@ -158,13 +154,13 @@ var DashView = new Lang.Class({
 		if (this._grabDialog !== null) {
 			this._grabDialog.destroy();
 		}
-	},
+	}
 
 	closeMenu() {
 		if (this._menu !== null) {
 			this._menu.close();
 		}
-	},
+	}
 
 	getIconViewForModelIndex(modelIndex) {
 		for (let actor of this.box.get_children()) {
@@ -175,7 +171,7 @@ var DashView = new Lang.Class({
 			}
 		}
 		return null;
-	},
+	}
 
 	getIconViewForApp(app) {
 		const id = app.id;
@@ -187,7 +183,7 @@ var DashView = new Lang.Class({
 			}
 		}
 		return null;
-	},
+	}
 
 	getChildIndexForModelIndex(modelIndex) {
 		let lastGoodChildIndex = 0;
@@ -214,7 +210,7 @@ var DashView = new Lang.Class({
 			}
 		}
 		return lastGoodChildIndex;
-	},
+	}
 
 	setSide(side) {
 		const vertical = (side === St.Side.LEFT) || (side === St.Side.RIGHT);
@@ -234,14 +230,14 @@ var DashView = new Lang.Class({
 		}
 		this._menu = new DashMenu.DashMenu(this.actor, side);
 		this._menuManager.addMenu(this._menu);
-	},
+	}
 
 	setIconSize(logicalIconSize) {
 		if (this._logicalIconSize !== logicalIconSize) {
 			this._logicalIconSize = logicalIconSize;
 			this.refresh(true);
 		}
-	},
+	}
 
 	refresh(force = false, workspaceIndex) {
 		const physicalActorHeight = this._scalingManager.toPhysical(this._logicalIconSize);
@@ -253,7 +249,7 @@ var DashView = new Lang.Class({
 		log(`refresh: height=${physicalActorHeight} icon=${physicalIconSize}`);
 
 		if (workspaceIndex === undefined) {
-			workspaceIndex = Screen.workspaceManager.get_active_workspace_index();
+			workspaceIndex = global.workspace_manager.get_active_workspace_index();
 		}
 		const dashModel = this.modelManager.getDashModel(workspaceIndex);
 
@@ -336,7 +332,7 @@ var DashView = new Lang.Class({
 
 			// We will *not* use the signal manager for this connection, because we don't want to
 			// keep them from being garbage-collected if we remove them on subsequent refreshes
-			iconView.connect('sync-tooltip', Lang.bind(this, this._onSyncTooltip));
+			iconView.connect('sync-tooltip', this._onSyncTooltip.bind(this));
 
 			if (!force) {
 				iconView.appear();
@@ -347,7 +343,7 @@ var DashView = new Lang.Class({
 		this._updateFader();
 		this._updateFocusApp();
 		this._updateWheelScrolling();
-	},
+	}
 
 	updateTooltip(enable, iconView) {
 		if (enable) {
@@ -442,7 +438,7 @@ var DashView = new Lang.Class({
 				});
 			}
 		}
-	},
+	}
 
 	startGrab(grabSourceIconView) {
 		log(`startGrab: grabbing from ${grabSourceIconView.app.id}`);
@@ -460,7 +456,7 @@ var DashView = new Lang.Class({
 			this._grabSourceIconView = null;
 		});
 		this._grabDialog.open();
-	},
+	}
 
 	endGrab(grabTargetIconView) {
 		log(`endGrab: grabbing from ${this._grabSourceIconView.app.id} to ${grabTargetIconView.app.id}`);
@@ -472,11 +468,11 @@ var DashView = new Lang.Class({
 			grabTargetIconView.model.save();
 		}
 		this._grabSourceIconView = null;
-	},
+	}
 
 	get isGrabbing() {
 		return this._grabSourceIconView !== null;
-	},
+	}
 
 	_updateApplicationsButton(logicalIconSize) {
 		const applicationsButton = this.modelManager.settings.get_string('applications-button');
@@ -499,7 +495,7 @@ var DashView = new Lang.Class({
 				}
 			}
 		}
-	},
+	}
 
 	_removeApplicationsButton() {
 		for (let actor of this.box.get_children()) {
@@ -508,7 +504,7 @@ var DashView = new Lang.Class({
 				return;
 			}
 		}
-	},
+	}
 
 	_updateClip() {
 		// Clutter does not normally take into account translation when clipping
@@ -519,7 +515,7 @@ var DashView = new Lang.Class({
 		const height = allocation.y2 - allocation.y1;
 		log(`_updateClip: x=${x} y=${y} w=${width} h=${height}`);
 		this.box.clip_rect = ClutterUtils.newRect(x, y, width, height);
-	},
+	}
 
 	_updateFader() {
 		this._updateClip();
@@ -610,7 +606,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			this._scrollTranslation = 0;
 			this._scroll();
 		}
-	},
+	}
 
 	_updateWheelScrolling(iconsWheelScroll) {
 		if (iconsWheelScroll === undefined) {
@@ -627,7 +623,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 				}
 			}
 		}
-	},
+	}
 
 	_updateIndicateNumberOfWindows(indicateNumberOfWindows) {
 		for (let actor of this.box.get_children()) {
@@ -636,7 +632,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 				iconView.setRunningDot(indicateNumberOfWindows);
 			}
 		}
-	},
+	}
 
 	_updateFocusApp(app) {
 		if (this.modelManager.settings.get_boolean('icons-highlight-focused')) {
@@ -644,7 +640,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 				app = Shell.WindowTracker.get_default().focus_app;
 			}
 			if (app !== null) {
-				const workspaceIndex = Screen.workspaceManager.get_active_workspace_index();
+				const workspaceIndex = global.workspace_manager.get_active_workspace_index();
 				const dashModel = this.modelManager.getDashModel(workspaceIndex);
 				const modelIndex = dashModel.getIndexOfRepresenting(app);
 				if (modelIndex !== -1) {
@@ -661,14 +657,14 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			}
 		}
 		this._removeFocusApp();
-	},
+	}
 
 	_removeFocusApp() {
 		if (this._focused !== null) {
 			this._focused.unfocus();
 			this._focused = null;
 		}
-	},
+	}
 
 	_scroll(callback = null) {
 		const tween = {
@@ -686,7 +682,7 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			tween.translation_x = this._scrollTranslation;
 		}
 		Tweener.addTween(this.box, tween);
-	},
+	}
 
 	// Signals
 
@@ -700,28 +696,28 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			return Clutter.EVENT_STOP;
 		}
 		return Clutter.EVENT_PROPAGATE;
-	},
+	}
 
 	_onOverviewHiding() {
 		log('overview "hiding" signal');
 		this.closeMenu();
-	},
+	}
 
 	_onBoxAllocationPropertyChanged(actor, allocation) {
 		log('box "allocation" property changed signal');
 		this._updateFader();
-	},
+	}
 
 	_onStyleChanged(actor) {
 		log('dash "style-changed" signal');
 		this.refresh(true);
-	},
+	}
 
 	_onIconThemeChanged(textureCache) {
 		log('texture cache "icon-theme-changed" signal');
 		BacklightUtils.reset();
 		this.refresh(true);
-	},
+	}
 
 	_onFaderEnter(actor, crossingEvent) {
 		log('fader "enter-event" signal');
@@ -730,25 +726,25 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			this._updateFader();
 		});
 		return true;
-	},
+	}
 
 	_onDashModelChanged(modelManager) {
 		log('dash model "changed" signal');
 		this.refresh();
-	},
+	}
 
 	_onInstalledChanged(appSystem) {
 		log('app system "installed-changed" signal');
 		// This could potentially change some of our icons
 		this.refresh();
-	},
+	}
 
 	_onWorkspaceSwitched(screen, oldWorkspaceIndex, newWorkspaceIndex, direction) {
 		log(`workspace manager "workspace-switched" signal: from ${oldWorkspaceIndex} to ${newWorkspaceIndex} (${direction})`);
 		if (!this.modelManager.single) {
 			this.refresh(true, newWorkspaceIndex);
 		}
-	},
+	}
 
 	_onFocusAppChanged(windowTracker, app) {
 		if (app === null) {
@@ -758,12 +754,12 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			log(`window tracker "focus-app" property changed signal: ${app.id} ${app.get_name()}`);
 		}
 		this._updateFocusApp(app);
-	},
+	}
 
 	_onIconsHighlightFocusedSettingChanged(settings, iconsHighlightFocused) {
 		log(`"icons-highlight-focused" setting changed signal: ${iconsHighlightFocused}`);
 		this._updateFocusApp();
-	},
+	}
 
 	_onIconsHighlightFocusedGradientSettingChanged(settings,
 		iconsHighlightFocusedGradient) {
@@ -772,24 +768,24 @@ background-gradient-end: rgba(${end.red}, ${end.green}, ${end.blue}, ${end.alpha
 			this._focused.unfocus();
 			this._focused.focus();
 		}
-	},
+	}
 
 	_onApplicationsButtonSettingChanged(settings, applicationsButton) {
 		log(`"applications-button" setting changed signal: ${applicationsButton}`);
 		this.refresh();
-	},
+	}
 
 	_onIconsWheelScrollSettingChanged(settings, iconsWheelScroll) {
 		log(`"icons-wheel-scroll" setting changed signal: ${iconsWheelScroll}`);
 		this._updateWheelScrolling(iconsWheelScroll);
-	},
+	}
 
 	_onIconsIndicateNumberOfWindowsSettingChanged(settings, indicateNumberOfWindows) {
 		log(`"icons-indicate-number-of-windows" setting changed signal: ${indicateNumberOfWindows}`);
 		this._updateIndicateNumberOfWindows(indicateNumberOfWindows);
-	},
+	}
 
 	_onSyncTooltip(iconView) {
 		log(`"sync-tooltip" signal: ${iconView.app.id}`);
 	}
-});
+};

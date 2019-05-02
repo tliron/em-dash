@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Main = imports.ui.main;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -29,11 +28,9 @@ const log = LoggingUtils.logger('dashManager');
 /**
  * Manages and switches between dash implementations.
  */
-var DashManager = new Lang.Class({
-	Name: 'EmDash.DashManager',
-
-	_init(settings, dashClasses) {
-		log('_init');
+var DashManager = class DashManager {
+	constructor(settings, dashClasses) {
+		log('constructor');
 
 		this.dash = null;
 		this.settings = settings;
@@ -71,7 +68,7 @@ var DashManager = new Lang.Class({
 			this._signalManager.connectSetting(settings, 'menu-application', 'boolean',
 				this._onMenuApplicationSettingChanged);
 		}, true);
-	},
+	}
 
 	destroy() {
 		log('destroy');
@@ -83,19 +80,19 @@ var DashManager = new Lang.Class({
 		this.scalingManager.destroy();
 		this.restoreBuiltInDash();
 		this.restoreAppMenu();
-	},
+	}
 
 	removeBuiltInDash() {
 		if (this._overlayDashWasVisible) {
 			Main.overview._controls.dash.actor.hide();
 		}
-	},
+	}
 
 	restoreBuiltInDash() {
 		if (this._overlayDashWasVisible) {
 			Main.overview._controls.dash.actor.show();
 		}
-	},
+	}
 
 	removeAppMenu() {
 		if (this._appMenuParent !== null) {
@@ -104,7 +101,7 @@ var DashManager = new Lang.Class({
 				this._appMenuParent.remove_child(appMenu);
 			}
 		}
-	},
+	}
 
 	restoreAppMenu() {
 		if (this._appMenuParent !== null) {
@@ -113,7 +110,7 @@ var DashManager = new Lang.Class({
 				this._appMenuParent.insert_child_at_index(appMenu, this._appMenuIndex);
 			}
 		}
-	},
+	}
 
 	_onDashLocationChanged(settings, dashLocation) {
 		log(`"dash-location" setting changed signal: ${dashLocation}`);
@@ -128,7 +125,7 @@ var DashManager = new Lang.Class({
 			}
 		}
 		this.dash = new DashClass(this, dashLocation);
-	},
+	}
 
 	_onMenuApplicationSettingChanged(settings, menuApplication) {
 		log(`"menu-application" setting changed signal: ${menuApplication}`);
@@ -139,4 +136,4 @@ var DashManager = new Lang.Class({
 			this.restoreAppMenu();
 		}
 	}
-});
+};

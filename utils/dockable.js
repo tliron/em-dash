@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Main = imports.ui.main;
 const Layout = imports.ui.layout;
 const OverviewControls = imports.ui.overviewControls;
@@ -26,7 +25,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const ClutterUtils = Me.imports.utils.clutter;
-const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('dockable');
 
@@ -34,11 +32,9 @@ const log = LoggingUtils.logger('dockable');
 /**
  * Container that can be docked on the side of a monitor.
  */
-var Dockable = new Lang.Class({
-	Name: 'EmDash.Dockable',
-
-	_init(child, alignChild, side, align, stretch, toggle) {
-		log('_init');
+var Dockable = class Dockable {
+	constructor(child, alignChild, side, align, stretch, toggle) {
+		log('constructor');
 
 		this._alignChild = alignChild;
 		this._align = align;
@@ -84,9 +80,9 @@ var Dockable = new Lang.Class({
 
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
-		this._signalManager.connect(Screen.displayManager, 'workareas-changed', this._onWorkAreasChanged);
+		this._signalManager.connect(global.display, 'workareas-changed', this._onWorkAreasChanged);
 		this._signalManager.connectProperty(this.actor, 'hover', this._onHover);
-	},
+	}
 
 	destroy() {
 		log('destroy');
@@ -101,35 +97,35 @@ var Dockable = new Lang.Class({
 		if (this._rightCornerWasVisible) {
 			Main.panel._rightCorner.actor.show();
 		}
-	},
+	}
 
 	setSide(side) {
 		if (this._side !== side) {
 			this._side = side;
 			this.actor.set_size(0, 0); // will change struts and trigger 'workareas-changed' signal
 		}
-	},
+	}
 
 	setAlign(align) {
 		if (this._align !== align) {
 			this._align = align;
 			this._refreshAlign();
 		}
-	},
+	}
 
 	setStretch(stretch) {
 		if (this._stretch !== stretch) {
 			this._stretch = stretch;
 			this._refreshAlign();
 		}
-	},
+	}
 
 	setToggle(toggle) {
 		if (this._toggle !== toggle) {
 			this._collapsed = this._toggle = toggle;
 			this._reinitialize(); // will also refresh tracking
 		}
-	},
+	}
 
 	_reinitialize() {
 		let x, y, width = -1, height = -1, translationX = 0, translationY = 0;
@@ -214,18 +210,18 @@ var Dockable = new Lang.Class({
 		// change in the layout for this second call, and thus _onWorkAreasChanged won't be called a
 		// third time. That's a few unnecessarily repeated calculations due to the second call, but
 		// otherwise there is no other averse effect, and we avoid an endless loop.
-	},
+	}
 
 	_untrack() {
 		Main.layoutManager._untrackActor(this.actor);
-	},
+	}
 
 	_track() {
 		Main.layoutManager._trackActor(this.actor, {
 			affectsStruts: !this._toggle,
 			trackFullscreen: true
 		});
-	},
+	}
 
 	_refreshAlign() {
 		// WARNING: Reading x_align or y_align causes a crash! But we can write them just fine.
@@ -267,7 +263,7 @@ var Dockable = new Lang.Class({
 				this._alignChild.set_x_align(align);
 			}
 		}
-	},
+	}
 
 	_setPressureBarrier(barrier) {
 		log(`_setPressureBarrier: x1=${barrier.x1} y1=${barrier.y1} x2=${barrier.x2} y2=${barrier.y2}`);
@@ -281,7 +277,7 @@ var Dockable = new Lang.Class({
 		this._pressureBarrier.addBarrier(this._barrier);
 		this._signalManager.connect(this._pressureBarrier, 'trigger',
 			this._onPressureBarrierTriggered, true);
-	},
+	}
 
 	_destroyPressureBarrier() {
 		if (this._barrier !== null) {
@@ -293,7 +289,7 @@ var Dockable = new Lang.Class({
 			this._pressureBarrier.destroy();
 			this._pressureBarrier = null;
 		}
-	},
+	}
 
 	_refreshRoundedCorners() {
 		if (this._side === Meta.Side.LEFT) {
@@ -328,7 +324,7 @@ var Dockable = new Lang.Class({
 				Main.panel._rightCorner.actor.show();
 			}
 		}
-	},
+	}
 
 	_hasWorkAreaChanged() {
 		const workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
@@ -346,7 +342,7 @@ var Dockable = new Lang.Class({
 		this._workArea.width = workArea.width;
 		this._workArea.height = workArea.height;
 		return true;
-	},
+	}
 
 	// Signals
 
@@ -355,7 +351,7 @@ var Dockable = new Lang.Class({
 		this._collapsed = false;
 		this._reinitialize();
 		this.actor.track_hover = true;
-	},
+	}
 
 	_onHover(actor, hover) {
 		// Emitted only if track_hover is true.
@@ -367,7 +363,7 @@ var Dockable = new Lang.Class({
 			this._reinitialize();
 			this.actor.track_hover = false;
 		}
-	},
+	}
 
 	_onWorkAreasChanged(screen) {
 		log('display "workareas-changed" signal');
@@ -375,4 +371,4 @@ var Dockable = new Lang.Class({
 			this._reinitialize();
 		}
 	}
-});
+};

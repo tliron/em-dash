@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Signals = imports.signals;
 const Main = imports.ui.main;
 const Tweener = imports.ui.tweener;
@@ -35,11 +34,9 @@ const ANIMATION_TIME = 0.1;
  * This is an "almost-modal" dialog": it doesn't grab the keyboard and mouse, but will close if the
  * mouse is clicked anywhere in the workspace.
  */
-var MessageDialog = new Lang.Class({
-	Name: 'EmDash.MessageDialog',
-
-	_init() {
-		log('_init');
+var MessageDialog = class MessageDialog {
+	constructor() {
+		log('constructor');
 
 		this._overlay = null;
 
@@ -126,7 +123,7 @@ var MessageDialog = new Lang.Class({
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this._cancel, 'clicked', this._onCancel);
-	},
+	}
 
 	destroy() {
 		log('destroy');
@@ -146,7 +143,7 @@ var MessageDialog = new Lang.Class({
 				this.actor.destroy();
 			}
 		});
-	},
+	}
 
 	open() {
 		log('open');
@@ -178,7 +175,7 @@ var MessageDialog = new Lang.Class({
 			transition: 'easeOutQuad',
 			opacity: 255
 		});
-	},
+	}
 
 	addTitle(text) {
 		const label = new St.Label({
@@ -191,7 +188,7 @@ var MessageDialog = new Lang.Class({
 			y_fill: false,
 			y_align: St.Align.START
 		});
-	},
+	}
 
 	addMessage(text) {
 		const label = new St.Label({
@@ -203,7 +200,7 @@ var MessageDialog = new Lang.Class({
 			y_fill: false,
 			y_align: St.Align.START
 		});
-	},
+	}
 
 	// Signals
 
@@ -211,7 +208,7 @@ var MessageDialog = new Lang.Class({
 		log('cancel "clicked" signal');
 		this.emit('cancel');
 		this.destroy();
-	},
+	}
 
 	_onButtonPressed(actor, buttonEvent) {
 		log('"button-press-event" signal');
@@ -219,6 +216,6 @@ var MessageDialog = new Lang.Class({
 		this.destroy();
 		return true;
 	}
-});
+};
 
 Signals.addSignalMethods(MessageDialog.prototype);

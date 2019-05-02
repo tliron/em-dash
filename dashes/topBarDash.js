@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Main = imports.ui.main;
 const St = imports.gi.St;
 const Clutter = imports.gi.Clutter;
@@ -31,14 +30,11 @@ const log = LoggingUtils.logger('panelDash');
 /**
  * Dash implementation on the GNOME Shell panel.
  */
-var TopBarDash = new Lang.Class({
-	Name: 'EmDash.TopBarDash',
-	Extends: Dash.Dash,
+var TopBarDash = class TopBarDash extends Dash.Dash {
+	constructor(dashManager, location) {
+		log('constructor');
 
-	_init(dashManager, location) {
-		log('_init');
-
-		this.parent(dashManager, 'top-bar', St.Side.TOP,
+		super(dashManager, 'top-bar', St.Side.TOP,
 			dashManager.scalingManager.toLogical(Main.panel.actor.height), false);
 
 		this._view.dash.x_align = St.Align.START;
@@ -72,15 +68,15 @@ var TopBarDash = new Lang.Class({
 		this._signalManager.connectProperty(Main.panel.actor, 'height', this._onPanelHeightChanged);
 
 		this.setLocation(location);
-	},
+	}
 
 	destroy() {
 		log('destroy');
-		this.parent();
+		super.destroy();
 		this.bin.destroy();
 		this._patchManager.destroy();
 		Main.panel.actor.set_height(-1);
-	},
+	}
 
 	setLocation(location) {
 		// Note: in RTL, the poorly named "_leftBox" actually appears on the right :)
@@ -91,21 +87,21 @@ var TopBarDash = new Lang.Class({
 			}
 			break;
 		}
-	},
+	}
 
 	_leftBoxAllocate(original, childBox, flags) {
 		if (!this._moveCenter) {
 			original(childBox, flags);
 		}
 		// else we will postpone until _rightBoxAllocate
-	},
+	}
 
 	_centerBoxAllocate(original, childBox, flags) {
 		if (!this._moveCenter) {
 			original(childBox, flags);
 		}
 		// else we will postpone until _rightBoxAllocate
-	},
+	}
 
 	_rightBoxAllocate(original, rightChildBox, flags) {
 		original(rightChildBox, flags);
@@ -137,7 +133,7 @@ var TopBarDash = new Lang.Class({
 			this._patchManager.callOriginal(Main.panel._centerBox, 'allocate', centerChildBox,
 				flags);
 		}
-	},
+	}
 
 	_updateStyle(appearanceMerge) {
 		if (appearanceMerge) {
@@ -146,7 +142,7 @@ var TopBarDash = new Lang.Class({
 		else {
 			this._view.dash.remove_style_class_name('merge');
 		}
-	},
+	}
 
 	_updatePanelHeight() {
 		if (this._dashManager.settings.get_boolean('top-bar-custom-height')) {
@@ -156,42 +152,42 @@ var TopBarDash = new Lang.Class({
 		else {
 			Main.panel.actor.set_height(-1);
 		}
-	},
+	}
 
 	_onTopBarAppearanceMergeSettingChanged(settings, appearanceMerge) {
 		log(`"top-bar-appearance-merge" setting changed signal: ${appearanceMerge}`);
 		this._updateStyle(appearanceMerge);
-	},
+	}
 
 	_onTopBarMoveCenterSettingChanged(settings, moveCenter) {
 		log(`"top-bar-move-center" setting changed signal: ${moveCenter}`);
 		this._moveCenter = moveCenter;
 		Main.panel.actor.queue_relayout(); // causes allocation to be called
-	},
+	}
 
 	_onTopBarCustomHeightSettingChanged(settings, customHeight) {
 		log(`"top-bar-custom-height" setting changed signal: ${customHeight}`);
 		this._updatePanelHeight();
-	},
+	}
 
 	_onTopBarHeightSettingChanged(settings, height) {
 		log(`"top-bar-height" setting changed signal: ${height}`);
 		this._updatePanelHeight();
-	},
+	}
 
 	_onScalingChanged(scaling, factor) {
 		log(`scaling "changed" signal: ${factor}`);
 		this._updatePanelHeight();
-	},
+	}
 
 	_onPanelWidthChanged(actor, width) {
 		log(`panel "width" property changed signal: ${width}`);
 		this.bin.preferred_width = width;
 		// (the actual width of the bin would shrink to fit in the leftbox)
-	},
+	}
 
 	_onPanelHeightChanged(actor, height) {
 		log(`panel "height" property changed signal: ${height}`);
 		this._view.setIconSize(this._dashManager.scalingManager.toLogical(height));
 	}
-});
+};

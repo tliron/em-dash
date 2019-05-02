@@ -13,20 +13,17 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 
 
 /**
  * Manages deferred callbacks.
  */
-var LaterManager = new Lang.Class({
-	Name: 'EmDash.LaterManager',
-
-	_init(self) {
+var LaterManager = class LaterManager {
+	constructor(self) {
 		this._self = self;
 		this._laters = new Set();
-	},
+	}
 
 	destroy() {
 		// Forgetting to cancel these can result in crashes if the user enables and disables the
@@ -35,7 +32,7 @@ var LaterManager = new Lang.Class({
 			later.destroy();
 		}
 		this._laters.clear();
-	},
+	}
 
 	/**
 	 * Later type options:
@@ -62,7 +59,7 @@ var LaterManager = new Lang.Class({
 			return true;
 		}
 		return false;
-	},
+	}
 
 	cancel(callback) {
 		for (let later of this._laters) {
@@ -74,26 +71,24 @@ var LaterManager = new Lang.Class({
 		}
 		return false;
 	}
-});
+};
 
 
 /**
  * Deferred callback.
  */
-var Later = new Lang.Class({
-	Name: 'EmDash.Later',
-
-	_init(self, callback, type) {
+var Later = class Later {
+	constructor(self, callback, type) {
 		this.self = self;
 		this.callback = callback;
 		this.type = type;
 		this.id = 0;
-	},
+	}
 
 	initialize() {
-		this.id = Meta.later_add(this.type, Lang.bind(this.self, this.callback));
+		this.id = Meta.later_add(this.type, this.callback.bind(this.self));
 		return this.id != 0;
-	},
+	}
 
 	destroy() {
 		if (this.id != 0) {
@@ -101,4 +96,4 @@ var Later = new Lang.Class({
 			this.id = 0;
 		}
 	}
-});
+};

@@ -14,7 +14,8 @@
  */
 
 const Lang = imports.lang;
-const Shell = imports.gi.Shell;
+const GObject = imports.gi.GObject;
+const St = imports.gi.St;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
@@ -28,10 +29,8 @@ const SignalUtils = Me.imports.utils.signal;
  *
  * Note also that this is a GObject class!
  */
-var FixedBin = new Lang.Class({
-	Name: 'EmDash-FixedBin', // can't use "." with GObject classes
-	Extends: Shell.GenericContainer,
-
+var FixedBin = GObject.registerClass(
+class EmDash_FixedBin extends St.Widget {
 	_init(params) {
 		params = params || {};
 
@@ -53,7 +52,7 @@ var FixedBin = new Lang.Class({
 			delete params['child'];
 		}
 
-		this.parent(params);
+		super._init(params);
 
 		if (child !== null) {
 			this.add_child(child);
@@ -65,25 +64,25 @@ var FixedBin = new Lang.Class({
 		this._signalManager.connect(this, 'allocate', this._onAllocate);
 		this._signalManager.connect(this, 'get-preferred-width', this._onGetPreferredWidth);
 		this._signalManager.connect(this, 'get-preferred-height', this._onGetPreferredHeight);
-	},
+	}
 
 	// Signals
 
 	_onDestroy() {
 		this._signalManager.destroy();
-	},
+	}
 
 	_onAllocate(actor, box, flags) {
         const child = actor.get_first_child();
         if (child !== null) {
 	        child.allocate(box, flags);
         }
-	},
+	}
 
 	_onGetPreferredWidth(actor, forHeight, alloc) {
 		alloc.min_size = 0;
 		alloc.natural_size = this.preferred_width;
-	},
+	}
 
 	_onGetPreferredHeight(actor, forWidth, alloc) {
 		alloc.min_size = 0;

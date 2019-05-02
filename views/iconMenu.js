@@ -13,11 +13,11 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const AppDisplay = imports.ui.appDisplay;
 const PopupMenu = imports.ui.popupMenu;
 const Shell = imports.gi.Shell;
-const ShellMenu = imports.gi.ShellMenu;
+// GNOME 3.32
+// const ShellMenu = imports.gi.ShellMenu;
 const Atk = imports.gi.Atk;
 const GObject = imports.gi.GObject;
 
@@ -40,13 +40,11 @@ const log = LoggingUtils.logger('iconMenu');
  *
  *   https://github.com/GNOME/gnome-shell/blob/master/js/ui/appDisplay.js
  */
-var IconMenu = new Lang.Class({
-	Name: 'EmDash.IconMenu',
-	Extends: AppDisplay.AppIconMenu,
+var IconMenu = class IconMenu extends AppDisplay.AppIconMenu {
+	constructor(source, simpleName, settings) {
+		log('constructor');
 
-	_init(source, simpleName, settings) {
-		log('_init');
-		this.parent(source);
+		super(source);
 		this._simpleName = simpleName;
 		this._appMenu = null;
 		this._mediaControlsMenu = null;
@@ -60,7 +58,7 @@ var IconMenu = new Lang.Class({
 //		let verticalMargins = this.actor.margin_top + this.actor.margin_bottom;
 //		let maxHeight = Math.round((workArea.height - verticalMargins) / scaleFactor);
 //		this.box.style = ('max-height: %spx;').format(50);
-	},
+	}
 
 	/**
 	 * Override.
@@ -73,8 +71,8 @@ var IconMenu = new Lang.Class({
 		if (this._mediaControlsMenu !== null) {
 			this._mediaControlsMenu.destroy();
 		}
-		this.parent();
-	},
+		super.destroy();
+	}
 
 	/**
 	 * Override.
@@ -91,13 +89,13 @@ var IconMenu = new Lang.Class({
 			this._mediaControlsMenu = null;
 		}
 
-		this.parent();
+		super._redisplay();
 
 		const windows = this._source.model.windows;
 		if (windows.length > 0) {
 			const item = new PopupMenu.PopupMenuItem(
 				windows.length > 1 ? _('Grab These Windows...') : _('Grab This Window...'));
-			item.connect('activate', Lang.bind(this, this._onGrab));
+			item.connect('activate', this._onGrab.bind(this));
 			this.addMenuItem(item);
 		}
 
@@ -116,29 +114,27 @@ var IconMenu = new Lang.Class({
 			this._mediaControlsMenu = new MediaControlsMenu(this._simpleName);
 			this.addMenuItem(this._mediaControlsMenu.item);
 		}
-	},
+	}
 
 	// Signals
 
 	_onGrab() {
 		this._source.dashView.startGrab(this._source);
 	}
-});
+};
 
 
 /**
  * Base class for containers that use Shell.MenuTracker to insert and remove items.
  */
-var TrackingContainer = new Lang.Class({
-	Name: 'EmDash.TrackingContainer',
-
-	_init() {
+var TrackingContainer = class TrackingContainer {
+	constructor() {
 		this._menu = null;
 		this._menuTracker = null;
 		this._items = [];
 		this._startPosition = 0;
 		this._signalManager = new SignalUtils.SignalManager(this);
-	},
+	}
 
 	destroy() {
 		this._signalManager.destroy();
@@ -149,21 +145,21 @@ var TrackingContainer = new Lang.Class({
 			item.destroy();
 		}
 		this.item.destroy();
-	},
+	}
 
 	_track(menu, actionGroup, itemModel) {
 		this._menu = menu;
 		this._menuTracker = Shell.MenuTracker.new(actionGroup, itemModel, null,
 			this._onInsertItem.bind(this, this),
 			this._onRemoveItem.bind(this, this));
-	},
+	}
 
 	_trackSubmenu(menu, trackerItem) {
 		this._menu = menu;
 		this._menuTracker = Shell.MenuTracker.new_for_item_submenu(trackerItem,
 			this._onInsertItem.bind(this, this),
 			this._onRemoveItem.bind(this, this));
-	},
+	}
 
 	// Hooks
 
@@ -196,42 +192,38 @@ var TrackingContainer = new Lang.Class({
 			// We need at least one item to show the submenu
 			this.item.setSubmenuShown(true);
 		}
-	},
+	}
 
 	_onRemoveItem(menu, position) {
 		log(`menu tracker remove item: ${position}`);
 		const items = this._menu._getMenuItems();
 		items[position].destroy();
 	}
-});
+};
 
 
 /**
  * Application menu section.
  */
-var AppMenu = new Lang.Class({
-	Name: 'EmDash.AppMenu',
-	Extends: TrackingContainer,
-
-	_init(actionGroup, menuModel, trackerItem = null) {
-		this.parent();
+var AppMenu = class AppMenu extends TrackingContainer {
+	constructor(actionGroup, menuModel, trackerItem = null) {
+		super();
 		this.item = new PopupMenu.PopupMenuSection();
 		this._track(this.item, actionGroup, menuModel);
 //		this.item = new PopupMenu.PopupSubMenuMenuItem('Application Menu');
 //		this._track(this.item.menu, actionGroup, menuModel);
 	}
-});
+};
 
 
 /**
  * Manages the relationship between an application menu item and a tracker item.
  */
-var AppMenuItem = new Lang.Class({
-	Name: 'EmDash.AppMenuItem',
-	Extends: TrackingContainer, // we only need the base class functionality for has_submenu
+var AppMenuItem = class AppMenuItem extends TrackingContainer {
+	// we only need the base class functionality for has_submenu
 
-	_init(trackerItem) {
-		this.parent();
+	constructor(trackerItem) {
+		super();
 		this._trackerItem = trackerItem;
 
 		const label = stripMnemonics(trackerItem.label);
@@ -253,99 +245,98 @@ var AppMenuItem = new Lang.Class({
 		this.item.setSensitive(trackerItem.sensitive);
 		trackerItem.bind_property('visible', this.item.actor, 'visible',
 			GObject.BindingFlags.SYNC_CREATE);
-	},
+	}
 
 	destroy() {
-		this.parent();
+		super.destroy();
 		this._trackerItem.run_dispose();
-	},
+	}
 
 	_refreshRole(role) {
-		switch (role) {
-		case ShellMenu.MenuTrackerItemRole.NORMAL:
-			this.item.actor.accessible_role = Atk.Role.MENU_ITEM;
-			this.item.setOrnament(PopupMenu.Ornament.NONE);
-			break;
-		case ShellMenu.MenuTrackerItemRole.RADIO:
-			this.item.actor.accessible_role = Atk.Role.RADIO_MENU_ITEM;
-			this.item.setOrnament(this._trackerItem.toggled ?
-				PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE);
-			break;
-		case ShellMenu.MenuTrackerItemRole.CHECK:
-			this.item.actor.accessible_role = Atk.Role.CHECK_MENU_ITEM;
-			this.item.setOrnament(this._trackerItem.toggled ?
-				PopupMenu.Ornament.CHECK : PopupMenu.Ornament.NONE);
-			break;
-		}
-	},
+		// GNOME 3.32
+//		switch (role) {
+//		case ShellMenu.MenuTrackerItemRole.NORMAL:
+//			this.item.actor.accessible_role = Atk.Role.MENU_ITEM;
+//			this.item.setOrnament(PopupMenu.Ornament.NONE);
+//			break;
+//		case ShellMenu.MenuTrackerItemRole.RADIO:
+//			this.item.actor.accessible_role = Atk.Role.RADIO_MENU_ITEM;
+//			this.item.setOrnament(this._trackerItem.toggled ?
+//				PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE);
+//			break;
+//		case ShellMenu.MenuTrackerItemRole.CHECK:
+//			this.item.actor.accessible_role = Atk.Role.CHECK_MENU_ITEM;
+//			this.item.setOrnament(this._trackerItem.toggled ?
+//				PopupMenu.Ornament.CHECK : PopupMenu.Ornament.NONE);
+//			break;
+//		}
+	}
 
 	// Signals
 
 	_onOpen(item) {
 		log(`menu item "${this.item.label.text||''}" "open" signal`);
 		this._trackSubmenu(this.item.menu, this._trackerItem);
-	},
+	}
 
 	_onActivated(menuItem) {
 		log(`menu item "${this.item.label.text||''}" "activate" signal`);
 		this._trackerItem.activated();
-	},
+	}
 
 	_onLabelChanged(trackerItem, label) {
 		log(`tracker item "${this.item.label.text||''}" "label" property changed signal: ${label}`);
 		this.item.label.text = stripMnemonics(label);
-	},
+	}
 
 	_onSubmenuShownChanged(trackerItem, submenuShown) {
 		log(`tracker item "${this.item.label.text||''}" "submenu-shown" property changed signal: ${submenuShown}`);
 		this.item.setSubmenuShown(submenuShown);
-	},
+	}
 
 	_onSensitiveChanged(trackerItem, sensitive) {
 		log(`tracker item "${this.item.label.text||''}" "sensitive" property changed signal: ${sensitive}`);
 		this.item.setSensitive(sensitive);
-	},
+	}
 
 	_onRoleChanged(trackerItem, role) {
 		log(`tracker item "${this.item.label.text||''}" "role" property changed signal: ${role}`);
 		this._refreshRole(role);
-	},
+	}
 
 	_onToggledChanged(trackerItem, toggled) {
 		log(`tracker item "${this.item.label.text||''}" "toggled" property changed signal: ${toggled}`);
 		this._refreshRole(trackerItem.role);
 	}
-});
+};
 
 
 
 /**
  * Media controls menu section.
  */
-var MediaControlsMenu = new Lang.Class({
-	Name: 'EmDash.MediaControlsMenu',
-
-	_init(simpleName) {
+var MediaControlsMenu = class MediaControlsMenu {
+	constructor(simpleName) {
 		this.item = new PopupMenu.PopupMenuSection();
 		this._mpris = new MPRIS.MPRIS(simpleName);
 
 		// Signals
 		this._signalManager = new SignalUtils.SignalManager(this);
 		this._signalManager.connect(this._mpris, 'initialize', this._onInitialized);
-	},
+	}
 
 	destroy() {
 		this._signalManager.destroy();
 		this._mpris.destroy();
 		this.item.destroy();
-	},
+	}
 
 	_appendItem(labelText, iconName, callback) {
 		log(`MediaControlsMenu._appendItem: ${labelText}`)
 		const item = new PopupImageMenuItem(labelText, iconName);
 		this.item.addMenuItem(item);
 		this._signalManager.connect(item, 'activate', callback);
-	},
+	}
 
 	// Signals
 
@@ -368,48 +359,44 @@ var MediaControlsMenu = new Lang.Class({
 		if (this._mpris.canGoPrevious) {
 			this._appendItem(_('Previous track'), 'media-skip-backward', this._onPrevious);
 		}
-	},
+	}
 
 	_onPlay() {
 		log('play')
 		this._mpris.play();
-	},
+	}
 
 	_onPause() {
 		log('pause');
 		this._mpris.pause();
-	},
+	}
 
 	_onStop() {
 		log('stop');
 		this._mpris.stop();
-	},
+	}
 
 	_onNext() {
 		log('next');
 		this._mpris.next();
-	},
+	}
 
 	_onPrevious() {
 		log('previous');
 		this._mpris.previous();
 	}
-});
+};
 
 
 /**
  * Override popup sub-menu item, adding support for an "open" signal.
  */
-var PopupSubMenuMenuItem = new Lang.Class({
-	Name: 'EmDash.PopupSubMenuMenuItem',
-	Extends: PopupMenu.PopupSubMenuMenuItem,
-
+var PopupSubMenuMenuItem = class PopupSubMenuMenuItem extends PopupMenu.PopupSubMenuMenuItem {
 	_setOpenState(open) {
-		this.parent(open);
+		super._setOpenState(open);
 		this.emit('open');
 	}
-
-});
+};
 
 
 /**
@@ -420,18 +407,15 @@ var PopupSubMenuMenuItem = new Lang.Class({
  *
  * See: https://github.com/GNOME/gnome-shell/blob/master/js/ui/popupMenu.js
  */
-var PopupImageMenuItem = new Lang.Class({
-	Name: 'EmDash.PopupImageMenuItem',
-	Extends: PopupMenu.PopupImageMenuItem,
-
-	_init(text, iconName, params) {
-		this.parent(text, iconName, params);
+var PopupImageMenuItem = class PopupImageMenuItem extends PopupMenu.PopupImageMenuItem {
+	constructor(text, iconName, params) {
+		super(text, iconName, params);
 		this.actor.remove_child(this._icon);
 		this.actor.remove_child(this.label);
 		this.actor.add_child(this._icon);
 		this.actor.add_child(this.label);
 	}
-});
+};
 
 
 /**
@@ -444,7 +428,6 @@ function stripMnemonics(label) {
 	}
 	return label.replace(/_([^_])/, '$1');
 }
-
 
 
 /**

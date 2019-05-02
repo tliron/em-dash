@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Signals = imports.signals;
 const AppFavorites = imports.ui.appFavorites;
 const Shell = imports.gi.Shell;
@@ -23,7 +22,6 @@ const LoggingUtils = Me.imports.utils.logging;
 const SignalUtils = Me.imports.utils.signal;
 const AppUtils = Me.imports.utils.app;
 const DashModel = Me.imports.models.dashModel;
-const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('modelManager');
 
@@ -42,11 +40,9 @@ const SINGLE_WORKSPACE_INDEX = -1;
  * Internally relies on the GNOME Shell AppSystem, but with enhancements to support per-workspace
  * tracking and window grabbing.
  */
-var ModelManager = new Lang.Class({
-	Name: 'EmDash.ModelManager',
-
-	_init(settings) {
-		log('_init');
+var ModelManager = class ModelManager {
+	constructor(settings) {
+		log('constructor');
 
 		this.settings = settings;
 		this.single = null;
@@ -64,28 +60,28 @@ var ModelManager = new Lang.Class({
 			this._onIconsWindowMatchersSettingChanged);
 		this._signalManager.connect(appSystem, 'app-state-changed', this._onAppStateChanged);
 		this._signalManager.connect(appFavorites, 'changed', this._onFavoritesChanged);
-		this._signalManager.connect(Screen.workspaceManager, 'workspace-added', this._onWorkspaceAdded);
-		this._signalManager.connect(Screen.workspaceManager, 'workspace-removed', this._onWorkspaceRemoved);
+		this._signalManager.connect(global.workspace_manager, 'workspace-added', this._onWorkspaceAdded);
+		this._signalManager.connect(global.workspace_manager, 'workspace-removed', this._onWorkspaceRemoved);
 
-		const nWorkspaces = Screen.workspaceManager.n_workspaces;
+		const nWorkspaces = global.workspace_manager.n_workspaces;
 		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
-			this._onWorkspaceAdded(Screen.workspaceManager, workspaceIndex);
+			this._onWorkspaceAdded(global.workspace_manager, workspaceIndex);
 		}
 
 		this._initialized = true;
-	},
+	}
 
 	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
-	},
+	}
 
 	refresh() {
 		this._reset();
 		if (this._initialized) {
 			this.emit('changed');
 		}
-	},
+	}
 
 	getDashModel(workspaceIndex) {
 		if (this.single) {
@@ -105,11 +101,11 @@ var ModelManager = new Lang.Class({
 			dashModel.addRunning(workspaceIndex);
 		}
 		return dashModel;
-	},
+	}
 
 	removeDashModel(workspaceIndex) {
 		this._dashModels.delete(workspaceIndex);
-	},
+	}
 
 	/**
 	 * Adds an icon for the application to a specific workspace if there is no icon already
@@ -117,7 +113,7 @@ var ModelManager = new Lang.Class({
 	 */
 	addTo(workspaceIndex, app) {
 		return this.getDashModel(workspaceIndex).add(app);
-	},
+	}
 
 	/**
 	 * Adds an icon for the application to all workspaces if there is no icon already representing
@@ -128,14 +124,14 @@ var ModelManager = new Lang.Class({
 			return this.addTo(SINGLE_WORKSPACE_INDEX, app);
 		}
 		let changed = false;
-		const nWorkspaces = Screen.workspaceManager.n_workspaces;
+		const nWorkspaces = global.workspace_manager.n_workspaces;
 		for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
 			if (this.addTo(workspaceIndex, app)) {
 				changed = true;
 			}
 		}
 		return changed;
-	},
+	}
 
 	/**
 	 * Adds an icon for the application to the workspaces for which it has windows if there is no
@@ -153,7 +149,7 @@ var ModelManager = new Lang.Class({
 			}
 		}
 		return changed;
-	},
+	}
 
 	/**
 	 * Removes icons created for the application from all workspaces. Note that it will not remove
@@ -167,7 +163,7 @@ var ModelManager = new Lang.Class({
 			}
 		}
 		return changed;
-	},
+	}
 
 	/**
 	 * Removes icons that are no longer favorites.
@@ -180,7 +176,7 @@ var ModelManager = new Lang.Class({
 			}
 		}
 		return changed;
-	},
+	}
 
 	log() {
 		if (this.single) {
@@ -194,11 +190,11 @@ var ModelManager = new Lang.Class({
 				log(`workspace ${workspaceIndex}: ${dashModel.toString(workspaceIndex)}`);
 			}
 		}
-	},
+	}
 
 	_reset() {
 		this._dashModels.clear();
-	},
+	}
 
 	// Signals
 
@@ -209,12 +205,12 @@ var ModelManager = new Lang.Class({
 			this.single = single;
 			this.refresh();
 		}
-	},
+	}
 
 	_onIconsWindowMatchersSettingChanged(settings, windowMatchers) {
 		log('"icons-window-matchers" setting changed signal');
 		this.refresh();
-	},
+	}
 
 	_onAppStateChanged(appSystem, app) {
 		const id = app.id;
@@ -237,37 +233,37 @@ var ModelManager = new Lang.Class({
 				}
 			}
 		}
-	},
+	}
 
 	_onFavoritesChanged(favorites) {
 		log('favorites "changed" signal');
 		this.refresh();
-	},
+	}
 
 	_onWorkspaceAdded(screen, workspaceIndex) {
 		log(`workspace manager "workspace-added" signal: ${workspaceIndex}`);
 
 		// Signals
 		const workspace = screen.get_workspace_by_index(workspaceIndex);
-		workspace.connect('window-added', Lang.bind(this, this._onWindowAdded));
-		workspace.connect('window-removed', Lang.bind(this, this._onWindowRemoved));
-	},
+		workspace.connect('window-added', this._onWindowAdded.bind(this));
+		workspace.connect('window-removed', this._onWindowRemoved.bind(this));
+	}
 
 	_onWorkspaceRemoved(screen, workspaceIndex) {
 		// Note: this seems to never be called!
 		log(`workspace manager "workspace-removed" signal: ${workspaceIndex}`);
 		this.removeDashModel(workspaceIndex);
-	},
+	}
 
 	_onWindowAdded(workspace, window) {
 		log('workspace "window-added" signal');
 		this.refresh();
-	},
+	}
 
 	_onWindowRemoved(workspace, window) {
 		log('workspace "window-removed" signal');
 		this.refresh();
 	}
-});
+};
 
 Signals.addSignalMethods(ModelManager.prototype);

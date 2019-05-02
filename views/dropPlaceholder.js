@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const AppFavorites = imports.ui.appFavorites;
 const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
@@ -34,13 +33,11 @@ var _dropPlaceholder = null;
 /**
  * Drop hovering placeholder singleton.
  */
-var DropPlaceholder = new Lang.Class({
-	Name: 'EmDash.DropPlaceholder',
-
-	_init(actor, after) {
+var DropPlaceholder = class DropPlaceholder {
+	constructor(actor, after) {
 		this._iconView = actor._delegate;
 		this._after = after;
-		log(`_init: ${this._iconView.app.id}${after?' after':''}`);
+		log(`constructor: ${this._iconView.app.id}${after?' after':''}`);
 
 		this._dropped = false;
 
@@ -73,7 +70,7 @@ var DropPlaceholder = new Lang.Class({
 		}
 
 		this._dragMonitor = {
-			dragMotion: Lang.bind(this, this._onDragMotion)
+			dragMotion: this._onDragMotion.bind(this)
 		};
 		DND.addDragMonitor(this._dragMonitor);
 
@@ -89,7 +86,7 @@ var DropPlaceholder = new Lang.Class({
 			tween.width = actor.width;
 		}
 		Tweener.addTween(this.actor, tween);
-	},
+	}
 
 	destroy() {
 		if (this.destroying) {
@@ -126,11 +123,11 @@ var DropPlaceholder = new Lang.Class({
 			tween.width = 0;
 		}
 		Tweener.addTween(this.actor, tween);
-	},
+	}
 
 	isFor(actor, after) {
 		return (actor === this._iconView.actor) && (after == this._after);
-	},
+	}
 
 	// Hooks
 
@@ -156,7 +153,7 @@ var DropPlaceholder = new Lang.Class({
 		}
 		remove(); // this destroys us!
 		return true;
-	},
+	}
 
 	_onDragMotion(dragEvent) {
 		// Remove placeholder if we've moved out of the dash view box
@@ -167,7 +164,7 @@ var DropPlaceholder = new Lang.Class({
 		}
 		return DND.DragMotionResult.CONTINUE;
 	}
-});
+};
 
 
 function add(actor, after) {

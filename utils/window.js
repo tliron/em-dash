@@ -17,7 +17,6 @@ const Meta = imports.gi.Meta;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const LoggingUtils = Me.imports.utils.logging;
-const Screen = Me.imports.utils.screen;
 
 const log = LoggingUtils.logger('window');
 
@@ -54,7 +53,7 @@ function raiseAndFocus(windows) {
 	});
 	let window = windows.shift();
 
-	const display = Screen.display;
+	const display = global.display;
 
 	// Is the display newer? (I don't understand what this is for...)
 	const time = global.get_current_time();
@@ -65,7 +64,7 @@ function raiseAndFocus(windows) {
 		return;
 	}
 
-	const currentWorkspace = Screen.workspaceManager.get_active_workspace();
+	const currentWorkspace = global.workspace_manager.get_active_workspace();
 
 	// Raise windows in current workspace (in reverse order to preserve stacking)
 	windows.reverse();

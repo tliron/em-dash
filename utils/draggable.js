@@ -13,7 +13,6 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const DND = imports.ui.dnd;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -36,11 +35,10 @@ const log = LoggingUtils.logger('draggable');
  * * handleDragCanceled()
  * * handleDragEnd(dropped)
  */
-var Draggable = new Lang.Class({
-	Name: 'EmDash.Draggable',
+var Draggable = class Draggable {
+	constructor(actor) {
+		log('constructor');
 
-	_init(actor) {
-		log('_init');
 		this.actor = actor;
 
 		this._draggable = DND.makeDraggable(actor);
@@ -58,17 +56,17 @@ var Draggable = new Lang.Class({
 
 		// (Note our switch from "cancelled" to "canceled": we arbitrarily choose to use American
 		// English here.)
-	},
+	}
 
 	destroy() {
 		log('destroy');
 		this._signalManager.destroy();
 		this._patchManager.destroy();
-	},
+	}
 
 	fakeRelease() {
 		this._draggable.fakeRelease();
-	},
+	}
 
 	/**
 	 * Monkey patched.
@@ -78,7 +76,7 @@ var Draggable = new Lang.Class({
 			this.actor._delegate.handleDragCanceling();
 		}
 		original(eventTime);
-	},
+	}
 
 	/**
 	 * Monkey patched.
@@ -88,7 +86,7 @@ var Draggable = new Lang.Class({
 			return this.actor._delegate.getDragRestoreLocation();
 		}
 		original();
-	},
+	}
 
 	// Signals
 
@@ -96,18 +94,18 @@ var Draggable = new Lang.Class({
 		if (this.actor._delegate && this.actor._delegate.handleDragBegin) {
 			this.actor._delegate.handleDragBegin();
 		}
-	},
+	}
 
 	_onDragCanceled(draggable, time) {
 		// Likely unnecessary, because _onDragEnded will be called anyway with dropped=false
 		if (this.actor._delegate && this.actor._delegate.handleDragCanceled) {
 			this.actor._delegate.handleDragCanceled();
 		}
-	},
+	}
 
 	_onDragEnded(draggable, time, dropped) {
 		if (this.actor._delegate && this.actor._delegate.handleDragEnd) {
 			this.actor._delegate.handleDragEnd(dropped);
 		}
 	}
-});
+};

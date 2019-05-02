@@ -17,7 +17,6 @@
 const AppFavorites = imports.ui.appFavorites;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Screen = Me.imports.utils.screen;
 
 
 function isFavoriteApp(app) {
@@ -48,9 +47,9 @@ function moveFavoriteToPos(appId, fromPos, toPos) {
 function getWorkspacesForApp(app) {
 	const workspaceIndexes = [];
 
-	const nWorkspaces = Screen.workspaceManager.n_workspaces;
+	const nWorkspaces = global.workspace_manager.n_workspaces;
 	for (let workspaceIndex = 0; workspaceIndex < nWorkspaces; workspaceIndex++) {
-		const workspace = Screen.workspaceManager.get_workspace_by_index(workspaceIndex);
+		const workspace = global.workspace_manager.get_workspace_by_index(workspaceIndex);
 		if (app.is_on_workspace(workspace)) {
 			workspaceIndexes.push(workspaceIndex);
 		}
@@ -60,6 +59,6 @@ function getWorkspacesForApp(app) {
 }
 
 function isAppOnWorkspace(app, workspaceIndex) {
-	const workspace = Screen.workspaceManager.get_workspace_by_index(workspaceIndex);
+	const workspace = global.workspace_manager.get_workspace_by_index(workspaceIndex);
 	return app.is_on_workspace(workspace);
 }

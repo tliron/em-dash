@@ -13,29 +13,26 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const GLib = imports.gi.GLib;
 
 
-var TimeoutManager = new Lang.Class({
-	Name: 'EmDash.TimeoutManager',
-
-	_init(self) {
+var TimeoutManager = class TimeoutManager {
+	constructor(self) {
 		this.self = self;
 		this._timeouts = new Set();
-	},
+	}
 
 	destroy() {
 		for (let timeout of this._timeouts) {
 			timeout.destroy();
 		}
 		this._timeouts.clear();
-	},
+	}
 
 	add(time, name, callback) {
 		this._timeouts.add(new Timeout(time, name, this.self, callback));
-	},
+	}
 
 	cancel(name) {
 		for (let timeout of this._timeouts) {
@@ -46,38 +43,36 @@ var TimeoutManager = new Lang.Class({
 			}
 		}
 		return false;
-	},
+	}
 
 	cancelAndAdd(time, name, callback) {
 		this.cancel(name);
 		this.add(time, name, callback);
 	}
-});
+};
 
 
-var Timeout = new Lang.Class({
-	Name: 'EmDash.Timeout',
-
-	_init(time, name, self, callback) {
+var Timeout = class Timeout {
+	constructor(time, name, self, callback) {
 		this.name = name;
 		this.self = self;
 		this.callback = callback;
-		this.id = Mainloop.timeout_add(time, Lang.bind(this, this.call));
+		this.id = Mainloop.timeout_add(time, this.call.bind(this));
 		if (this.id !== 0) {
 			GLib.Source.set_name_by_id(this.id, `[em-dash] ${name}`);
 		}
-	},
+	}
 
 	destroy() {
 		if (this.id !== 0) {
 			Mainloop.source_remove(this.id);
 			this.id = 0;
 		}
-	},
+	}
 
 	call() {
 		this.id = 0;
 		this.callback.call(this.self);
 		return GLib.SOURCE_REMOVE;
 	}
-});
+};
