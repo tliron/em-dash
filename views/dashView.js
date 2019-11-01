@@ -90,7 +90,7 @@ var DashView = class DashView {
 		this.actor.add_child(this._fader);
 
 		// Menu
-		this._menuManager = new PopupMenu.PopupMenuManager(this);
+		this._menuManager = new PopupMenu.PopupMenuManager(this.actor);
 		this._menu = null;
 
 		this._timeoutManager = new TimeoutUtils.TimeoutManager(this);
